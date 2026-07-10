@@ -176,6 +176,25 @@ build `npm run build`, output `dist`) and the **server** to a host that runs a
 long-lived Node process (Render / Railway / Fly). Point `VITE_API_URL` at the
 server and set `CLIENT_URL` on the server to the Vercel URL.
 
+### Fix for Vercel + Render login CORS errors
+
+If the browser console shows a request to `http://localhost:5050` from the
+Vercel site, the deployed client was built with the local API URL. Update both
+hosts, then redeploy them:
+
+| Host | Dashboard location | Name | Value |
+| --- | --- | --- | --- |
+| Vercel (Production) | Project -> Settings -> Environment Variables | `VITE_API_URL` | `https://YOUR-RENDER-SERVICE.onrender.com/api` |
+| Render | Service -> Environment | `CLIENT_URL` | `https://ai-mock-interview-83spf9fuj-mohd-zaid-s-projects1.vercel.app` |
+| Render | Service -> Environment | `NODE_ENV` | `production` |
+
+Do not include a trailing slash in either URL. **Redeploy Render after changing
+`CLIENT_URL`, then redeploy Vercel after changing `VITE_API_URL`**. `VITE_*`
+values are compiled into the client bundle, so updating a Vercel environment
+variable alone cannot change an already-deployed site. Verify the server first
+at `https://YOUR-RENDER-SERVICE.onrender.com/api/health`; it should return JSON
+with `"status": "ok"`.
+
 ---
 
 ## API endpoints

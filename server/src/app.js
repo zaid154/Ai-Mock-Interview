@@ -10,9 +10,24 @@ const { notFound, errorHandler } = require('./middleware/error')
 
 const app = express()
 
-// CORS: allow the configured client origin and send cookies. In same-origin
-// production (client served from the API host) CLIENT_URL can be blank.
-app.use(cors({ origin: process.env.CLIENT_URL || true, credentials: true }))
+// CORS: CLIENT_URL accepts one origin or a comma-separated allow-list. This
+// lets the Render API serve the live Vercel site (and optional preview URLs)
+// without accidentally allowing every production website.
+const allowedOrigins = (process.env.CLIENT_URL || '')
+  .split(',')
+  .map((origin) => origin.trim().replace(/\/$/, ''))
+  .filter(Boolean)
+
+app.use(cors({
+  origin(origin, callback) {
+    // Requests without an Origin header are server-to-server tools/health checks.
+    if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin.replace(/\/$/, ''))) {
+      return callback(null, true)
+    }
+    return callback(new Error(`CORS blocked for origin: ${origin}`))
+  },
+  credentials: true,
+}))
 app.use(express.json())
 app.use(cookieParser())
 app.use(morgan('dev'))
