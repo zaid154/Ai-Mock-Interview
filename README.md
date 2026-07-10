@@ -1,14 +1,40 @@
 # MockMate AI
 
-> Practice interviews with an AI interviewer and get instant, actionable feedback.
+> Practice interviews with an AI interviewer (or take an AI quiz) and get instant, actionable feedback.
 
-A single project that runs a **React (Vite + TypeScript) client** and an
-**Express (TypeScript + Google Gemini) server** together, from **one command**,
+A single project that runs a **React (Vite + JavaScript) client** and an
+**Express (JavaScript + Google Gemini) server** together, from **one command**,
 using **one shared `.env`**.
 
-The app works **with or without** a Gemini API key: set the key for AI-generated
-questions and AI grading, or run it key-free and it falls back to a seeded
-question bank and heuristic scoring — so it always runs end to end.
+Everything is written in plain **JavaScript / JSX** — no TypeScript. The backend
+is small CommonJS files (one model per file, one controller per feature); the
+frontend is small React components and pages, one clear job each.
+
+---
+
+## Features
+
+- **Email + password auth** (JWT in an httpOnly cookie *and* a `Bearer` header).
+  A password reset revokes any tokens issued before it (via `tokenVersion`).
+- **Email OTP verification** — optional at signup (create the account now, verify
+  later) with resend. When an admin makes verification mandatory, a new account is
+  created but no session is issued until the email is verified.
+- **Forgot / reset password** using the same OTP system.
+- **Admin panel** — manage users (verify/unverify, promote/demote admin, delete),
+  a flexible add/edit/rename/delete settings table, and a global toggle that makes
+  email verification mandatory.
+- **Multiple Gemini API keys with auto-fallback** — tries keys in order and skips
+  a rate-limited key for a short cooldown.
+- **Two practice modes** — open-ended **Questions** (AI-graded) or a multiple-choice
+  **Quiz** (auto-scored, includes "what's the output of this code?" problem-solving
+  questions).
+- **Role + experience aware** — questions match the role and experience level you pick.
+- **Resume-tailored questions** — upload a PDF; its text is used to tailor questions.
+- **Session history** — every interview/quiz is saved; reopen a past one or delete it.
+
+> The app still works **without** a Gemini key: *Questions* mode falls back to a
+> seeded question bank and heuristic scoring. *Quiz* mode needs a working key
+> (it's fully AI-generated).
 
 ---
 
@@ -16,33 +42,47 @@ question bank and heuristic scoring — so it always runs end to end.
 
 | Tool               | Version    | Notes                                                        |
 | ------------------ | ---------- | ------------------------------------------------------------ |
-| **Node.js**        | ≥ 18       | Required by Vite 6. Check with `node -v`.                    |
+| **Node.js**        | ≥ 18       | Required by Vite 6, and for the global `fetch`. `node -v`.   |
 | **npm**            | ≥ 9        | Ships with Node 18+.                                          |
-| **MongoDB**        | any recent | Local (`mongod`) or a MongoDB Atlas URI. Needed for auth, interviews, and seeding. |
-| **Gemini API key** | optional   | Free key from [Google AI Studio](https://aistudio.google.com/apikey). Without it, the app uses the offline fallbacks. |
+| **MongoDB**        | any recent | Local (`mongod`) or a MongoDB Atlas URI.                     |
+| **Gemini API key** | optional   | Free key from [Google AI Studio](https://aistudio.google.com/apikey). Without it, Questions mode uses the offline fallback; Quiz mode is disabled. |
 
 ---
 
 ## Quick start
 
 ```bash
-cd 01-ai-mock-interview
+cd Ai-Mock-Interview
 
 npm run setup          # 1) install root + client + server deps
 cp .env.example .env   # 2) create your env (fill in the secrets)
-npm run seed           # 3) load the question bank (used as the offline fallback)
+npm run seed           # 3) create the admin user + default settings + fallback bank
 npm run dev            # 4) run client + server together
 ```
 
-- Client → http://localhost:5173
-- Server → http://localhost:5000  (health check: `GET /api/health`)
+- Client → http://localhost:5174
+- Server → http://localhost:5050  (health check: `GET /api/health`)
 
-The Vite dev server proxies `/api` to the backend, so the client can call
-`/api/...` directly with no CORS setup in development.
+> **Ports:** this project uses **5050** (server) and **5174** (client) so it
+> doesn't clash with a sibling "mockmate" project on 5000/5173. Change `PORT`
+> (`.env`) and Vite's `server.port` / `proxy` in
+> [`client/vite.config.js`](client/vite.config.js) if you like — keep them in sync.
 
-> **Ports:** the server uses **5000** and the client **5173**. If another app is
-> already on those ports, either stop it or change `PORT` (`.env`) and Vite's
-> `server.port` / `proxy` in [`client/vite.config.ts`](client/vite.config.ts).
+The Vite dev server proxies `/api` to the backend, so the client calls `/api/...`
+directly with no CORS setup in development.
+
+---
+
+## Default admin & OTP codes (local dev)
+
+`npm run seed` creates/updates an **admin** user from the `ADMIN_*` values in
+`.env` (default `admin@mockmate.com` / `Admin@123`). Sign in and open **Admin**
+in the navbar.
+
+When SMTP isn't configured, **OTP codes are printed to the server console**
+instead of emailed — so you can test verification and password reset locally with
+no email account. Look for a boxed `EMAIL (SMTP not configured…)` block in the
+terminal running `npm run dev`.
 
 ---
 
@@ -50,285 +90,238 @@ The Vite dev server proxies `/api` to the backend, so the client can call
 
 There is a **single `.env`** at the project root — both apps read it:
 
-- The **server** loads it via [`server/src/config/env.ts`](server/src/config/env.ts)
-  (`dotenv`, pointed at `../../../.env`).
+- The **server** loads it via [`server/src/config/env.js`](server/src/config/env.js)
+  (`dotenv`, pointed at the repo root).
 - The **client** loads it via Vite's `envDir: '..'` in
-  [`client/vite.config.ts`](client/vite.config.ts).
+  [`client/vite.config.js`](client/vite.config.js).
 
-> **Security:** Vite only exposes variables prefixed with `VITE_` to the browser
-> bundle. Server secrets (`JWT_SECRET`, `GEMINI_API_KEY`, `MONGODB_URI`) are
-> **not** shipped to the client even though they live in the same file.
+Only variables prefixed with `VITE_` are exposed to the browser bundle, so server
+secrets stay server-side even though they live in the same file.
 
-| Variable         | Used by | Purpose                                                        |
-| ---------------- | ------- | -------------------------------------------------------------- |
-| `PORT`           | server  | API port (default 5000)                                        |
-| `NODE_ENV`       | server  | `development` / `production`                                   |
-| `CLIENT_URL`     | server  | CORS origin for the frontend                                   |
-| `MONGODB_URI`    | server  | MongoDB connection string                                      |
-| `JWT_SECRET`     | server  | Signing secret for auth tokens                                 |
-| `JWT_EXPIRES_IN` | server  | Token lifetime (e.g. `7d`)                                      |
-| `GEMINI_API_KEY` | server  | Google Gemini API key. **Blank = offline mode** (seeded bank + heuristic scoring). |
-| `GEMINI_MODEL`   | server  | Optional. Gemini model to use (default `gemini-2.5-flash`). Override if the default alias is ever retired. |
-| `VITE_API_URL`   | client  | Base URL of the API (browser-exposed)                          |
+| Variable          | Used by | Purpose                                                                 |
+| ----------------- | ------- | ----------------------------------------------------------------------- |
+| `PORT`            | server  | API port (default 5050)                                                 |
+| `NODE_ENV`        | server  | `development` / `production` (controls secure cookies)                  |
+| `CLIENT_URL`      | server  | CORS origin for the frontend. **Blank = same-origin** (prod)            |
+| `MONGODB_URI`     | server  | MongoDB connection string (**note the name — not `MONGO_URI`**)         |
+| `JWT_SECRET`      | server  | Signing secret for auth tokens                                          |
+| `JWT_EXPIRES_IN`  | server  | Token lifetime (e.g. `7d`)                                              |
+| `ADMIN_NAME/EMAIL/PASSWORD` | seed | The admin account created by `npm run seed`                       |
+| `GEMINI_API_KEY`  | server  | A single Gemini key (optional)                                          |
+| `GEMINI_API_KEYS` | server  | Multiple keys, comma-separated, for auto-fallback (optional)           |
+| `GEMINI_MODEL`    | server  | Gemini model (default `gemini-2.5-flash`)                               |
+| `SMTP_HOST/PORT/USER/PASS/FROM` | server | SMTP for OTP emails. **Blank = print OTP to console**         |
+| `VITE_API_URL`    | client  | Base URL of the API (browser-exposed). Blank = relative `/api`          |
 
-> **MongoDB Atlas note:** if your Node environment can't resolve the `mongodb+srv://`
-> DNS SRV record (some networks/VPNs block SRV lookups — you'll see
-> `querySrv ECONNREFUSED`), use the **non-SRV** multi-host form instead:
-> `mongodb://user:pass@host-00:27017,host-01:27017,host-02:27017/mockmate?ssl=true&replicaSet=<name>&authSource=admin`.
-
----
-
-## AI: how questions & grading work
-
-All AI lives in [`server/src/services/gemini.ts`](server/src/services/gemini.ts),
-which exposes two functions used by the interview routes:
-
-| Function                       | With `GEMINI_API_KEY`                                        | Without a key (offline fallback)                                              |
-| ------------------------------ | ----------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `generateQuestions(role, difficulty, count)` | Gemini writes fresh, role-specific questions (JSON) | `fallbackQuestions` — pulls from the seeded `questions` collection (by role → difficulty → any), dedupes, and tops up with a generic prompt if short |
-| `evaluateInterview(role, items)` | Gemini grades each answer (0–10 + feedback), plus an overall score (0–100) and summary | `fallbackEvaluation` — heuristic scoring based on answer length/detail |
-
-Both paths **degrade gracefully**: if a Gemini call fails or returns malformed
-JSON, the code logs a warning and returns the offline result, so an interview
-never hard-fails.
-
-**To enable real AI:**
-
-1. Get a free key at **https://aistudio.google.com/apikey**.
-2. In [`.env`](.env), set `GEMINI_API_KEY=your_key_here` (optionally pin
-   `GEMINI_MODEL`).
-3. **Restart the dev server** — `.env` is read at startup, not hot-reloaded.
-
-`getModel()` reads the key and model name; a missing key returns `null`, which
-is how every function knows to take the offline path.
+> You can also add/rotate **Gemini keys** from the **admin panel** (stored in the
+> DB), on top of any keys in `.env`.
 
 ---
 
-## How it works — request workflow
+## How the AI works
 
-### Authentication
+All AI lives in [`server/src/services/gemini.js`](server/src/services/gemini.js):
 
-JWT-based, accepted as either a `Bearer` header **or** an httpOnly `token` cookie.
+| Function              | With a working key                                     | Without a key                          |
+| --------------------- | ------------------------------------------------------ | -------------------------------------- |
+| `generateQuestions()` | Gemini writes role/experience-specific questions       | seeded question bank (offline)         |
+| `generateQuiz()`      | Gemini writes MCQs incl. code-output questions          | **disabled** (API returns 503)         |
+| `evaluateInterview()` | Gemini grades each answer + overall score              | length-based heuristic scoring         |
 
-1. **Register / Login** → `POST /api/auth/register` or `/login`. The server
-   hashes the password (`bcryptjs`), creates/finds the user, signs a JWT
-   (`sub = userId`, `JWT_EXPIRES_IN`), sets the `token` cookie **and** returns
-   `{ token, user }`.
-2. The **client** stores the token in `localStorage` and attaches it as an
-   `Authorization: Bearer` header on every request (Axios interceptor in
-   [`lib/api.ts`](client/src/lib/api.ts)).
-3. `requireAuth` ([`middleware/auth.ts`](server/src/middleware/auth.ts)) reads the
-   header or cookie, verifies the JWT, and sets `req.userId`.
-4. On app load, `AuthProvider` calls `GET /api/auth/me` to restore the session.
-5. **Logout** clears the cookie and removes the `localStorage` token.
+**Multiple keys / auto-fallback:** keys are gathered from the admin setting
+`gemini_api_keys` (array) plus `GEMINI_API_KEYS` / `GEMINI_API_KEY` in `.env`.
+`generateJson()` tries them in order; a key that hits an error is put on a short
+in-memory cooldown and skipped until it expires, then retried. Simple loop +
+timestamp — no queue or worker.
 
-### Interview lifecycle
+---
 
-```mermaid
-sequenceDiagram
-    participant U as User (browser)
-    participant C as Client (React)
-    participant S as Server (Express)
-    participant G as Gemini / fallback
-    participant DB as MongoDB
+## Auth & sessions
 
-    U->>C: Pick role + difficulty + count (Dashboard)
-    C->>S: POST /api/interviews
-    S->>G: generateQuestions()
-    G-->>S: question prompts
-    S->>DB: create Interview (status: in_progress)
-    S-->>C: { interview }
-    C->>U: /interview/:id — answer one at a time
-    U->>C: Submit answers
-    C->>S: POST /api/interviews/:id/submit
-    S->>G: evaluateInterview()
-    G-->>S: per-question scores + feedback + summary
-    S->>DB: save scores, status: completed
-    S-->>C: { interview }
-    C->>U: /results/:id — verdict, chart, feedback
-```
+- A JWT is signed with the user id **and** their current `tokenVersion`, and sent
+  as an httpOnly cookie plus returned for the `Bearer` header.
+- `requireAuth` verifies the token, then loads the user and checks the account
+  still exists and the token's `tokenVersion` still matches — so a **password
+  reset (which bumps `tokenVersion`) instantly invalidates older tokens** on every
+  device.
+- **Ownership is enforced server-side:** interview reads/writes/deletes are scoped
+  to the signed-in user (`{ user: req.userId }`), so no one can touch another
+  user's data. Admin routes additionally require the `admin` role.
+- Admins can't delete or change the role of **their own** account (prevents an
+  accidental self-lockout).
 
-1. **Dashboard** ([`Dashboard.tsx`](client/src/pages/Dashboard.tsx)) — choose role,
-   difficulty, and question count → `POST /api/interviews`. The server generates
-   the questions up front and saves an `in_progress` interview.
-2. **Interview** ([`Interview.tsx`](client/src/pages/Interview.tsx)) — loads the
-   interview, presents questions one at a time, and collects answers. (Already-
-   completed interviews redirect straight to results.)
-3. **Submit** → `POST /api/interviews/:id/submit` with the answers array. The
-   server grades them, stores per-question scores/feedback + an overall
-   score/summary, and marks the interview `completed`.
-4. **Results** ([`Results.tsx`](client/src/pages/Results.tsx)) — overall verdict,
-   a per-question bar chart ([`ScoreChart.tsx`](client/src/components/ScoreChart.tsx)),
-   and each question's feedback.
+---
 
-### API endpoints
+## Deployment (localhost vs Vercel)
 
-| Method & path                  | Auth | Body                          | Returns                          |
-| ------------------------------ | :--: | ----------------------------- | -------------------------------- |
-| `GET /api/health`              |  —   | —                             | `{ status, service }`            |
-| `POST /api/auth/register`      |  —   | `{ name, email, password }`   | `{ token, user }`                |
-| `POST /api/auth/login`         |  —   | `{ email, password }`         | `{ token, user }`                |
-| `POST /api/auth/logout`        |  —   | —                             | clears the cookie                |
-| `GET /api/auth/me`             |  ✅  | —                             | `{ user }`                       |
-| `POST /api/interviews`         |  ✅  | `{ role, difficulty, count }` | `{ interview }` (questions ready)|
-| `GET /api/interviews`          |  ✅  | —                             | `{ interviews }` (summaries)     |
-| `GET /api/interviews/:id`      |  ✅  | —                             | `{ interview }` (full)           |
-| `POST /api/interviews/:id/submit` | ✅ | `{ answers: string[] }`      | `{ interview }` (graded)         |
+The app runs as **two pieces**: a static client and an API server. Common
+"works locally, breaks after deploy" causes are handled:
+
+1. **Env var name** — the code reads `MONGODB_URI`. (The old `.env` used
+   `MONGO_URI`, which was never read, so it silently used localhost. Fixed.)
+2. **API base URL** — the client uses `VITE_API_URL`, falling back to a relative
+   `/api`. In production set `VITE_API_URL` to your deployed API origin
+   (e.g. `https://your-api.onrender.com/api`).
+3. **SPA routing (404 on refresh)** — [`client/vercel.json`](client/vercel.json)
+   rewrites all non-`/api` paths to `index.html` so `/dashboard`, `/admin`, etc.
+   don't 404 on reload.
+4. **Cross-site cookies** — in production the auth cookie is sent with
+   `SameSite=None; Secure` so it survives a client and API on different domains.
+   Set `CLIENT_URL` to the exact frontend origin (for CORS with credentials).
+5. **No local disk needed** — uploaded resumes are parsed **in memory** and only
+   the extracted text is stored, so it works on serverless hosts.
+
+**Recommended shape:** deploy the **client** to Vercel (root = `client/`,
+build `npm run build`, output `dist`) and the **server** to a host that runs a
+long-lived Node process (Render / Railway / Fly). Point `VITE_API_URL` at the
+server and set `CLIENT_URL` on the server to the Vercel URL.
+
+---
+
+## API endpoints
+
+| Method & path                          | Auth  | Body                                              |
+| -------------------------------------- | :---: | ------------------------------------------------- |
+| `GET /api/health`                      |  —    | —                                                 |
+| `POST /api/auth/register`              |  —    | `{ name, email, password }`                       |
+| `POST /api/auth/login`                 |  —    | `{ email, password }`                             |
+| `POST /api/auth/verify-otp`            |  —    | `{ email, otp }`                                  |
+| `POST /api/auth/resend-otp`            |  —    | `{ email }`                                       |
+| `POST /api/auth/forgot-password`       |  —    | `{ email }`                                       |
+| `POST /api/auth/reset-password`        |  —    | `{ email, otp, newPassword }`                     |
+| `POST /api/auth/logout`                |  —    | —                                                 |
+| `GET /api/auth/me`                     |  ✅   | —                                                 |
+| `POST /api/interviews`                 |  ✅   | `{ role, experience, difficulty, mode, count, useResume }` |
+| `GET /api/interviews`                  |  ✅   | —                                                 |
+| `GET /api/interviews/:id`              |  ✅   | —                                                 |
+| `POST /api/interviews/:id/submit`      |  ✅   | `{ answers }` (strings for questions, option indexes for quiz) |
+| `DELETE /api/interviews/:id`           |  ✅   | — (remove your own session)                       |
+| `POST /api/interviews/resume`          |  ✅   | multipart: `resume` (PDF)                          |
+| `GET /api/admin/users`                 | admin | —                                                 |
+| `PATCH /api/admin/users/:id/verified`  | admin | `{ isVerified }`                                  |
+| `PATCH /api/admin/users/:id/role`      | admin | `{ role: 'user' \| 'admin' }` (not your own)      |
+| `DELETE /api/admin/users/:id`          | admin | — (not your own)                                  |
+| `GET /api/admin/settings`              | admin | —                                                 |
+| `PUT /api/admin/settings`              | admin | `{ key, value }` (upsert)                         |
+| `PATCH /api/admin/settings/:key/rename`| admin | `{ newKey }`                                      |
+| `DELETE /api/admin/settings/:key`      | admin | —                                                 |
 
 ---
 
 ## Commands
 
-All commands are run from the project root:
-
 | Command              | What it does                                          |
 | -------------------- | ----------------------------------------------------- |
-| `npm run setup`      | Install deps for root **+ client + server** in one go |
+| `npm run setup`      | Install deps for root **+ client + server**           |
 | `npm run dev`        | Run client and server together (via `concurrently`)   |
 | `npm run dev:client` | Run only the client                                   |
-| `npm run dev:server` | Run only the server                                   |
-| `npm run build`      | Build server (`tsc`) then client (`vite build`)       |
-| `npm run start`      | Start the built server                                |
-| `npm run seed`       | Seed the database with the interview question bank    |
+| `npm run dev:server` | Run only the server (`nodemon`)                       |
+| `npm run build`      | Build the client (`vite build`) — the server is plain JS, no build |
+| `npm run start`      | Start the server (`node server/src/index.js`)         |
+| `npm run seed`       | Create admin + default settings + fallback question bank |
 
 ---
 
-## Seeding the database
+## Project Structure
 
-Make sure `MONGODB_URI` in `.env` points at a running MongoDB, then:
+Every file, with a one-line explanation.
 
-```bash
-npm run seed
-```
+### Root
 
-This runs [`server/src/seed.ts`](server/src/seed.ts), which connects to MongoDB,
-clears the `questions` collection, and inserts the interview question bank
-(Frontend / Backend / Full Stack / Behavioral × easy/medium/hard). This bank is
-what the app serves when no `GEMINI_API_KEY` is set, so seeding is recommended
-even if you plan to add a key later.
-
----
-
-## File-by-file reference
+| File / folder            | What it does                                                                 |
+| ------------------------ | --------------------------------------------------------------------------- |
+| `package.json`           | Orchestrator scripts — `setup` / `dev` / `build` / `start` / `seed`.        |
+| `.env` / `.env.example`  | The single shared environment for both apps.                                |
+| `.gitignore`             | Ignores `node_modules`, `dist`, and the `.env`.                             |
 
 ### Server — `server/src/`
 
-| File                          | Responsibility                                                                                     |
-| ----------------------------- | -------------------------------------------------------------------------------------------------- |
-| `index.ts`                    | Entry point. Loads env, connects to MongoDB, then starts Express on `PORT`. Exits if the DB is unreachable. |
-| `app.ts`                      | Builds the Express app: CORS, JSON + cookie parsing, request logging, mounts the routers, `GET /api/health`, and the 404 + error handlers. |
-| `config/env.ts`               | Side-effect import that loads the single shared root `.env` via `dotenv` before anything reads `process.env`. |
-| `config/db.ts`                | `connectDB(uri)` — thin wrapper around `mongoose.connect`.                                          |
-| `middleware/auth.ts`          | `requireAuth` — extracts the JWT from the `Bearer` header or `token` cookie, verifies it, sets `req.userId`. |
-| `middleware/validate.ts`      | `validate(schema)` — validates `req.body` against a Zod schema; 400 on failure, replaces the body with parsed data. |
-| `middleware/error.ts`         | `notFound` (404 JSON) and `errorHandler` (maps `CastError`→400, duplicate key→409, else 500).      |
-| `models/User.ts`              | Mongoose `User` schema — `name`, unique lowercase `email`, `passwordHash`.                          |
-| `models/Interview.ts`         | `Interview` schema — user ref, role, difficulty, status, embedded `questions[{ prompt, answer, score, feedback }]`, `overallScore`, `summary`. |
-| `models/Question.ts`          | `Question` schema — the seed-time question bank (`role`, `difficulty`, `prompt`); also the offline fallback source. |
-| `routes/auth.routes.ts`       | `register` / `login` / `logout` / `me`. Hashes passwords, signs JWTs, sets the cookie, returns the public user. |
-| `routes/interview.routes.ts`  | Interview endpoints (all behind `requireAuth`): start (generate questions), list, get one, submit (grade). |
-| `services/gemini.ts`          | The AI layer — `generateQuestions` + `evaluateInterview` (Gemini), each with an offline fallback (`fallbackQuestions`, `fallbackEvaluation`). `getModel()` reads `GEMINI_API_KEY` / `GEMINI_MODEL`. |
-| `utils/token.ts`              | `signToken` / `verifyToken` (jsonwebtoken).                                                         |
-| `utils/asyncHandler.ts`       | `wrap()` — forwards rejected promises from async route handlers to Express' error handler.          |
-| `seed.ts`                     | CLI script (`npm run seed`) that resets and inserts the question bank.                              |
+| File                              | What it does                                                                                   |
+| --------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `index.js`                        | Entry point. Loads env, connects to MongoDB, then starts Express. Exits if the DB is unreachable. |
+| `app.js`                          | Builds the Express app: CORS, JSON + cookie parsing, logging, mounts the routers, `/api/health`, 404 + error handlers. |
+| `seed.js`                         | `npm run seed` — inserts the fallback question bank, upserts the admin user, and default settings. |
+| **config/**                       |                                                                                                |
+| `config/env.js`                   | Loads the shared root `.env` (required first, before anything reads `process.env`).            |
+| `config/db.js`                    | `connectDB(uri)` — thin wrapper around `mongoose.connect`.                                      |
+| **models/** (one per file)        |                                                                                                |
+| `models/User.model.js`            | User schema — name/email/passwordHash, `role`, `isVerified` + `otp*` fields, `resumeText`, and `tokenVersion` (bumped on reset to revoke old JWTs). |
+| `models/Interview.model.js`       | Interview schema — role/experience/difficulty/`mode`, embedded questions (open-ended **and** quiz fields), overall score/summary. |
+| `models/Question.model.js`        | Seed-time fallback question bank (used only in Questions mode when Gemini is unavailable).      |
+| `models/Setting.model.js`         | Flexible `{ key, value }` config the admin panel edits (value is Mixed — string/boolean/array). |
+| **controllers/** (one per feature)|                                                                                                |
+| `controllers/auth.controller.js`  | register / login / verify-otp / resend-otp / forgot-password / reset-password / logout / me. Reset bumps `tokenVersion`; register withholds the session when verification is mandatory. |
+| `controllers/admin.controller.js` | users (list, set verified, change role, delete — with self-guards) + settings CRUD (list/upsert/rename/delete). |
+| `controllers/interview.controller.js` | start (questions or quiz), list, get one, submit (AI grade or quiz auto-score), delete, resume upload (PDF → text via `unpdf`). |
+| **routes/** (thin)                |                                                                                                |
+| `routes/auth.routes.js`           | Auth routes + their Zod validation schemas.                                                    |
+| `routes/admin.routes.js`          | Admin routes, all behind `requireAuth` + `requireAdmin`.                                       |
+| `routes/interview.routes.js`      | Interview routes + the Multer (in-memory) upload for resumes.                                   |
+| **middleware/**                   |                                                                                                |
+| `middleware/auth.js`              | `requireAuth` (verifies the Bearer/cookie JWT, then confirms the user exists and the token's `tokenVersion` matches) and `requireAdmin` (checks the admin role). |
+| `middleware/validate.js`          | `validate(schema)` — Zod body validation, 400 on failure.                                       |
+| `middleware/error.js`             | 404 handler + central error handler (maps common Mongo/Multer errors).                          |
+| **services/**                     |                                                                                                |
+| `services/gemini.js`              | The AI layer — question/quiz generation + grading, multiple-key fallback, offline fallbacks.   |
+| `services/email.js`               | Sends email via SMTP, or prints to the console when SMTP isn't configured. `sendOtpEmail()`.    |
+| **utils/**                        |                                                                                                |
+| `utils/token.js`                  | `signToken(userId, tokenVersion)` / `verifyToken` (jsonwebtoken).                               |
+| `utils/otp.js`                    | Generate a 6-digit OTP, its expiry, and validate a submitted code.                             |
+| `utils/settings.js`               | `getSetting(key, fallback)` — read one Setting value.                                           |
+| `utils/asyncHandler.js`           | `wrap()` — forwards async errors to the Express error handler.                                  |
 
 ### Client — `client/src/`
 
-| File                            | Responsibility                                                                                   |
-| ------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `main.tsx`                      | React entry — mounts `App` inside `BrowserRouter`, `AuthProvider`, and the toast `Toaster`.       |
-| `App.tsx`                       | Route table: `/`, `/login`, `/register`, and the protected `/dashboard`, `/interview/:id`, `/results/:id`. |
-| `index.css`                     | Global styles + the app's dark theme.                                                            |
-| `context/AuthContext.tsx`       | Auth state + `login` / `register` / `logout`. Restores the session via `GET /auth/me`, stores the token in `localStorage`. |
-| `lib/api.ts`                    | Axios instance (base URL from `VITE_API_URL`, `withCredentials`, Bearer-token interceptor) + the `apiError` helper. |
-| `lib/types.ts`                  | Shared TypeScript types — `User`, `Interview`, `InterviewQuestion`, `Difficulty`, `InterviewSummary`. |
-| `components/Navbar.tsx`         | Top navigation — auth-aware links and sign-out.                                                   |
-| `components/ProtectedRoute.tsx` | Route guard — shows a loader while auth resolves, redirects to `/login` if signed out.            |
-| `components/ScoreChart.tsx`     | Recharts bar chart of per-question scores, color-coded by band.                                  |
-| `pages/Landing.tsx`             | Public landing page (hero + "how it works" steps, Framer Motion).                                |
-| `pages/Login.tsx`              | Sign-in form.                                                                                     |
-| `pages/Register.tsx`           | Sign-up form.                                                                                     |
-| `pages/Dashboard.tsx`          | Start a new interview (role / difficulty / count) and list past interviews.                       |
-| `pages/Interview.tsx`          | The interview screen — answer questions one at a time, then submit.                               |
-| `pages/Results.tsx`            | Graded results — overall verdict, score chart, and per-question feedback.                         |
-
-### Root & config
-
-| File                    | Responsibility                                                              |
-| ----------------------- | --------------------------------------------------------------------------- |
-| `package.json` (root)   | The orchestrator — `setup` / `dev` / `build` / `start` / `seed` scripts.     |
-| `.env` / `.env.example` | The single shared environment for both apps.                                |
-| `client/vite.config.ts` | Vite config — port 5173, `/api` proxy → 5000, `envDir: '..'` for the shared `.env`. |
-| `server/tsconfig.json` · `client/tsconfig.json` | TypeScript configs for each side.                       |
-
----
-
-## Project structure
-
-```
-01-ai-mock-interview/
-├── .env.example            # single shared env for client + server
-├── package.json            # root orchestrator — runs both with one command
-│
-├── client/                 # React + Vite + TypeScript frontend
-│   ├── src/
-│   │   ├── components/      # Navbar, ProtectedRoute, ScoreChart
-│   │   ├── context/         # AuthContext (session state)
-│   │   ├── lib/             # api client + shared types
-│   │   ├── pages/           # Landing, Login, Register, Dashboard, Interview, Results
-│   │   ├── App.tsx          # route table
-│   │   └── main.tsx         # entry point
-│   ├── index.html
-│   └── vite.config.ts       # envDir: '..' → uses the shared root .env
-│
-└── server/                 # Express + TypeScript + Gemini backend
-    ├── src/
-    │   ├── config/          # env + db
-    │   ├── middleware/      # auth, validate, error
-    │   ├── models/          # User, Interview, Question
-    │   ├── routes/          # auth.routes, interview.routes
-    │   ├── services/        # gemini (AI + offline fallbacks)
-    │   ├── utils/           # token, asyncHandler
-    │   ├── app.ts           # Express app + /api/health
-    │   ├── index.ts         # entry point
-    │   └── seed.ts          # question-bank seed script
-    └── tsconfig.json
-```
-
----
-
-## Roadmap
-
-- [x] Project structure + configs (client, server, root)
-- [x] Single shared `.env` wiring (client + server)
-- [x] One-command dev runner (`concurrently`)
-- [x] Database seed script (question bank)
-- [x] Auth — register / login with JWT (`routes/`, `models/User`, `middleware/auth`)
-- [x] AI interview flow (Gemini question generation in `services/gemini.ts`)
-- [x] Answer scoring + feedback (with an offline fallback when no API key)
-- [x] Frontend pages + UI (`client/src/pages`, `components`)
-- [ ] Adaptive follow-up questions that react to the candidate's answer
-- [ ] Resume / job-description–tailored questions (Multer + pdf-parse)
-- [ ] Streaming feedback
+| File                              | What it does                                                                                   |
+| --------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `main.jsx`                        | React entry — mounts `App` inside Router, `AuthProvider`, and the toast `Toaster`.             |
+| `App.jsx`                         | Route table — public auth pages, protected app pages, and the admin-only page.                 |
+| `index.css`                       | Global styles + dark theme (all component styling lives here).                                 |
+| **context/**                      |                                                                                                |
+| `context/AuthContext.jsx`         | Auth state + `login` / `register` / `logout` / `refreshUser`. Restores the session via `/auth/me`. |
+| **lib/**                          |                                                                                                |
+| `lib/api.js`                      | Axios instance (base URL, Bearer interceptor) + `apiError()` helper.                            |
+| **components/**                   |                                                                                                |
+| `components/Navbar.jsx`           | Top navigation — auth-aware links, admin link, sign-out.                                        |
+| `components/ProtectedRoute.jsx`   | Guard — waits for auth, redirects to `/login` if signed out.                                    |
+| `components/AdminRoute.jsx`       | Guard — like ProtectedRoute but also requires the admin role.                                   |
+| `components/ScoreChart.jsx`       | Recharts bar chart of per-question scores.                                                      |
+| **pages/**                        |                                                                                                |
+| `pages/Landing.jsx`               | Public landing page (hero + how-it-works).                                                      |
+| `pages/Login.jsx`                 | Sign in; routes to `/verify` when the API says verification is required.                        |
+| `pages/Register.jsx`              | Sign up, then send the user to `/verify`.                                                       |
+| `pages/OtpVerify.jsx`             | Enter the email OTP, resend it, or **skip** for now.                                            |
+| `pages/ForgotPassword.jsx`        | Two-step reset: email → OTP + new password.                                                     |
+| `pages/Dashboard.jsx`             | Start a session — role, experience, difficulty, mode toggle, resume upload — and the past-sessions list (open or delete each). |
+| `pages/Interview.jsx`             | Open-ended interview — answer one question at a time, then submit.                              |
+| `pages/Quiz.jsx`                  | Multiple-choice quiz — pick an option per question, then submit.                                |
+| `pages/Results.jsx`               | Graded results — verdict, score chart, and a per-question breakdown (answers *or* the MCQ key). |
+| `pages/AdminDashboard.jsx`        | Admin panel — verification toggle, Gemini keys, users table (verify, promote/demote, delete), flexible settings CRUD. |
+| **config**                        |                                                                                                |
+| `index.html`                      | Vite HTML entry (loads `/src/main.jsx`).                                                        |
+| `vite.config.js`                  | Vite config — port 5174, `/api` proxy → 5050, `envDir: '..'` for the shared `.env`.            |
+| `jsconfig.json`                   | Light JS/JSX editor config (no type-checking).                                                  |
+| `vercel.json`                     | SPA rewrite so client-side routes don't 404 on refresh when deployed.                           |
 
 ---
 
 ## Troubleshooting
 
-| Symptom                                    | Fix                                                                                 |
-| ------------------------------------------ | ----------------------------------------------------------------------------------- |
-| `EADDRINUSE` / port already in use         | Change `PORT` (server) or Vite `server.port`, or stop whatever is using 5000 / 5173. |
-| `MongooseServerSelectionError` on seed/boot | MongoDB isn't running or `MONGODB_URI` is wrong. Start `mongod` or fix the URI.     |
-| `querySrv ECONNREFUSED` with an Atlas URI  | Your Node env can't resolve the SRV record — use the non-SRV multi-host URI (see the Atlas note above). |
-| `process.env.X` is `undefined`             | No `.env` at the project root. Run `cp .env.example .env` and fill it in.            |
-| Client calls fail / 404 on `/api/...`      | Server not running, or `VITE_API_URL` is wrong. Ensure the server is up on 5000.     |
-| Interview questions look repetitive/generic | The question bank isn't seeded and there's no Gemini key. Run `npm run seed` and/or set `GEMINI_API_KEY`. |
-| Added `GEMINI_API_KEY` but still offline   | Restart `npm run dev` — env is read at startup, not hot-reloaded. Check the key is valid and `GEMINI_MODEL` isn't a retired alias. |
+| Symptom                                     | Fix                                                                                 |
+| ------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `EADDRINUSE` / port already in use          | Change `PORT` (server) or Vite `server.port`, or stop whatever is on 5050 / 5174.   |
+| `Could not connect to MongoDB`              | MongoDB isn't running or `MONGODB_URI` is wrong. Start `mongod` or fix the URI.     |
+| `querySrv ECONNREFUSED` with an Atlas URI   | Your network can't resolve the `mongodb+srv` SRV record. Use the **non-SRV** multi-host URI form: `mongodb://user:pass@host-00:27017,host-01:27017,host-02:27017/mockmate?ssl=true&replicaSet=<name>&authSource=admin`. |
+| OTP never arrives                           | SMTP isn't configured — the code is **printed to the server console**. Or set `SMTP_*`. |
+| Quiz mode says it needs a key               | Quiz is fully AI-generated. Add a working `GEMINI_API_KEY` (or a key in the admin panel). |
+| Questions look repetitive/generic           | No Gemini key → the offline bank is small. Add a key, or `npm run seed` the bank.   |
+| Client 404s on refresh after deploy         | Ensure `vercel.json` (SPA rewrite) is deployed with the client.                     |
+| Login works locally, fails after deploy     | Set `VITE_API_URL` to the deployed API, and `CLIENT_URL` (server) to the frontend origin. |
 
 ---
 
 ## Tech stack
 
-- **Client:** React 18, Vite 6, TypeScript, React Router, Framer Motion, Recharts, Axios, react-hot-toast, lucide-react
-- **Server:** Express, TypeScript, MongoDB (Mongoose), JWT auth, Google Gemini (`@google/generative-ai`), Zod, bcryptjs
-- **Tooling:** concurrently (one-command dev), tsx (server dev/seed)
+- **Client:** React 18, Vite 6, React Router, Framer Motion, Recharts, Axios, react-hot-toast, lucide-react
+- **Server:** Express, MongoDB (Mongoose), JWT auth (bcryptjs), Google Gemini (`@google/generative-ai`), Multer + unpdf (resume PDF text extraction), Nodemailer (OTP email), Zod (validation)
+- **Tooling:** concurrently (one-command dev), nodemon (server reload)

@@ -2,13 +2,12 @@
   "name": "mockmate-server",
   "version": "1.0.0",
   "private": true,
-  "description": "MockMate AI — backend API (Express + TypeScript + Gemini)",
-  "main": "dist/index.js",
+  "description": "MockMate AI — backend API (Express + JavaScript + Gemini)",
+  "main": "src/index.js",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "seed": "tsx src/seed.ts"
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js",
+    "seed": "node src/seed.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
@@ -20,20 +19,12 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.5",
     "morgan": "^1.10.0",
-    "multer": "^1.4.5-lts.1",
-    "pdf-parse": "^1.1.1",
+    "multer": "^2.2.0",
+    "nodemailer": "^9.0.3",
+    "unpdf": "^1.6.2",
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@types/bcryptjs": "^2.4.6",
-    "@types/cookie-parser": "^1.4.8",
-    "@types/cors": "^2.8.17",
-    "@types/express": "^4.17.21",
-    "@types/jsonwebtoken": "^9.0.7",
-    "@types/morgan": "^1.9.9",
-    "@types/multer": "^1.4.12",
-    "@types/node": "^22.10.5",
-    "tsx": "^4.19.2",
-    "typescript": "^5.7.3"
+    "nodemon": "^3.1.9"
   }
 }
