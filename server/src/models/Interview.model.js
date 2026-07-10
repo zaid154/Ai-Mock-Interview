@@ -25,6 +25,7 @@ const interviewSchema = new Schema(
     experience: { type: String, default: 'Fresher' },
     difficulty: { type: String, enum: ['easy', 'medium', 'hard'], default: 'medium' },
     mode: { type: String, enum: ['questions', 'quiz'], default: 'questions' },
+    usesResume: { type: Boolean, default: false },
     status: { type: String, enum: ['in_progress', 'completed'], default: 'in_progress' },
     questions: [questionSchema],
     overallScore: { type: Number, default: 0 },

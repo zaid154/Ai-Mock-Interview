@@ -13,15 +13,16 @@ function publicInterview(interview) {
 }
 
 // POST /api/interviews
-// Generate the questions/quiz up front, tailored to role + experience (+ resume
-// if the user asked to use it), and save an in-progress interview.
+// A saved resume is always the candidate profile. Form fields are only used as
+// a fallback when the user has not uploaded a resume.
 async function startInterview(req, res) {
-  const { role, difficulty, count, experience, mode, useResume } = req.body
+  const { role, difficulty, count, experience, mode } = req.body
 
-  let resumeText = ''
-  if (useResume) {
-    const user = await User.findById(req.userId).select('resumeText')
-    resumeText = user?.resumeText || ''
+  const user = await User.findById(req.userId).select('resumeText')
+  const resumeText = user?.resumeText || ''
+  const hasResume = Boolean(resumeText.trim())
+  if (!hasResume && !role) {
+    return res.status(400).json({ error: 'Tell us the role you want to practise for' })
   }
 
   let questions
@@ -42,16 +43,27 @@ async function startInterview(req, res) {
       })
     }
   } else {
-    const prompts = await generateQuestions(role, difficulty, count, experience, resumeText)
-    questions = prompts.map((prompt) => ({ prompt }))
+    try {
+      const prompts = await generateQuestions(role, difficulty, count, experience, resumeText)
+      questions = prompts.map((prompt) => ({ prompt }))
+    } catch (err) {
+      if (hasResume) {
+        console.warn('Resume question generation failed:', err.message)
+        return res.status(503).json({
+          error: 'Your resume is saved, but resume-based questions need a working Gemini API key.',
+        })
+      }
+      throw err
+    }
   }
 
   const interview = await Interview.create({
     user: req.userId,
-    role,
+    role: hasResume ? 'Resume-based interview' : role,
     experience,
     difficulty,
     mode,
+    usesResume: hasResume,
     status: 'in_progress',
     questions,
   })

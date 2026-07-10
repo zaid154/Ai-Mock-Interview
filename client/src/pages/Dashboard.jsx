@@ -1,12 +1,21 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { Plus, Clock, CheckCircle2, Upload, FileCheck2, ListChecks, MessageSquare, Trash2 } from 'lucide-react'
+import {
+  Plus,
+  Clock,
+  CheckCircle2,
+  Upload,
+  FileCheck2,
+  ListChecks,
+  MessageSquare,
+  Trash2,
+  LoaderCircle,
+} from 'lucide-react'
 import api, { apiError } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import { useConfirm } from '../components/ConfirmDialog'
 
-// Common roles for the dropdown. Users who want something else pick "Other".
 const ROLE_OPTIONS = [
   'Frontend Developer',
   'Backend Developer',
@@ -30,17 +39,19 @@ export default function Dashboard() {
   const fileRef = useRef(null)
 
   const [role, setRole] = useState('Frontend Developer')
-  const [customRole, setCustomRole] = useState(false) // true when "Other" is picked
+  const [customRole, setCustomRole] = useState(false)
   const [experience, setExperience] = useState('Fresher')
   const [difficulty, setDifficulty] = useState('medium')
   const [mode, setMode] = useState('questions')
   const [count, setCount] = useState(5)
-  const [useResume, setUseResume] = useState(false)
   const [starting, setStarting] = useState(false)
   const [uploading, setUploading] = useState(false)
-
   const [history, setHistory] = useState([])
   const [loadingHistory, setLoadingHistory] = useState(true)
+
+  const hasResume = Boolean(user?.hasResume)
+  const resumeProfile = user?.resumeProfile || {}
+  const busy = starting || uploading
 
   useEffect(() => {
     api
@@ -50,44 +61,35 @@ export default function Dashboard() {
       .finally(() => setLoadingHistory(false))
   }, [])
 
-  // Role dropdown: picking "Other" reveals a free-text field for a custom role.
   function onRoleSelect(e) {
-    const v = e.target.value
-    if (v === '__other__') {
+    const value = e.target.value
+    if (value === '__other__') {
       setCustomRole(true)
       setRole('')
     } else {
       setCustomRole(false)
-      setRole(v)
+      setRole(value)
     }
   }
 
   async function startInterview(e) {
     e.preventDefault()
-    if (!role.trim()) {
+    if (!hasResume && !role.trim()) {
       toast.error('Please choose or type a role')
       return
     }
+
     setStarting(true)
     try {
-      const { data } = await api.post('/interviews', {
-        role,
-        experience,
-        difficulty,
-        mode,
-        count,
-        useResume,
-      })
-      const iv = data.interview
-      // Quiz and questions have different screens.
-      navigate(iv.mode === 'quiz' ? `/quiz/${iv._id}` : `/interview/${iv._id}`)
+      const { data } = await api.post('/interviews', { role, experience, difficulty, mode, count })
+      const interview = data.interview
+      navigate(interview.mode === 'quiz' ? `/quiz/${interview._id}` : `/interview/${interview._id}`)
     } catch (err) {
       toast.error(apiError(err, 'Could not start the interview'))
       setStarting(false)
     }
   }
 
-  // Delete a past session from history.
   async function deleteSession(e, id) {
     e.stopPropagation()
     const ok = await confirm({
@@ -99,25 +101,24 @@ export default function Dashboard() {
     if (!ok) return
     try {
       await api.delete(`/interviews/${id}`)
-      setHistory((prev) => prev.filter((it) => it._id !== id))
+      setHistory((prev) => prev.filter((item) => item._id !== id))
       toast.success('Session deleted')
     } catch (err) {
       toast.error(apiError(err, 'Could not delete the session'))
     }
   }
 
-  // Upload a resume PDF; the server extracts the text and remembers it.
   async function uploadResume(e) {
     const file = e.target.files?.[0]
     if (!file) return
+
     setUploading(true)
     try {
       const form = new FormData()
       form.append('resume', file)
       await api.post('/interviews/resume', form)
       await refreshUser()
-      setUseResume(true)
-      toast.success('Resume saved — questions can now be tailored to it')
+      toast.success('Resume saved and profile detected')
     } catch (err) {
       toast.error(apiError(err, 'Could not upload the resume'))
     } finally {
@@ -130,50 +131,63 @@ export default function Dashboard() {
     <main className="container dashboard">
       <section className="panel start-panel">
         <h2>Start a new mock interview</h2>
-        <form onSubmit={startInterview}>
-          <label className="field">
-            <span>Role / Domain</span>
-            <select value={customRole ? '__other__' : role} onChange={onRoleSelect}>
-              {ROLE_OPTIONS.map((r) => (
-                <option value={r} key={r}>
-                  {r}
-                </option>
-              ))}
-              <option value="__other__">Other (type your own)…</option>
-            </select>
-          </label>
+        <form onSubmit={startInterview} aria-busy={starting}>
+          {hasResume ? (
+            <div className="resume-profile" aria-label="Profile detected from resume">
+              <span>Profile detected from your resume</span>
+              <strong>{resumeProfile.role || 'Role detected from resume'}</strong>
+              <p>Experience level: {resumeProfile.experience || 'Detected from resume'}</p>
+            </div>
+          ) : (
+            <>
+              <label className="field">
+                <span>Role / Domain</span>
+                <select value={customRole ? '__other__' : role} onChange={onRoleSelect} disabled={busy}>
+                  {ROLE_OPTIONS.map((option) => (
+                    <option value={option} key={option}>
+                      {option}
+                    </option>
+                  ))}
+                  <option value="__other__">Other (type your own)...</option>
+                </select>
+              </label>
 
-          {customRole && (
-            <label className="field">
-              <span>Your role</span>
-              <input
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                placeholder="e.g. Machine Learning Engineer"
-                autoFocus
-                required
-              />
-            </label>
+              {customRole && (
+                <label className="field">
+                  <span>Your role</span>
+                  <input
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                    placeholder="e.g. Machine Learning Engineer"
+                    autoFocus
+                    required
+                    disabled={busy}
+                  />
+                </label>
+              )}
+            </>
           )}
 
           <div className="field-row">
-            <label className="field">
-              <span>Experience level</span>
-              <select value={experience} onChange={(e) => setExperience(e.target.value)}>
-                {EXPERIENCE_LEVELS.map((x) => (
-                  <option value={x} key={x}>
-                    {x}
-                  </option>
-                ))}
-              </select>
-            </label>
+            {!hasResume && (
+              <label className="field">
+                <span>Experience level</span>
+                <select value={experience} onChange={(e) => setExperience(e.target.value)} disabled={busy}>
+                  {EXPERIENCE_LEVELS.map((level) => (
+                    <option value={level} key={level}>
+                      {level}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
 
             <label className="field">
               <span>Difficulty</span>
-              <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
-                {DIFFICULTIES.map((d) => (
-                  <option value={d} key={d}>
-                    {d[0].toUpperCase() + d.slice(1)}
+              <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)} disabled={busy}>
+                {DIFFICULTIES.map((level) => (
+                  <option value={level} key={level}>
+                    {level[0].toUpperCase() + level.slice(1)}
                   </option>
                 ))}
               </select>
@@ -181,17 +195,16 @@ export default function Dashboard() {
 
             <label className="field">
               <span>Questions</span>
-              <select value={count} onChange={(e) => setCount(Number(e.target.value))}>
-                {[3, 5, 7, 10].map((n) => (
-                  <option value={n} key={n}>
-                    {n}
+              <select value={count} onChange={(e) => setCount(Number(e.target.value))} disabled={busy}>
+                {[3, 5, 7, 10].map((number) => (
+                  <option value={number} key={number}>
+                    {number}
                   </option>
                 ))}
               </select>
             </label>
           </div>
 
-          {/* Mode toggle: open-ended questions vs multiple-choice quiz */}
           <div className="field">
             <span>Mode</span>
             <div className="mode-toggle">
@@ -199,6 +212,7 @@ export default function Dashboard() {
                 type="button"
                 className={`mode-btn ${mode === 'questions' ? 'active' : ''}`}
                 onClick={() => setMode('questions')}
+                disabled={busy}
               >
                 <MessageSquare size={16} /> Questions
               </button>
@@ -206,51 +220,55 @@ export default function Dashboard() {
                 type="button"
                 className={`mode-btn ${mode === 'quiz' ? 'active' : ''}`}
                 onClick={() => setMode('quiz')}
+                disabled={busy}
               >
                 <ListChecks size={16} /> Quiz (MCQ)
               </button>
             </div>
           </div>
 
-          {/* Resume upload + "use it" toggle */}
           <div className="field">
-            <span>Resume (optional)</span>
+            <span>Resume</span>
             <p className="muted small hint-line">
-              {user?.hasResume
-                ? 'Resume saved ✓ — tick below to tailor questions to it.'
-                : 'Upload your CV (PDF) and we’ll tailor the questions to your real experience.'}
+              {hasResume
+                ? 'Role and experience are read from your resume. You only need to choose difficulty, question count, and mode.'
+                : 'Upload your CV (PDF) to detect your role and experience automatically.'}
             </p>
+            {uploading && (
+              <div className="generation-loader" role="status">
+                <LoaderCircle size={17} className="spin" /> Reading your PDF and detecting your profile...
+              </div>
+            )}
             <div className="resume-row">
               <input
                 ref={fileRef}
                 type="file"
                 accept="application/pdf"
                 onChange={uploadResume}
+                disabled={busy}
                 hidden
               />
               <button
                 type="button"
                 className="btn btn-ghost"
                 onClick={() => fileRef.current?.click()}
-                disabled={uploading}
+                disabled={busy}
               >
-                {user?.hasResume ? <FileCheck2 size={16} /> : <Upload size={16} />}{' '}
-                {uploading ? 'Uploading…' : user?.hasResume ? 'Replace resume (PDF)' : 'Upload resume (PDF)'}
+                {uploading ? <LoaderCircle size={16} className="spin" /> : hasResume ? <FileCheck2 size={16} /> : <Upload size={16} />}
+                {uploading ? 'Reading resume...' : hasResume ? 'Replace resume (PDF)' : 'Upload resume (PDF)'}
               </button>
-              <label className="checkbox">
-                <input
-                  type="checkbox"
-                  checked={useResume}
-                  onChange={(e) => setUseResume(e.target.checked)}
-                  disabled={!user?.hasResume}
-                />
-                <span>Tailor to my resume</span>
-              </label>
             </div>
           </div>
 
-          <button className="btn btn-primary btn-block" disabled={starting}>
-            <Plus size={18} /> {starting ? 'Preparing…' : mode === 'quiz' ? 'Begin quiz' : 'Begin interview'}
+          {starting && (
+            <div className="generation-loader generation-loader-main" role="status">
+              <LoaderCircle size={18} className="spin" />
+              {hasResume ? 'Creating questions from your resume...' : 'Creating your interview...'}
+            </div>
+          )}
+          <button className="btn btn-primary btn-block" disabled={busy} aria-busy={starting}>
+            {starting ? <LoaderCircle size={18} className="spin" /> : <Plus size={18} />}
+            {starting ? 'Generating...' : mode === 'quiz' ? 'Begin quiz' : 'Begin interview'}
           </button>
         </form>
       </section>
@@ -258,26 +276,25 @@ export default function Dashboard() {
       <section className="history">
         <h2>Past sessions</h2>
         {loadingHistory ? (
-          <p className="muted">Loading…</p>
+          <p className="muted">Loading...</p>
         ) : history.length === 0 ? (
           <div className="empty">
             <p className="muted">No sessions yet. Your completed interviews will show up here.</p>
           </div>
         ) : (
           <ul className="history-list">
-            {history.map((it) => {
+            {history.map((item) => {
               const open = () =>
                 navigate(
-                  it.status === 'completed'
-                    ? `/results/${it._id}`
-                    : it.mode === 'quiz'
-                      ? `/quiz/${it._id}`
-                      : `/interview/${it._id}`,
+                  item.status === 'completed'
+                    ? `/results/${item._id}`
+                    : item.mode === 'quiz'
+                      ? `/quiz/${item._id}`
+                      : `/interview/${item._id}`,
                 )
+
               return (
-                <li key={it._id}>
-                  {/* The card is a div (not a button) so the delete button can
-                      live inside it — buttons can't be nested. */}
+                <li key={item._id}>
                   <div
                     className="history-item"
                     role="button"
@@ -292,16 +309,16 @@ export default function Dashboard() {
                   >
                     <div className="history-main">
                       <p className="history-role">
-                        {it.role}
-                        <span className="tag-soft">{it.difficulty}</span>
-                        {it.mode === 'quiz' && <span className="tag">Quiz</span>}
+                        {item.role}
+                        <span className="tag-soft">{item.difficulty}</span>
+                        {item.mode === 'quiz' && <span className="tag">Quiz</span>}
                       </p>
-                      <p className="muted small">{new Date(it.createdAt).toLocaleDateString()}</p>
+                      <p className="muted small">{new Date(item.createdAt).toLocaleDateString()}</p>
                     </div>
                     <div className="history-right">
-                      {it.status === 'completed' ? (
+                      {item.status === 'completed' ? (
                         <span className="score-chip">
-                          <CheckCircle2 size={14} /> {it.overallScore}
+                          <CheckCircle2 size={14} /> {item.overallScore}
                         </span>
                       ) : (
                         <span className="chip-pending">
@@ -310,7 +327,7 @@ export default function Dashboard() {
                       )}
                       <button
                         className="history-del"
-                        onClick={(e) => deleteSession(e, it._id)}
+                        onClick={(e) => deleteSession(e, item._id)}
                         title="Delete session"
                         aria-label="Delete session"
                       >

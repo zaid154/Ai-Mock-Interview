@@ -16,12 +16,12 @@ const upload = multer({
 })
 
 const startSchema = z.object({
-  role: z.string().min(2, 'Tell us the role you want to practise for'),
+  // Form fields are only required when the user has no saved resume.
+  role: z.string().trim().max(120).default(''),
   experience: z.string().min(1).default('Fresher'),
   difficulty: z.enum(['easy', 'medium', 'hard']).default('medium'),
   mode: z.enum(['questions', 'quiz']).default('questions'),
   count: z.coerce.number().int().min(3).max(10).default(5),
-  useResume: z.coerce.boolean().default(false),
 })
 
 // answers can be strings (questions mode) or numbers (quiz option indexes).

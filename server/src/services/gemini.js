@@ -88,11 +88,20 @@ function resumeLine(resumeText) {
 
 // ── Open-ended questions ─────────────────────────────────────────────────────
 async function generateQuestions(role, difficulty, count, experience, resumeText) {
+  const profile = resumeText
+    ? 'the candidate described exclusively in the uploaded resume'
+    : candidateLine(role, experience)
+  const level = resumeText
+    ? 'at a challenge level inferred from that resume'
+    : `at ${difficulty} difficulty`
+  const resumeRules = resumeText
+    ? ' Use the resume as the only candidate-profile source of truth. Do not use or mention role, experience, or difficulty values from a form. Ask about concrete technologies, projects, achievements, and responsibilities in it.'
+    : ''
   const prompt = [
-    `You are a senior interviewer. Write ${count} interview questions for ${candidateLine(role, experience)}`,
-    `at ${difficulty} difficulty. Match the depth to the experience level (freshers get fundamentals,`,
+    `You are a senior interviewer. Write ${count} interview questions for ${profile} ${level}.`,
+    `Match the depth to the experience level (freshers get fundamentals,`,
     `senior candidates get scenario/design questions). Keep each question to one or two sentences and`,
-    `mix conceptual and practical questions. Do not number them.${resumeLine(resumeText)}`,
+    `mix conceptual and practical questions. Do not number them.${resumeRules}${resumeLine(resumeText)}`,
     `Respond as JSON: { "questions": string[] }.`,
   ].join(' ')
 
@@ -102,8 +111,10 @@ async function generateQuestions(role, difficulty, count, experience, resumeText
     const cleaned = list.map((q) => String(q).trim()).filter(Boolean).slice(0, count)
     if (cleaned.length) return cleaned
   } catch (err) {
+    if (resumeText) throw err
     console.warn('Gemini question generation failed, using question bank:', err.message)
   }
+  if (resumeText) throw new Error('empty-resume-questions')
   return fallbackQuestions(role, difficulty, count)
 }
 
@@ -111,11 +122,20 @@ async function generateQuestions(role, difficulty, count, experience, resumeText
 // Returns [{ prompt, options: string[4], correctIndex: 0..3 }]. Includes
 // "what is the output of this code" style problem-solving questions.
 async function generateQuiz(role, difficulty, count, experience, resumeText) {
+  const profile = resumeText
+    ? 'the candidate described exclusively in the uploaded resume'
+    : candidateLine(role, experience)
+  const level = resumeText
+    ? 'at a challenge level inferred from that resume'
+    : `at ${difficulty} difficulty`
+  const resumeRules = resumeText
+    ? ' Use the resume as the only candidate-profile source of truth. Do not use or mention role, experience, or difficulty values from a form. Focus on concrete technologies, projects, achievements, and responsibilities in it.'
+    : ''
   const prompt = [
-    `You are creating a multiple-choice quiz for ${candidateLine(role, experience)} at ${difficulty} difficulty.`,
+    `You are creating a multiple-choice quiz for ${profile} ${level}.`,
     `Write ${count} questions. Match difficulty to the experience level. Include a few problem-solving`,
     `"what is the output of this code?" questions with a short code snippet in the question text (use \\n for`,
-    `line breaks), not only theory. Each question must have exactly 4 options and exactly one correct answer.${resumeLine(resumeText)}`,
+    `line breaks), not only theory. Each question must have exactly 4 options and exactly one correct answer.${resumeRules}${resumeLine(resumeText)}`,
     `Respond as JSON: { "questions": [{ "prompt": string, "options": string[4], "correctIndex": number }] }.`,
   ].join(' ')
 
