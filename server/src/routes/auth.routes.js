@@ -20,6 +20,7 @@ const loginSchema = z.object({
 })
 
 const emailSchema = z.object({ email: z.string().email('Enter a valid email') })
+const registrationCompletionSchema = z.object({ registrationToken: z.string().min(1) })
 
 const otpSchema = z.object({
   email: z.string().email('Enter a valid email'),
@@ -37,6 +38,7 @@ router.post('/register', validate(registerSchema), wrap(auth.register))
 router.post('/login', validate(loginSchema), wrap(auth.login))
 router.get('/verification-settings', wrap(auth.verificationSettings))
 router.post('/verify-otp', validate(otpSchema), wrap(auth.verifyOtp))
+router.post('/complete-registration', validate(registrationCompletionSchema), wrap(auth.completeRegistration))
 router.post('/resend-otp', validate(emailSchema), wrap(auth.resendOtp))
 router.post('/forgot-password', validate(emailSchema), wrap(auth.forgotPassword))
 router.post('/reset-password', validate(resetSchema), wrap(auth.resetPassword))

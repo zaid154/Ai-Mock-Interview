@@ -59,7 +59,7 @@ async function startInterview(req, res) {
 
   const interview = await Interview.create({
     user: req.userId,
-    role: hasResume ? 'Resume-based interview' : role,
+    role: hasResume ? 'Resume-based Interview' : role,
     experience,
     difficulty,
     mode,

@@ -59,13 +59,17 @@ export function AuthProvider({ children }) {
 
   async function register(name, email, password) {
     const { data } = await api.post('/auth/register', { name, email, password })
-    // When verification is mandatory the server withholds the token until the
-    // user verifies, so only log them in if a token actually came back.
-    if (data.token) {
-      localStorage.setItem('token', data.token)
-      setUser(data.user)
-    }
     return data
+  }
+
+  function establishSession(data) {
+    localStorage.setItem('token', data.token)
+    setUser(data.user)
+  }
+
+  async function completeRegistration(registrationToken) {
+    const { data } = await api.post('/auth/complete-registration', { registrationToken })
+    establishSession(data)
   }
 
   async function logout() {
@@ -89,7 +93,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, requireEmailVerification, login, register, logout, refreshUser, refreshVerificationSetting }}>
+    <AuthContext.Provider value={{ user, loading, requireEmailVerification, login, register, establishSession, completeRegistration, logout, refreshUser, refreshVerificationSetting }}>
       {children}
     </AuthContext.Provider>
   )

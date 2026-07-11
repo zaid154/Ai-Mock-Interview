@@ -26,6 +26,11 @@ export default function Login() {
         navigate('/verify', { state: { email } })
         return
       }
+      if (axios.isAxiosError(err) && err.response?.data?.needsRegistrationCompletion) {
+        toast('Finish creating your account to continue.')
+        navigate('/verify', { state: { email, registrationToken: err.response.data.registrationToken } })
+        return
+      }
       toast.error(apiError(err, 'Could not sign in'))
     } finally {
       setBusy(false)

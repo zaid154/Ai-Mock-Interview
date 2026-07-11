@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs')
 const User = require('../models/User.model')
-const { signToken } = require('../utils/token')
+const { signToken, signRegistrationToken, verifyRegistrationToken } = require('../utils/token')
 const {
   generateOtp,
   hashOtp,
@@ -31,6 +31,7 @@ const publicUser = (u) => ({
   isVerified: emailVerified(u),
   isEmailVerified: emailVerified(u),
   verifiedAt: u.verifiedAt || null,
+  registrationCompleted: u.registrationCompleted !== false,
   hasResume: Boolean(u.resumeText),
 })
 
@@ -68,14 +69,13 @@ async function issueOtp(user, purpose) {
 
 async function registrationVerificationState(user) {
   const mustVerify = (await getSetting('verificationRequired', false)) === true
-  if (!mustVerify) return { needsVerification: false, otpSent: false }
   try {
     await issueOtp(user, 'verify')
-    return { needsVerification: true, otpSent: true }
+    return { needsVerification: mustVerify, otpSent: true }
   } catch (err) {
     // Account is intentionally retained. The verification screen can resend once
     // mail delivery is configured/recovered, without leaking an OTP in a log.
-    return { needsVerification: true, otpSent: false, deliveryError: err.message }
+    return { needsVerification: mustVerify, otpSent: false, deliveryError: err.message }
   }
 }
 
@@ -87,13 +87,13 @@ async function register(req, res) {
   const user = await User.create({ name, email, passwordHash })
   const verification = await registrationVerificationState(user)
 
-  if (verification.needsVerification) {
-    return res.status(201).json({ user: publicUser(user), ...verification })
-  }
-
-  const token = signToken(user.id, user.tokenVersion)
-  res.cookie('token', token, cookieOptions())
-  return res.status(201).json({ token, user: publicUser(user), ...verification })
+  // A user record is needed to deliver/validate an OTP, but a real session is
+  // withheld until they verify or explicitly choose to skip verification.
+  return res.status(201).json({
+    user: publicUser(user),
+    registrationToken: signRegistrationToken(user.id),
+    ...verification,
+  })
 }
 
 async function login(req, res) {
@@ -104,6 +104,14 @@ async function login(req, res) {
   }
 
   const mustVerify = (await getSetting('verificationRequired', false)) === true
+  if (user.registrationCompleted === false) {
+    return res.status(403).json({
+      error: 'Please finish creating your account.',
+      needsRegistrationCompletion: true,
+      email: user.email,
+      registrationToken: signRegistrationToken(user.id),
+    })
+  }
   if (mustVerify && !emailVerified(user)) {
     return res.status(403).json({
       error: 'Please verify your email before logging in.',
@@ -153,9 +161,35 @@ async function verifyOtp(req, res) {
   user.isVerified = true
   user.isEmailVerified = true
   user.verifiedAt = new Date()
+  user.registrationCompleted = true
   clearOtp(user)
   await user.save()
-  return res.json({ user: publicUser(user), message: 'Email verified successfully.' })
+  const token = signToken(user.id, user.tokenVersion)
+  res.cookie('token', token, cookieOptions())
+  return res.json({ token, user: publicUser(user), message: 'Email verified successfully.' })
+}
+
+async function completeRegistration(req, res) {
+  let payload
+  try {
+    payload = verifyRegistrationToken(req.body.registrationToken)
+  } catch {
+    return res.status(401).json({ error: 'Your registration session has expired. Please sign in.' })
+  }
+
+  const user = await User.findById(payload.sub)
+  if (!user) return res.status(404).json({ error: 'Account not found' })
+
+  const mustVerify = (await getSetting('verificationRequired', false)) === true
+  if (mustVerify && !emailVerified(user)) {
+    return res.status(403).json({ error: 'Please verify your email before continuing.', needsVerification: true, email: user.email })
+  }
+
+  user.registrationCompleted = true
+  await user.save()
+  const token = signToken(user.id, user.tokenVersion)
+  res.cookie('token', token, cookieOptions())
+  return res.json({ token, user: publicUser(user) })
 }
 
 async function resendOtp(req, res) {
@@ -186,6 +220,7 @@ async function resetPassword(req, res) {
   user.isVerified = true
   user.isEmailVerified = true
   user.verifiedAt = user.verifiedAt || new Date()
+  user.registrationCompleted = true
   user.tokenVersion = (user.tokenVersion || 0) + 1
   clearOtp(user)
   await user.save()
@@ -203,4 +238,4 @@ async function me(req, res) {
   res.json({ user: publicUser(user) })
 }
 
-module.exports = { register, login, verificationSettings, verifyOtp, resendOtp, forgotPassword, resetPassword, logout, me }
+module.exports = { register, login, verificationSettings, verifyOtp, completeRegistration, resendOtp, forgotPassword, resetPassword, logout, me }

@@ -1,20 +1,20 @@
 :root {
-  --bg: #0a0b12;
-  --surface: #14151f;
-  --surface-2: #1c1e2b;
-  --surface-3: #232634;
-  --border: #282b3a;
-  --border-soft: #20222f;
-  --text: #eceef5;
-  --muted: #8990a4;
+  --bg: #151827;
+  --surface: #202438;
+  --surface-2: #292e44;
+  --surface-3: #343a52;
+  --border: #3b425c;
+  --border-soft: #30364c;
+  --text: #f0f2fa;
+  --muted: #a4abc1;
   --accent: #7c74ff;
   --accent-2: #a568ff;
   --accent-strong: #948dff;
   --accent-soft: rgba(124, 116, 255, 0.14);
   --accent-grad: linear-gradient(135deg, #7c74ff 0%, #a568ff 100%);
   --ring: rgba(124, 116, 255, 0.35);
-  --shadow: 0 18px 40px -20px rgba(0, 0, 0, 0.7);
-  --shadow-sm: 0 8px 20px -14px rgba(0, 0, 0, 0.6);
+  --shadow: 0 18px 40px -20px rgba(8, 10, 20, 0.48);
+  --shadow-sm: 0 8px 20px -14px rgba(8, 10, 20, 0.4);
   --good: #46d6a0;
   --warn: #f6b352;
   --bad: #f0736a;
@@ -36,8 +36,8 @@ body,
 
 body {
   background:
-    radial-gradient(1000px 520px at 12% -12%, rgba(124, 116, 255, 0.12), transparent 58%),
-    radial-gradient(900px 520px at 100% 2%, rgba(165, 104, 255, 0.09), transparent 55%),
+    radial-gradient(1000px 520px at 12% -12%, rgba(124, 116, 255, 0.19), transparent 58%),
+    radial-gradient(900px 520px at 100% 2%, rgba(165, 104, 255, 0.14), transparent 55%),
     var(--bg);
   color: var(--text);
   line-height: 1.55;
@@ -143,7 +143,7 @@ a:hover {
   justify-content: space-between;
   padding: 0.9rem clamp(1rem, 4vw, 2.5rem);
   border-bottom: 1px solid var(--border-soft);
-  background: rgba(10, 11, 18, 0.7);
+  background: rgba(21, 24, 39, 0.82);
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
   position: sticky;
@@ -416,6 +416,25 @@ textarea:focus {
   flex: 0 0 auto;
   margin-top: 0.1rem;
   color: var(--accent-strong);
+}
+.verification-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0.2rem 0 1rem;
+}
+.verification-step {
+  padding: 0.28rem 0.55rem;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.78rem;
+}
+.verification-step.is-active {
+  color: var(--text);
+  background: var(--accent-soft);
+  border-color: rgba(148, 141, 255, 0.4);
 }
 .auth-card .btn-block {
   margin-top: 0.5rem;

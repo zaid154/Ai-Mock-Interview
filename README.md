@@ -19,6 +19,9 @@ frontend is small React components and pages, one clear job each.
 - **Email OTP verification** — optional at signup (create the account now, verify
   later) with resend. When an admin makes verification mandatory, a new account is
   created but no session is issued until the email is verified.
+- **Clear email verification journey** — users first send a code, then receive a
+  confirmation showing where it was sent and a reminder to check Spam/Promotions
+  before entering the six-digit code. Resending is available after a short cooldown.
 - **Forgot / reset password** using the same OTP system.
 - **Admin panel** — manage users (verify/unverify, promote/demote admin, delete),
   a flexible add/edit/rename/delete settings table, and a global toggle that makes
@@ -196,6 +199,25 @@ with `"status": "ok"`.
 
 ---
 
+## Email verification flow
+
+The `/verify` screen starts with **Send verification code** as its primary action.
+The code input appears only after a code has been sent, so users are not left
+wondering where to find it. The confirmation names the destination email and asks
+the user to check their inbox (including Spam or Promotions) before entering the
+six-digit code.
+
+After the registration form is submitted, the account stays in a **pending**
+state: it has no auth session, dashboard access, or signed-in header. The account
+is finalized only when the user enters a valid OTP or explicitly selects **Skip
+for now** (when verification is optional). Either action starts the session and
+then shows the authenticated header.
+
+Registration sends the first verification code automatically. Users therefore
+open the verification screen directly at the “Code sent” step. Users arriving
+from login, or whose initial email could not be delivered, are instead shown the
+clear first step to send a code.
+
 ## API endpoints
 
 | Method & path                          | Auth  | Body                                              |
@@ -204,6 +226,7 @@ with `"status": "ok"`.
 | `POST /api/auth/register`              |  —    | `{ name, email, password }`                       |
 | `POST /api/auth/login`                 |  —    | `{ email, password }`                             |
 | `POST /api/auth/verify-otp`            |  —    | `{ email, otp }`                                  |
+| `POST /api/auth/complete-registration` |  —    | `{ registrationToken }`                           |
 | `POST /api/auth/resend-otp`            |  —    | `{ email }`                                       |
 | `POST /api/auth/forgot-password`       |  —    | `{ email }`                                       |
 | `POST /api/auth/reset-password`        |  —    | `{ email, otp, newPassword }`                     |
@@ -268,7 +291,7 @@ Every file, with a one-line explanation.
 | `models/Question.model.js`        | Seed-time fallback question bank (used only in Questions mode when Gemini is unavailable).      |
 | `models/Setting.model.js`         | Flexible `{ key, value }` config the admin panel edits (value is Mixed — string/boolean/array). |
 | **controllers/** (one per feature)|                                                                                                |
-| `controllers/auth.controller.js`  | register / login / verify-otp / resend-otp / forgot-password / reset-password / logout / me. Reset bumps `tokenVersion`; register withholds the session when verification is mandatory. |
+| `controllers/auth.controller.js`  | register / login / verify-otp / complete-registration / resend-otp / forgot-password / reset-password / logout / me. Reset bumps `tokenVersion`; registration withholds the session until OTP verification or an optional skip. |
 | `controllers/admin.controller.js` | users (list, set verified, change role, delete — with self-guards) + settings CRUD (list/upsert/rename/delete). |
 | `controllers/interview.controller.js` | start (questions or quiz), list, get one, submit (AI grade or quiz auto-score), delete, resume upload (PDF → text via `unpdf`). |
 | **routes/** (thin)                |                                                                                                |

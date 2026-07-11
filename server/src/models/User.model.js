@@ -16,6 +16,7 @@ const userSchema = new Schema(
     isEmailVerified: { type: Boolean, default: false },
     verifiedAt: { type: Date, default: null },
     emailVerificationRequiredAt: { type: Date, default: null },
+    registrationCompleted: { type: Boolean, default: false },
 
     // OTPs are never stored in plain text. `otpCode` is only retained so old
     // documents can be read; all newly-issued OTPs use `otpHash`.

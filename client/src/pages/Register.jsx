@@ -18,7 +18,7 @@ export default function Register() {
     try {
       const data = await register(name, email, password)
       toast.success(data.otpSent ? 'Account created — verification code sent' : 'Account created')
-      navigate('/verify', { state: { email, otpSent: data.otpSent } })
+      navigate('/verify', { state: { email, otpSent: data.otpSent, registrationToken: data.registrationToken } })
     } catch (err) {
       toast.error(apiError(err, 'Could not create account'))
     } finally {

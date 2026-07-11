@@ -155,7 +155,7 @@ export default function Dashboard() {
   return (
     <main className="container dashboard">
       <section className="panel start-panel">
-        <h2>Start a new mock interview</h2>
+        <h2>Start a mock Interview</h2>
         <form onSubmit={startInterview} aria-busy={starting}>
           {hasResume ? (
             <div className="resume-profile" aria-label="Profile detected from resume">
@@ -252,6 +252,13 @@ export default function Dashboard() {
             </div>
           </div>
 
+          <button className="btn btn-primary btn-block" disabled={busy} aria-busy={starting} aria-live="polite">
+            {starting ? <LoaderCircle size={18} className="spin" /> : <Plus size={18} />}
+            {starting
+              ? hasResume ? 'Creating questions from your resume...' : 'Creating your interview...'
+              : mode === 'quiz' ? 'Begin quiz' : 'Begin interview'}
+          </button>
+
           <div className="field">
             <span>Resume</span>
             <p className="muted small hint-line">
@@ -284,13 +291,6 @@ export default function Dashboard() {
               </button>
             </div>
           </div>
-
-          <button className="btn btn-primary btn-block" disabled={busy} aria-busy={starting} aria-live="polite">
-            {starting ? <LoaderCircle size={18} className="spin" /> : <Plus size={18} />}
-            {starting
-              ? hasResume ? 'Creating questions from your resume...' : 'Creating your interview...'
-              : mode === 'quiz' ? 'Begin quiz' : 'Begin interview'}
-          </button>
         </form>
         <div className={`verification-status dashboard-verification ${user?.isEmailVerified || user?.isVerified ? 'verified' : 'unverified'}`}>
           {user?.isEmailVerified || user?.isVerified ? (
@@ -342,7 +342,7 @@ export default function Dashboard() {
                   >
                     <div className="history-main">
                       <p className="history-role">
-                        {item.role}
+                        {item.role === 'Resume-based interview' ? 'Resume-based Interview' : item.role}
                         <span className="tag-soft">{item.difficulty}</span>
                         {item.mode === 'quiz' && <span className="tag">Quiz</span>}
                       </p>

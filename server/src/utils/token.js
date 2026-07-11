@@ -14,4 +14,16 @@ function verifyToken(token) {
   return jwt.verify(token, secret())
 }
 
-module.exports = { signToken, verifyToken }
+// A short-lived registration ticket is deliberately not an auth token. It only
+// lets the person who just registered finish the optional verification step.
+function signRegistrationToken(userId) {
+  return jwt.sign({ sub: userId, purpose: 'complete-registration' }, secret(), { expiresIn: '30m' })
+}
+
+function verifyRegistrationToken(token) {
+  const payload = jwt.verify(token, secret())
+  if (payload.purpose !== 'complete-registration') throw new Error('Invalid registration token')
+  return payload
+}
+
+module.exports = { signToken, verifyToken, signRegistrationToken, verifyRegistrationToken }

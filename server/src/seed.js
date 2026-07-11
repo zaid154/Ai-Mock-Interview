@@ -81,6 +81,7 @@ async function seed({ reset = false } = {}) {
       isVerified: true,
       isEmailVerified: true,
       verifiedAt: new Date(),
+      registrationCompleted: true,
     },
     { upsert: true, setDefaultsOnInsert: true },
   )
