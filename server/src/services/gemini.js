@@ -74,6 +74,16 @@ function clamp(n, min, max) {
   return Math.max(min, Math.min(max, n))
 }
 
+// Gemini occasionally returns double-escaped line breaks ("\\n") inside a
+// parsed JSON string. Store real line breaks so every client renders them well.
+function normalizeGeneratedText(value) {
+  return String(value || '')
+    .replaceAll('\\r\\n', '\n')
+    .replaceAll('\\n', '\n')
+    .replaceAll('\\t', '\t')
+    .trim()
+}
+
 // A short line describing the candidate, reused across prompts.
 function candidateLine(role, experience) {
   return `a "${role}" candidate with experience level "${experience || 'Fresher'}"`
@@ -134,8 +144,8 @@ async function generateQuiz(role, difficulty, count, experience, resumeText) {
   const prompt = [
     `You are creating a multiple-choice quiz for ${profile} ${level}.`,
     `Write ${count} questions. Match difficulty to the experience level. Include a few problem-solving`,
-    `"what is the output of this code?" questions with a short code snippet in the question text (use \\n for`,
-    `line breaks), not only theory. Each question must have exactly 4 options and exactly one correct answer.${resumeRules}${resumeLine(resumeText)}`,
+    `"what is the output of this code?" questions with a short code snippet in the question text. Use real`,
+    `line breaks in code; never write the literal characters \\n in a question or option. Each question must have exactly 4 options and exactly one correct answer.${resumeRules}${resumeLine(resumeText)}`,
     `Respond as JSON: { "questions": [{ "prompt": string, "options": string[4], "correctIndex": number }] }.`,
   ].join(' ')
 
@@ -143,9 +153,9 @@ async function generateQuiz(role, difficulty, count, experience, resumeText) {
   const list = Array.isArray(data?.questions) ? data.questions : []
   const cleaned = list
     .map((q) => {
-      const options = Array.isArray(q?.options) ? q.options.map((o) => String(o)).slice(0, 4) : []
+      const options = Array.isArray(q?.options) ? q.options.map(normalizeGeneratedText).slice(0, 4) : []
       const correctIndex = clamp(Number(q?.correctIndex) || 0, 0, options.length - 1)
-      return { prompt: String(q?.prompt || '').trim(), options, correctIndex }
+      return { prompt: normalizeGeneratedText(q?.prompt), options, correctIndex }
     })
     .filter((q) => q.prompt && q.options.length === 4)
     .slice(0, count)

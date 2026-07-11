@@ -75,8 +75,15 @@ async function startInterview(req, res) {
 async function listInterviews(req, res) {
   const interviews = await Interview.find({ user: req.userId })
     .sort({ createdAt: -1 })
-    .select('role difficulty mode status overallScore createdAt')
-  res.json({ interviews })
+    .select('role difficulty mode status overallScore createdAt questions')
+    .lean()
+  // Dashboard only needs the total count, never the actual question text.
+  res.json({
+    interviews: interviews.map(({ questions, ...interview }) => ({
+      ...interview,
+      questionCount: questions?.length || 0,
+    })),
+  })
 }
 
 // GET /api/interviews/:id — one full interview (answer key hidden if quiz + open).
@@ -104,7 +111,9 @@ async function submitInterview(req, res) {
     interview.questions.forEach((q, i) => {
       // Accept a numeric index or a numeric string ("2"); anything else = unanswered.
       const n = Number(answers[i])
-      const picked = answers[i] !== '' && answers[i] !== null && Number.isInteger(n) ? n : null
+      const picked = answers[i] !== '' && answers[i] !== null && Number.isInteger(n) && n >= 0 && n < q.options.length
+        ? n
+        : null
       q.selectedIndex = picked
       const right = picked === q.correctIndex
       if (right) correct += 1

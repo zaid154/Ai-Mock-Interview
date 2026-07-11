@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs')
 const Question = require('./models/Question.model')
 const User = require('./models/User.model')
 const Setting = require('./models/Setting.model')
+const Interview = require('./models/Interview.model')
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mockmate'
 
@@ -37,14 +38,33 @@ const questions = [
   { role: 'Behavioral', difficulty: 'medium', prompt: 'Describe a time you shipped something under a tight deadline. What did you trade off?' },
 ]
 
-async function seed() {
+// Normal mode preserves user-created data. Reset mode is intentionally
+// destructive: it clears every app collection before recreating the defaults.
+async function seed({ reset = false } = {}) {
   await mongoose.connect(MONGODB_URI)
   console.log(`Connected: ${MONGODB_URI}`)
 
+  if (reset) {
+    await Promise.all([
+      Interview.deleteMany({}),
+      Question.deleteMany({}),
+      User.deleteMany({}),
+      Setting.deleteMany({}),
+    ])
+    console.log('Reset complete: users, interviews, questions, and settings deleted.')
+  }
+
   // 1) Offline fallback question bank
-  await Question.deleteMany({})
-  const inserted = await Question.insertMany(questions)
-  console.log(`Seeded ${inserted.length} fallback questions.`)
+  const result = await Question.bulkWrite(
+    questions.map((question) => ({
+      updateOne: {
+        filter: { role: question.role, difficulty: question.difficulty, prompt: question.prompt },
+        update: { $setOnInsert: question },
+        upsert: true,
+      },
+    })),
+  )
+  console.log(`Fallback questions ready (${result.upsertedCount || 0} added).`)
 
   // 2) Default admin user (credentials from .env, with safe fallbacks).
   const adminEmail = (process.env.ADMIN_EMAIL || 'admin@mockmate.com').toLowerCase()
@@ -53,7 +73,15 @@ async function seed() {
   const passwordHash = await bcrypt.hash(adminPassword, 10)
   await User.findOneAndUpdate(
     { email: adminEmail },
-    { name: adminName, email: adminEmail, passwordHash, role: 'admin', isVerified: true },
+    {
+      name: adminName,
+      email: adminEmail,
+      passwordHash,
+      role: 'admin',
+      isVerified: true,
+      isEmailVerified: true,
+      verifiedAt: new Date(),
+    },
     { upsert: true, setDefaultsOnInsert: true },
   )
   console.log(`Admin ready: ${adminEmail} (password from ADMIN_PASSWORD)`)
@@ -78,8 +106,12 @@ async function seed() {
   console.log('Done.')
 }
 
-seed().catch(async (err) => {
-  console.error('Seed failed:', err)
-  process.exitCode = 1
-  await mongoose.disconnect()
-})
+if (require.main === module) {
+  seed().catch(async (err) => {
+    console.error('Seed failed:', err)
+    process.exitCode = 1
+    await mongoose.disconnect()
+  })
+}
+
+module.exports = { seed }

@@ -46,6 +46,7 @@ export default function Dashboard() {
   const [count, setCount] = useState(5)
   const [starting, setStarting] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [sendingVerification, setSendingVerification] = useState(false)
   const [history, setHistory] = useState([])
   const [loadingHistory, setLoadingHistory] = useState(true)
 
@@ -124,6 +125,30 @@ export default function Dashboard() {
     } finally {
       setUploading(false)
       if (fileRef.current) fileRef.current.value = ''
+    }
+  }
+
+  async function beginEmailVerification() {
+    if (!user?.email) return
+    setSendingVerification(true)
+    try {
+      const { data } = await api.post('/auth/resend-otp', { email: user.email })
+      if (data.alreadyVerified) {
+        toast.success('Your email is already verified.')
+        await refreshUser()
+        return
+      }
+      toast.success('Verification code sent to your email.')
+      navigate('/verify', { state: { email: user.email, otpSent: true } })
+    } catch (err) {
+      // A code may already have been sent moments ago. Let the user continue to
+      // the verification page and use that code instead of leaving them stuck.
+      if (err.response?.status === 429) {
+        navigate('/verify', { state: { email: user.email, otpSent: true } })
+      }
+      toast.error(apiError(err, 'Could not send the verification code'))
+    } finally {
+      setSendingVerification(false)
     }
   }
 
@@ -260,17 +285,25 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {starting && (
-            <div className="generation-loader generation-loader-main" role="status">
-              <LoaderCircle size={18} className="spin" />
-              {hasResume ? 'Creating questions from your resume...' : 'Creating your interview...'}
-            </div>
-          )}
-          <button className="btn btn-primary btn-block" disabled={busy} aria-busy={starting}>
+          <button className="btn btn-primary btn-block" disabled={busy} aria-busy={starting} aria-live="polite">
             {starting ? <LoaderCircle size={18} className="spin" /> : <Plus size={18} />}
-            {starting ? 'Generating...' : mode === 'quiz' ? 'Begin quiz' : 'Begin interview'}
+            {starting
+              ? hasResume ? 'Creating questions from your resume...' : 'Creating your interview...'
+              : mode === 'quiz' ? 'Begin quiz' : 'Begin interview'}
           </button>
         </form>
+        <div className={`verification-status dashboard-verification ${user?.isEmailVerified || user?.isVerified ? 'verified' : 'unverified'}`}>
+          {user?.isEmailVerified || user?.isVerified ? (
+            <span className="verification-tag verification-good"><CheckCircle2 size={15} /> Email verified</span>
+          ) : (
+            <>
+              <span className="verification-tag verification-bad">Email not verified</span>
+              <button className="btn btn-ghost btn-sm" onClick={beginEmailVerification} disabled={sendingVerification}>
+                {sendingVerification ? 'Sending code...' : 'Verify email'}
+              </button>
+            </>
+          )}
+        </div>
       </section>
 
       <section className="history">
@@ -316,9 +349,12 @@ export default function Dashboard() {
                       <p className="muted small">{new Date(item.createdAt).toLocaleDateString()}</p>
                     </div>
                     <div className="history-right">
+                      <span className="session-stat" title="Total questions">
+                        {item.questionCount ?? '—'} Q
+                      </span>
                       {item.status === 'completed' ? (
                         <span className="score-chip">
-                          <CheckCircle2 size={14} /> {item.overallScore}
+                          <CheckCircle2 size={14} /> {item.overallScore}%
                         </span>
                       ) : (
                         <span className="chip-pending">

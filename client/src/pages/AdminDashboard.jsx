@@ -28,6 +28,7 @@ export default function AdminDashboard() {
 
   // dedicated controls
   const [verifyRequired, setVerifyRequired] = useState(false)
+  const [savingVerification, setSavingVerification] = useState(false)
   const [geminiKeys, setGeminiKeys] = useState([]) // array of API keys
   const [newGeminiKey, setNewGeminiKey] = useState('')
 
@@ -102,13 +103,18 @@ export default function AdminDashboard() {
   }
 
   async function onToggleVerifyRequired(next) {
+    const previous = verifyRequired
     setVerifyRequired(next)
+    setSavingVerification(true)
     try {
       await saveSetting('verificationRequired', next)
       toast.success(`Email verification is now ${next ? 'required' : 'optional'}`)
       load()
     } catch (err) {
+      setVerifyRequired(previous)
       toast.error(apiError(err, 'Could not save the setting'))
+    } finally {
+      setSavingVerification(false)
     }
   }
 
@@ -233,6 +239,7 @@ export default function AdminDashboard() {
             type="checkbox"
             checked={verifyRequired}
             onChange={(e) => onToggleVerifyRequired(e.target.checked)}
+            disabled={savingVerification}
           />
           <span>
             Require email verification before login

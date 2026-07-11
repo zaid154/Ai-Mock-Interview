@@ -79,10 +79,9 @@ directly with no CORS setup in development.
 `.env` (default `admin@mockmate.com` / `Admin@123`). Sign in and open **Admin**
 in the navbar.
 
-When SMTP isn't configured, **OTP codes are printed to the server console**
-instead of emailed — so you can test verification and password reset locally with
-no email account. Look for a boxed `EMAIL (SMTP not configured…)` block in the
-terminal running `npm run dev`.
+OTP codes are delivered only through configured SMTP email. They are never
+printed to the server console or returned by the API. Configure `SMTP_*` before
+using email verification or password reset.
 
 ---
 
@@ -110,7 +109,7 @@ secrets stay server-side even though they live in the same file.
 | `GEMINI_API_KEY`  | server  | A single Gemini key (optional)                                          |
 | `GEMINI_API_KEYS` | server  | Multiple keys, comma-separated, for auto-fallback (optional)           |
 | `GEMINI_MODEL`    | server  | Gemini model (default `gemini-2.5-flash`)                               |
-| `SMTP_HOST/PORT/USER/PASS/FROM` | server | SMTP for OTP emails. **Blank = print OTP to console**         |
+| `SMTP_HOST/PORT/USER/PASS/FROM` | server | Required SMTP configuration for OTP emails                     |
 | `VITE_API_URL`    | client  | Base URL of the API (browser-exposed). Blank = relative `/api`          |
 
 > You can also add/rotate **Gemini keys** from the **admin panel** (stored in the
@@ -282,10 +281,10 @@ Every file, with a one-line explanation.
 | `middleware/error.js`             | 404 handler + central error handler (maps common Mongo/Multer errors).                          |
 | **services/**                     |                                                                                                |
 | `services/gemini.js`              | The AI layer — question/quiz generation + grading, multiple-key fallback, offline fallbacks.   |
-| `services/email.js`               | Sends email via SMTP, or prints to the console when SMTP isn't configured. `sendOtpEmail()`.    |
+| `services/email.js`               | Sends OTP email via SMTP and refuses delivery when SMTP is not configured.                       |
 | **utils/**                        |                                                                                                |
 | `utils/token.js`                  | `signToken(userId, tokenVersion)` / `verifyToken` (jsonwebtoken).                               |
-| `utils/otp.js`                    | Generate a 6-digit OTP, its expiry, and validate a submitted code.                             |
+| `utils/otp.js`                    | Generate, hash, expire, and timing-safely validate a 6-digit OTP.                              |
 | `utils/settings.js`               | `getSetting(key, fallback)` — read one Setting value.                                           |
 | `utils/asyncHandler.js`           | `wrap()` — forwards async errors to the Express error handler.                                  |
 
@@ -331,7 +330,7 @@ Every file, with a one-line explanation.
 | `EADDRINUSE` / port already in use          | Change `PORT` (server) or Vite `server.port`, or stop whatever is on 5050 / 5174.   |
 | `Could not connect to MongoDB`              | MongoDB isn't running or `MONGODB_URI` is wrong. Start `mongod` or fix the URI.     |
 | `querySrv ECONNREFUSED` with an Atlas URI   | Your network can't resolve the `mongodb+srv` SRV record. Use the **non-SRV** multi-host URI form: `mongodb://user:pass@host-00:27017,host-01:27017,host-02:27017/mockmate?ssl=true&replicaSet=<name>&authSource=admin`. |
-| OTP never arrives                           | SMTP isn't configured — the code is **printed to the server console**. Or set `SMTP_*`. |
+| OTP never arrives                           | Configure valid `SMTP_*` values; OTPs are never exposed in logs.                    |
 | Quiz mode says it needs a key               | Quiz is fully AI-generated. Add a working `GEMINI_API_KEY` (or a key in the admin panel). |
 | Questions look repetitive/generic           | No Gemini key → the offline bank is small. Add a key, or `npm run seed` the bank.   |
 | Client 404s on refresh after deploy         | Ensure `vercel.json` (SPA rewrite) is deployed with the client.                     |

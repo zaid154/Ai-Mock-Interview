@@ -1,12 +1,17 @@
 const bcrypt = require('bcryptjs')
 const User = require('../models/User.model')
 const { signToken } = require('../utils/token')
-const { generateOtp, otpExpiry, isOtpValid } = require('../utils/otp')
+const {
+  generateOtp,
+  hashOtp,
+  otpExpiry,
+  isOtpValid,
+  OTP_RESEND_COOLDOWN_SECONDS,
+  OTP_MAX_ATTEMPTS,
+} = require('../utils/otp')
 const { sendOtpEmail } = require('../services/email')
 const { getSetting } = require('../utils/settings')
 
-// Cookie the JWT is stored in. `secure` + `sameSite: none` in production so the
-// cookie survives a cross-site setup (frontend and API on different domains).
 const isProd = () => process.env.NODE_ENV === 'production'
 const cookieOptions = () => ({
   httpOnly: true,
@@ -15,56 +20,82 @@ const cookieOptions = () => ({
   maxAge: 7 * 24 * 60 * 60 * 1000,
 })
 
-// Shape of the user we send to the client (never the password hash / OTP).
+const emailVerified = (user) => user.isEmailVerified === true || user.isVerified === true
+
 const publicUser = (u) => ({
   id: u.id,
   name: u.name,
   email: u.email,
   role: u.role,
-  isVerified: u.isVerified,
+  // Keep `isVerified` for existing client code and expose the clearer field too.
+  isVerified: emailVerified(u),
+  isEmailVerified: emailVerified(u),
+  verifiedAt: u.verifiedAt || null,
   hasResume: Boolean(u.resumeText),
 })
 
-// Create a fresh OTP on the user, save it, and email it. `purpose` is 'verify'
-// (email confirmation) or 'reset' (password reset).
-async function issueOtp(user, purpose) {
-  const code = generateOtp()
-  user.otpCode = code
-  user.otpExpires = otpExpiry()
-  user.otpPurpose = purpose
-  await user.save()
-  // fire-and-forget: a mail failure shouldn't break the request
-  sendOtpEmail(user.email, code, purpose).catch((err) => console.error('OTP email failed:', err.message))
+function clearOtp(user) {
+  user.otpCode = null
+  user.otpHash = null
+  user.otpExpires = null
+  user.otpPurpose = null
+  user.otpAttempts = 0
 }
 
-// POST /api/auth/register
-// Always creates the account (unverified) and logs the user in. They can verify
-// now on the next screen or skip and verify later.
+function cooldownError() {
+  const err = new Error(`Please wait ${OTP_RESEND_COOLDOWN_SECONDS} seconds before requesting another OTP.`)
+  err.status = 429
+  return err
+}
+
+async function issueOtp(user, purpose) {
+  if (user.otpLastSentAt && Date.now() - user.otpLastSentAt.getTime() < OTP_RESEND_COOLDOWN_SECONDS * 1000) {
+    throw cooldownError()
+  }
+
+  const code = generateOtp()
+  // Send before saving state so a delivery failure never leaves an unusable OTP
+  // in the database. The plaintext code is only held in memory for this call.
+  await sendOtpEmail(user.email, code, purpose)
+  user.otpCode = null
+  user.otpHash = hashOtp(code)
+  user.otpExpires = otpExpiry()
+  user.otpPurpose = purpose
+  user.otpLastSentAt = new Date()
+  user.otpAttempts = 0
+  await user.save()
+}
+
+async function registrationVerificationState(user) {
+  const mustVerify = (await getSetting('verificationRequired', false)) === true
+  if (!mustVerify) return { needsVerification: false, otpSent: false }
+  try {
+    await issueOtp(user, 'verify')
+    return { needsVerification: true, otpSent: true }
+  } catch (err) {
+    // Account is intentionally retained. The verification screen can resend once
+    // mail delivery is configured/recovered, without leaking an OTP in a log.
+    return { needsVerification: true, otpSent: false, deliveryError: err.message }
+  }
+}
+
 async function register(req, res) {
   const { name, email, password } = req.body
-  if (await User.findOne({ email })) {
-    return res.status(409).json({ error: 'That email is already registered' })
-  }
+  if (await User.findOne({ email })) return res.status(409).json({ error: 'That email is already registered' })
 
   const passwordHash = await bcrypt.hash(password, 10)
   const user = await User.create({ name, email, passwordHash })
-  await issueOtp(user, 'verify')
+  const verification = await registrationVerificationState(user)
 
-  // If the admin made verification mandatory, don't hand out a session yet — the
-  // user must verify first. Otherwise log them straight in (they can verify later).
-  const mustVerify = (await getSetting('verificationRequired', false)) === true
-  if (mustVerify) {
-    return res.status(201).json({ user: publicUser(user), needsVerification: true })
+  if (verification.needsVerification) {
+    return res.status(201).json({ user: publicUser(user), ...verification })
   }
 
   const token = signToken(user.id, user.tokenVersion)
   res.cookie('token', token, cookieOptions())
-  res.status(201).json({ token, user: publicUser(user) })
+  return res.status(201).json({ token, user: publicUser(user), ...verification })
 }
 
-// POST /api/auth/login
-// If the admin has made verification mandatory, unverified users are blocked
-// with a flag the client uses to show the "verify your email" prompt.
 async function login(req, res) {
   const { email, password } = req.body
   const user = await User.findOne({ email })
@@ -73,9 +104,9 @@ async function login(req, res) {
   }
 
   const mustVerify = (await getSetting('verificationRequired', false)) === true
-  if (mustVerify && !user.isVerified) {
+  if (mustVerify && !emailVerified(user)) {
     return res.status(403).json({
-      error: 'Please verify your email before signing in.',
+      error: 'Please verify your email before logging in.',
       needsVerification: true,
       email: user.email,
     })
@@ -83,83 +114,93 @@ async function login(req, res) {
 
   const token = signToken(user.id, user.tokenVersion)
   res.cookie('token', token, cookieOptions())
-  res.json({ token, user: publicUser(user) })
+  return res.json({ token, user: publicUser(user) })
 }
 
-// POST /api/auth/verify-otp  { email, otp }
+// This is public so visitors can learn whether verification is mandatory
+// before they have an authenticated session.
+async function verificationSettings(_req, res) {
+  const requireEmailVerification = (await getSetting('verificationRequired', false)) === true
+  res.json({ requireEmailVerification })
+}
+
 async function verifyOtp(req, res) {
   const { email, otp } = req.body
-  const user = await User.findOne({ email })
-  if (!user || user.otpPurpose !== 'verify' || !isOtpValid(user, otp)) {
-    return res.status(400).json({ error: 'Invalid or expired code' })
+  const user = await User.findOne({ email }).select('+otpHash +otpCode')
+  if (!user) return res.status(400).json({ error: 'Invalid OTP.' })
+  if (emailVerified(user)) return res.json({ user: publicUser(user), alreadyVerified: true })
+
+  if (user.otpPurpose !== 'verify' || !user.otpExpires || user.otpExpires.getTime() <= Date.now()) {
+    clearOtp(user)
+    await user.save()
+    return res.status(400).json({ error: 'OTP has expired.' })
+  }
+  if ((user.otpAttempts || 0) >= OTP_MAX_ATTEMPTS) {
+    clearOtp(user)
+    await user.save()
+    return res.status(429).json({ error: 'Too many attempts. Please request a new OTP.' })
+  }
+  if (!isOtpValid(user, otp)) {
+    user.otpAttempts = (user.otpAttempts || 0) + 1
+    const locked = user.otpAttempts >= OTP_MAX_ATTEMPTS
+    if (locked) clearOtp(user)
+    await user.save()
+    return res.status(locked ? 429 : 400).json({
+      error: locked ? 'Too many attempts. Please request a new OTP.' : 'Invalid OTP.',
+    })
   }
 
   user.isVerified = true
-  user.otpCode = null
-  user.otpExpires = null
-  user.otpPurpose = null
+  user.isEmailVerified = true
+  user.verifiedAt = new Date()
+  clearOtp(user)
   await user.save()
-  res.json({ user: publicUser(user) })
+  return res.json({ user: publicUser(user), message: 'Email verified successfully.' })
 }
 
-// POST /api/auth/resend-otp  { email }  — used for verification and by the
-// "resend" buttons on the verify screen.
 async function resendOtp(req, res) {
   const { email } = req.body
   const user = await User.findOne({ email })
-  // Don't reveal whether the email exists; always answer 200.
-  if (user && !user.isVerified) await issueOtp(user, 'verify')
-  res.json({ ok: true })
+  // Do not disclose whether an unknown email exists.
+  if (!user) return res.json({ ok: true })
+  if (emailVerified(user)) return res.json({ ok: true, alreadyVerified: true })
+  await issueOtp(user, 'verify')
+  return res.json({ ok: true, cooldownSeconds: OTP_RESEND_COOLDOWN_SECONDS })
 }
 
-// POST /api/auth/forgot-password  { email }  — sends a reset OTP.
 async function forgotPassword(req, res) {
   const { email } = req.body
   const user = await User.findOne({ email })
   if (user) await issueOtp(user, 'reset')
-  res.json({ ok: true })
+  return res.json({ ok: true })
 }
 
-// POST /api/auth/reset-password  { email, otp, newPassword }
 async function resetPassword(req, res) {
   const { email, otp, newPassword } = req.body
-  const user = await User.findOne({ email })
+  const user = await User.findOne({ email }).select('+otpHash +otpCode')
   if (!user || user.otpPurpose !== 'reset' || !isOtpValid(user, otp)) {
     return res.status(400).json({ error: 'Invalid or expired code' })
   }
 
   user.passwordHash = await bcrypt.hash(newPassword, 10)
-  user.isVerified = true // a valid reset OTP already proves they own the mailbox
-  user.tokenVersion = (user.tokenVersion || 0) + 1 // invalidate old sessions/tokens
-  user.otpCode = null
-  user.otpExpires = null
-  user.otpPurpose = null
+  user.isVerified = true
+  user.isEmailVerified = true
+  user.verifiedAt = user.verifiedAt || new Date()
+  user.tokenVersion = (user.tokenVersion || 0) + 1
+  clearOtp(user)
   await user.save()
-  res.json({ ok: true })
+  return res.json({ ok: true })
 }
 
-// POST /api/auth/logout
 function logout(_req, res) {
-  // Clear with the SAME attributes used to set it, or cross-site prod browsers
-  // ignore the clear and keep the cookie.
   res.clearCookie('token', { httpOnly: true, sameSite: isProd() ? 'none' : 'lax', secure: isProd(), path: '/' })
   res.json({ ok: true })
 }
 
-// GET /api/auth/me
 async function me(req, res) {
   const user = await User.findById(req.userId)
   if (!user) return res.status(404).json({ error: 'User not found' })
   res.json({ user: publicUser(user) })
 }
 
-module.exports = {
-  register,
-  login,
-  verifyOtp,
-  resendOtp,
-  forgotPassword,
-  resetPassword,
-  logout,
-  me,
-}
+module.exports = { register, login, verificationSettings, verifyOtp, resendOtp, forgotPassword, resetPassword, logout, me }

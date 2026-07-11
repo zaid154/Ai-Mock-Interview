@@ -376,6 +376,47 @@ textarea:focus {
 .auth-card h1 {
   font-size: 1.45rem;
 }
+.auth-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  margin-bottom: 1.25rem;
+}
+.auth-heading h1,
+.auth-heading p {
+  margin: 0;
+}
+.auth-heading .muted {
+  margin-top: 0.25rem;
+}
+.auth-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 2.6rem;
+  height: 2.6rem;
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  border: 1px solid rgba(148, 141, 255, 0.24);
+  border-radius: 12px;
+}
+.verification-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.85rem;
+  color: #d9d6ff;
+  background: var(--accent-soft);
+  border: 1px solid rgba(148, 141, 255, 0.32);
+  border-radius: 10px;
+  font-size: 0.9rem;
+}
+.verification-notice svg {
+  flex: 0 0 auto;
+  margin-top: 0.1rem;
+  color: var(--accent-strong);
+}
 .auth-card .btn-block {
   margin-top: 0.5rem;
 }
@@ -452,6 +493,20 @@ textarea:focus {
   align-items: center;
   gap: 0.55rem;
   flex-shrink: 0;
+}
+.session-stat {
+  display: inline-flex;
+  align-items: center;
+  min-width: 3.3rem;
+  justify-content: center;
+  padding: 0.3rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  background: var(--surface-3);
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 .history-del {
   display: grid;
@@ -862,6 +917,27 @@ textarea:focus {
 .opt-icon {
   margin-left: auto;
 }
+.option-status {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 0.2rem 0.45rem;
+  border-radius: 999px;
+}
+.correct-status {
+  color: #5fd39a;
+  background: rgba(95, 211, 154, 0.14);
+}
+.wrong-status {
+  color: #ff9a91;
+  background: rgba(240, 115, 106, 0.14);
+}
+.quiz-answer-note {
+  margin: 0.2rem 0 0.8rem;
+  color: var(--warn);
+  font-size: 0.88rem;
+}
 .q-score.good {
   color: #5fd39a;
 }
@@ -1197,4 +1273,61 @@ textarea:focus {
 }
 .footer-meta .dot {
   opacity: 0.5;
+}
+
+/* Email verification card shown on every signed-in dashboard. */
+.verification-status {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+.verification-good,
+.verification-bad {
+  margin: 0;
+}
+.verification-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.32rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.verification-good { color: #5cdd9d; background: rgba(95, 211, 154, 0.12); }
+.verification-bad { color: #ff9a91; background: rgba(240, 115, 106, 0.12); }
+
+/* Dashboard layout: keep the status compact and let history share the main row
+   with the start form instead of being pushed beneath an empty grid column. */
+.dashboard {
+  gap: 1.25rem 2rem;
+}
+.verification-status {
+  justify-self: start;
+}
+.dashboard-verification {
+  margin-top: 0.9rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--border);
+}
+.history {
+  grid-column: 2;
+  min-width: 0;
+}
+.history-list {
+  max-height: 34rem;
+  overflow-y: auto;
+  padding-right: 0.2rem;
+}
+.history .empty {
+  padding: 1.25rem 1rem;
+}
+@media (max-width: 560px) {
+  .verification-status { align-items: flex-start; flex-direction: column; }
+}
+@media (max-width: 760px) {
+  .verification-status,
+  .history {
+    grid-column: auto;
+  }
 }

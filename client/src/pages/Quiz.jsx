@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import api, { apiError } from '../lib/api'
+import { formatGeneratedText } from '../lib/text'
 
 const LETTERS = ['A', 'B', 'C', 'D']
 
@@ -93,7 +94,7 @@ export default function Quiz() {
         <p className="question-label">Question {current + 1}</p>
         {/* pre-wrap so code snippets keep their line breaks */}
         <p className="question-text" style={{ whiteSpace: 'pre-wrap' }}>
-          {question.prompt}
+          {formatGeneratedText(question.prompt)}
         </p>
 
         <div className="options">
@@ -105,7 +106,7 @@ export default function Quiz() {
               onClick={() => pick(i)}
             >
               <span className="option-letter">{LETTERS[i]}</span>
-              <span style={{ whiteSpace: 'pre-wrap' }}>{opt}</span>
+              <span style={{ whiteSpace: 'pre-wrap' }}>{formatGeneratedText(opt)}</span>
             </button>
           ))}
         </div>

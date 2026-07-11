@@ -16,10 +16,9 @@ export default function Register() {
     e.preventDefault()
     setBusy(true)
     try {
-      await register(name, email, password)
-      toast.success('Account created — we sent you a verification code')
-      // Account exists and they're signed in; offer to verify now (or skip).
-      navigate('/verify', { state: { email } })
+      const data = await register(name, email, password)
+      toast.success(data.otpSent ? 'Account created — verification code sent' : 'Account created')
+      navigate('/verify', { state: { email, otpSent: data.otpSent } })
     } catch (err) {
       toast.error(apiError(err, 'Could not create account'))
     } finally {
@@ -35,47 +34,21 @@ export default function Register() {
 
         <label className="field">
           <span>Name</span>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Alex Doe"
-            autoComplete="name"
-            required
-          />
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Alex Doe" autoComplete="name" required />
         </label>
-
         <label className="field">
           <span>Email</span>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            autoComplete="email"
-            required
-          />
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" autoComplete="email" required />
         </label>
-
         <label className="field">
           <span>Password</span>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="At least 6 characters"
-            autoComplete="new-password"
-            minLength={6}
-            required
-          />
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 6 characters" autoComplete="new-password" minLength={6} required />
         </label>
 
         <button className="btn btn-primary btn-block" disabled={busy}>
-          {busy ? 'Creating…' : 'Create account'}
+          {busy ? 'Creating...' : 'Create account'}
         </button>
-
-        <p className="muted center">
-          Already have an account? <Link to="/login">Sign in</Link>
-        </p>
+        <p className="muted center">Already have an account? <Link to="/login">Sign in</Link></p>
       </form>
     </main>
   )

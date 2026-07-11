@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import api, { apiError } from '../lib/api'
+import { formatGeneratedText } from '../lib/text'
 
 // Open-ended interview: answer one question at a time, then submit for grading.
 export default function Interview() {
@@ -88,7 +89,7 @@ export default function Interview() {
 
       <div className="question-card">
         <p className="question-label">Question {current + 1}</p>
-        <p className="question-text">{question.prompt}</p>
+        <p className="question-text" style={{ whiteSpace: 'pre-wrap' }}>{formatGeneratedText(question.prompt)}</p>
         <textarea
           value={answers[current]}
           onChange={(e) => updateAnswer(e.target.value)}

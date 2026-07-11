@@ -18,6 +18,8 @@ async function setUserVerified(req, res) {
   const user = await User.findById(req.params.id)
   if (!user) return res.status(404).json({ error: 'User not found' })
   user.isVerified = Boolean(req.body.isVerified)
+  user.isEmailVerified = user.isVerified
+  user.verifiedAt = user.isVerified ? new Date() : null
   await user.save()
   res.json({ ok: true, isVerified: user.isVerified })
 }
@@ -64,6 +66,14 @@ async function upsertSetting(req, res) {
     { key, value },
     { new: true, upsert: true, setDefaultsOnInsert: true },
   )
+  // This is informational/audit data only. Login checks the live setting on
+  // every request, so enabling the switch immediately applies to old accounts.
+  if (key === 'verificationRequired' && value === true) {
+    await User.updateMany(
+      { $and: [{ isVerified: { $ne: true } }, { isEmailVerified: { $ne: true } }] },
+      { $set: { emailVerificationRequiredAt: new Date() } },
+    )
+  }
   res.json({ setting })
 }
 

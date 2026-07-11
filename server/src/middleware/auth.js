@@ -1,5 +1,6 @@
 const { verifyToken } = require('../utils/token')
 const User = require('../models/User.model')
+const { getSetting } = require('../utils/settings')
 
 // Reads the JWT from the Bearer header or the `token` cookie, verifies it,
 // confirms the user still exists and the token hasn't been revoked by a password
@@ -19,10 +20,19 @@ async function requireAuth(req, res, next) {
   }
 
   try {
-    const user = await User.findById(payload.sub).select('tokenVersion')
+    const user = await User.findById(payload.sub).select('tokenVersion email isVerified isEmailVerified')
     // Reject if the account is gone or the token predates a password reset.
     if (!user || (user.tokenVersion || 0) !== (payload.tv || 0)) {
       return res.status(401).json({ error: 'Session expired, please sign in again' })
+    }
+    const verificationRequired = (await getSetting('verificationRequired', false)) === true
+    const emailVerified = user.isVerified === true || user.isEmailVerified === true
+    if (verificationRequired && !emailVerified) {
+      return res.status(403).json({
+        error: 'Please verify your email before logging in.',
+        needsVerification: true,
+        email: user.email,
+      })
     }
     req.userId = payload.sub
     next()

@@ -4,6 +4,7 @@ import toast from 'react-hot-toast'
 import { RotateCcw, Check, X } from 'lucide-react'
 import api, { apiError } from '../lib/api'
 import ScoreChart from '../components/ScoreChart'
+import { formatGeneratedText } from '../lib/text'
 
 const LETTERS = ['A', 'B', 'C', 'D']
 
@@ -78,16 +79,19 @@ export default function Results() {
             <div className="answer-card" key={i}>
               <div className="answer-head">
                 <p className="question-text" style={{ whiteSpace: 'pre-wrap' }}>
-                  <span className="muted">Q{i + 1}.</span> {q.prompt}
+                  <span className="muted">Q{i + 1}.</span> {formatGeneratedText(q.prompt)}
                 </p>
                 <span className={`q-score ${q.selectedIndex === q.correctIndex ? 'good' : 'bad'}`}>
                   {q.selectedIndex === q.correctIndex ? 'Correct' : 'Wrong'}
                 </span>
               </div>
+              {!(Number.isInteger(q.selectedIndex) && q.selectedIndex >= 0) && (
+                <p className="quiz-answer-note">You did not select an answer for this question.</p>
+              )}
               <div className="options review">
                 {q.options.map((opt, oi) => {
                   const isCorrect = oi === q.correctIndex
-                  const isPicked = oi === q.selectedIndex
+                  const isPicked = Number.isInteger(q.selectedIndex) && oi === q.selectedIndex
                   return (
                     <div
                       key={oi}
@@ -96,7 +100,13 @@ export default function Results() {
                       }`}
                     >
                       <span className="option-letter">{LETTERS[oi]}</span>
-                      <span style={{ whiteSpace: 'pre-wrap' }}>{opt}</span>
+                      <span style={{ whiteSpace: 'pre-wrap' }}>{formatGeneratedText(opt)}</span>
+                      {isPicked && (
+                        <span className={`option-status ${isCorrect ? 'correct-status' : 'wrong-status'}`}>
+                          Your answer{isCorrect ? ' · Correct' : ''}
+                        </span>
+                      )}
+                      {isCorrect && !isPicked && <span className="option-status correct-status">Correct answer</span>}
                       {isCorrect && <Check size={16} className="opt-icon" />}
                       {isPicked && !isCorrect && <X size={16} className="opt-icon" />}
                     </div>
@@ -109,7 +119,7 @@ export default function Results() {
             <div className="answer-card" key={i}>
               <div className="answer-head">
                 <p className="question-text">
-                  <span className="muted">Q{i + 1}.</span> {q.prompt}
+                  <span className="muted">Q{i + 1}.</span> {formatGeneratedText(q.prompt)}
                 </p>
                 <span className="q-score">{q.score}/10</span>
               </div>

@@ -11,10 +11,20 @@ const userSchema = new Schema(
     passwordHash: { type: String, required: true },
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
 
+    // `isVerified` remains for backwards compatibility with existing accounts.
     isVerified: { type: Boolean, default: false },
-    otpCode: { type: String, default: null },
+    isEmailVerified: { type: Boolean, default: false },
+    verifiedAt: { type: Date, default: null },
+    emailVerificationRequiredAt: { type: Date, default: null },
+
+    // OTPs are never stored in plain text. `otpCode` is only retained so old
+    // documents can be read; all newly-issued OTPs use `otpHash`.
+    otpCode: { type: String, default: null, select: false },
+    otpHash: { type: String, default: null, select: false },
     otpExpires: { type: Date, default: null },
     otpPurpose: { type: String, enum: ['verify', 'reset', null], default: null },
+    otpLastSentAt: { type: Date, default: null },
+    otpAttempts: { type: Number, default: 0 },
 
     // Bumped on password reset to invalidate any JWTs issued before the reset.
     tokenVersion: { type: Number, default: 0 },

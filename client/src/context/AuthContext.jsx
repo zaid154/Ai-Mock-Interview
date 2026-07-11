@@ -8,18 +8,47 @@ const AuthContext = createContext(null)
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  // `null` means the live setting has not loaded yet. Treat that state as
+  // mandatory in the UI so the optional skip action never flashes briefly.
+  const [requireEmailVerification, setRequireEmailVerification] = useState(null)
+
+  async function refreshVerificationSetting() {
+    const { data } = await api.get('/auth/verification-settings')
+    setRequireEmailVerification(data.requireEmailVerification === true)
+    return data.requireEmailVerification === true
+  }
 
   // Restore the session on first load if a token is present.
   useEffect(() => {
     if (!localStorage.getItem('token')) {
-      setLoading(false)
+      refreshVerificationSetting()
+        .catch(() => setRequireEmailVerification(false))
+        .finally(() => setLoading(false))
       return
     }
-    api
-      .get('/auth/me')
-      .then((res) => setUser(res.data.user))
-      .catch(() => localStorage.removeItem('token'))
+    Promise.all([api.get('/auth/me'), refreshVerificationSetting().catch(() => false)])
+      .then(([res]) => setUser(res.data.user))
+      .catch((err) => {
+        if (err.response?.data?.needsVerification) {
+          setUser({ email: err.response.data.email, isEmailVerified: false, isVerified: false })
+        } else {
+          localStorage.removeItem('token')
+        }
+      })
       .finally(() => setLoading(false))
+  }, [])
+
+  // Refresh on focus and periodically so an admin change is reflected even
+  // when this tab is already open.
+  useEffect(() => {
+    const refresh = () => refreshVerificationSetting().catch(() => {})
+    refresh()
+    const timer = window.setInterval(refresh, 15000)
+    window.addEventListener('focus', refresh)
+    return () => {
+      window.clearInterval(timer)
+      window.removeEventListener('focus', refresh)
+    }
   }, [])
 
   async function login(email, password) {
@@ -60,7 +89,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, requireEmailVerification, login, register, logout, refreshUser, refreshVerificationSetting }}>
       {children}
     </AuthContext.Provider>
   )

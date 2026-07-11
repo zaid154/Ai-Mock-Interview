@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 export default function Navbar() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const firstName = user?.name?.trim().split(/\s+/)[0]
 
   async function handleLogout() {
     await logout()
@@ -21,7 +22,7 @@ export default function Navbar() {
       <nav className="nav-links">
         {user ? (
           <>
-            <span className="muted hide-sm">Hi, {user.name.split(' ')[0]}</span>
+            {firstName && <span className="muted hide-sm">Hi, {firstName}</span>}
             <Link to="/dashboard" className="nav-link hide-sm">Dashboard</Link>
             {user.role === 'admin' && (
               <Link to="/admin" className="nav-link">
