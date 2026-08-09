@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { RotateCcw, Check, X } from 'lucide-react'
+import { RotateCcw, Check, X, Bookmark, Award, Edit3, Save } from 'lucide-react'
 import api, { apiError } from '../lib/api'
 import ScoreChart from '../components/ScoreChart'
 import { formatGeneratedText } from '../lib/text'
@@ -18,14 +18,52 @@ export default function Results() {
   const { id } = useParams()
   const [interview, setInterview] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [bookmarkedMap, setBookmarkedMap] = useState({})
+  const [sessionNotes, setSessionNotes] = useState('')
+  const [savingNotes, setSavingNotes] = useState(false)
 
   useEffect(() => {
     api
       .get(`/interviews/${id}`)
-      .then((res) => setInterview(res.data.interview))
+      .then((res) => {
+        const data = res.data.interview
+        setInterview(data)
+        setSessionNotes(data.notes || '')
+      })
       .catch((err) => toast.error(apiError(err, 'Could not load results')))
       .finally(() => setLoading(false))
   }, [id])
+
+  async function handleBookmarkQuestion(q) {
+    try {
+      await api.post('/bookmarks', {
+        prompt: q.prompt,
+        role: interview.role,
+        category: interview.category,
+        answer: q.answer,
+        feedback: q.feedback,
+        options: q.options,
+        correctIndex: q.correctIndex,
+        notes: q.notes,
+      })
+      setBookmarkedMap((prev) => ({ ...prev, [q.prompt]: true }))
+      toast.success('Question saved to Bookmarks!')
+    } catch (err) {
+      toast.error(apiError(err, 'Could not bookmark question'))
+    }
+  }
+
+  async function handleSaveSessionNotes() {
+    setSavingNotes(true)
+    try {
+      await api.patch(`/interviews/${id}/notes`, { notes: sessionNotes })
+      toast.success('Session notes saved!')
+    } catch (err) {
+      toast.error(apiError(err, 'Could not save notes'))
+    } finally {
+      setSavingNotes(false)
+    }
+  }
 
   if (loading) return <main className="page-center muted">Loading results…</main>
   if (!interview) return <main className="page-center muted">Results not found.</main>
@@ -37,15 +75,25 @@ export default function Results() {
     <main className="container results">
       <div className="results-head">
         <div>
-          <p className="muted small">
-            {interview.role} · {interview.experience} · {interview.difficulty}
-            {isQuiz && ' · Quiz'}
-          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.2rem' }}>
+            <p className="muted small" style={{ margin: 0 }}>
+              {interview.role} · {interview.experience} · {interview.difficulty}
+              {isQuiz && ' · Quiz'}
+            </p>
+            {interview.category && interview.category !== 'General' && (
+              <span className="tag">{interview.category}</span>
+            )}
+          </div>
           <h2>Your results</h2>
         </div>
-        <Link to="/dashboard" className="btn btn-ghost">
-          <RotateCcw size={16} /> New session
-        </Link>
+        <div style={{ display: 'flex', gap: '0.6rem' }}>
+          <Link to="/certificates" className="btn btn-ghost">
+            <Award size={16} /> Certificates
+          </Link>
+          <Link to="/dashboard" className="btn btn-primary">
+            <RotateCcw size={16} /> New session
+          </Link>
+        </div>
       </div>
 
       <div className="results-top">
@@ -71,6 +119,24 @@ export default function Results() {
         </div>
       )}
 
+      {/* Overall Session Notes Editor */}
+      <div className="panel summary-panel">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+          <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '1rem' }}>
+            <Edit3 size={16} /> Session Takeaways & Notes
+          </h3>
+          <button className="btn btn-ghost btn-sm" onClick={handleSaveSessionNotes} disabled={savingNotes}>
+            <Save size={14} /> {savingNotes ? 'Saving...' : 'Save Notes'}
+          </button>
+        </div>
+        <textarea
+          rows={3}
+          value={sessionNotes}
+          onChange={(e) => setSessionNotes(e.target.value)}
+          placeholder="Jot down key learnings or areas to practice next time..."
+        />
+      </div>
+
       <div className="answers">
         <h3>Question breakdown</h3>
         {interview.questions.map((q, i) =>
@@ -81,9 +147,18 @@ export default function Results() {
                 <p className="question-text" style={{ whiteSpace: 'pre-wrap' }}>
                   <span className="muted">Q{i + 1}.</span> {formatGeneratedText(q.prompt)}
                 </p>
-                <span className={`q-score ${q.selectedIndex === q.correctIndex ? 'good' : 'bad'}`}>
-                  {q.selectedIndex === q.correctIndex ? 'Correct' : 'Wrong'}
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    onClick={() => handleBookmarkQuestion(q)}
+                    title="Bookmark this question"
+                  >
+                    <Bookmark size={14} fill={bookmarkedMap[q.prompt] ? 'currentColor' : 'none'} />
+                  </button>
+                  <span className={`q-score ${q.selectedIndex === q.correctIndex ? 'good' : 'bad'}`}>
+                    {q.selectedIndex === q.correctIndex ? 'Correct' : 'Wrong'}
+                  </span>
+                </div>
               </div>
               {!(Number.isInteger(q.selectedIndex) && q.selectedIndex >= 0) && (
                 <p className="quiz-answer-note">You did not select an answer for this question.</p>
@@ -121,7 +196,16 @@ export default function Results() {
                 <p className="question-text">
                   <span className="muted">Q{i + 1}.</span> {formatGeneratedText(q.prompt)}
                 </p>
-                <span className="q-score">{q.score}/10</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    onClick={() => handleBookmarkQuestion(q)}
+                    title="Bookmark this question"
+                  >
+                    <Bookmark size={14} fill={bookmarkedMap[q.prompt] ? 'currentColor' : 'none'} />
+                  </button>
+                  <span className="q-score">{q.score}/10</span>
+                </div>
               </div>
               <p className="your-answer">
                 {q.answer || <em className="muted">No answer given.</em>}

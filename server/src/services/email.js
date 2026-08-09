@@ -19,9 +19,37 @@ function getTransporter() {
 }
 
 async function sendEmail(to, subject, text, html) {
+  const brevoKey = process.env.BREVO_API_KEY
+  if (brevoKey) {
+    const fromEmail = process.env.SMTP_FROM || process.env.SMTP_USER || 'noreply@mockmate.com'
+    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'api-key': brevoKey,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        sender: { name: 'MockMate AI', email: fromEmail },
+        to: [{ email: to }],
+        subject,
+        textContent: text,
+        htmlContent: html,
+      }),
+    })
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}))
+      const err = new Error(errData.message || `Brevo API error: ${res.status}`)
+      err.status = res.status
+      throw err
+    }
+    return
+  }
+
   const tx = getTransporter()
   if (!tx) {
-    const err = new Error('Email delivery is not configured. Please contact support.')
+    const err = new Error('Email delivery is not configured. Please add BREVO_API_KEY or SMTP credentials in .env.')
     err.status = 503
     throw err
   }

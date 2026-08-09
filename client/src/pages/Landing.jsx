@@ -8,83 +8,137 @@ import {
   BarChart3,
   SlidersHorizontal,
   ShieldCheck,
+  CheckCircle2,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
-// Feature cards shown under the hero.
 const FEATURES = [
-  { icon: Sparkles, title: 'AI-generated questions', text: 'Fresh questions every session, written by Gemini for the exact role you pick.' },
-  { icon: ListChecks, title: 'Questions or Quiz', text: 'Answer open-ended, or take an MCQ quiz — including “what’s the output?” code problems.' },
-  { icon: FileText, title: 'Resume-tailored', text: 'Upload your CV (PDF) and get questions based on your real experience.' },
-  { icon: BarChart3, title: 'Instant scoring', text: 'Every answer graded 0–10 with specific, actionable feedback and an overall score.' },
-  { icon: SlidersHorizontal, title: 'Role + experience', text: 'Fresher to 5+ years, easy to hard — the difficulty tunes to your level.' },
-  { icon: ShieldCheck, title: 'Secure accounts', text: 'Email OTP verification and password reset built in, so your history stays yours.' },
+  { icon: Sparkles, title: 'AI-generated questions', text: 'Every session gives you fresh questions — no repeats, tailored to the exact role you picked.' },
+  { icon: ListChecks, title: 'Questions & quizzes', text: 'Open-ended answers or timed MCQs, including "what\'s the output?" code puzzles.' },
+  { icon: FileText, title: 'Resume-aware prep', text: 'Drop your CV as a PDF. The AI reads it and asks questions about your actual experience.' },
+  { icon: BarChart3, title: 'Scored feedback', text: 'Each answer gets a 0–10 score with line-by-line notes on what to fix.' },
+  { icon: SlidersHorizontal, title: 'Dial your level', text: 'Fresher or 5+ years? Easy or hard? You set it, and the questions follow.' },
+  { icon: ShieldCheck, title: 'Your data, secured', text: 'Email verification, OTP login, encrypted sessions — your prep history stays private.' },
 ]
 
 const steps = [
-  { n: '01', title: 'Pick a role', text: 'Tell it the job, your experience, and difficulty you’re preparing for.' },
-  { n: '02', title: 'Answer or quiz', text: 'Work through open questions, or take a multiple-choice quiz.' },
-  { n: '03', title: 'Get scored', text: 'Every answer comes back with a score and a specific note.' },
+  { n: '1', title: 'Choose your interview', text: 'Pick the job role, your experience level, and how hard you want it.' },
+  { n: '2', title: 'Answer the questions', text: 'Type out answers or take a multiple-choice quiz — your call.' },
+  { n: '3', title: 'Review your scores', text: 'Get a score and specific feedback for every single answer.' },
 ]
+
+const fade = { hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0 } }
 
 export default function Landing() {
   const { user } = useAuth()
 
   return (
     <main className="landing">
+      {/* ── Hero ── */}
       <motion.section
         className="hero"
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.45 }}
+        initial="hidden"
+        animate="show"
+        variants={fade}
+        transition={{ duration: 0.4 }}
       >
         <span className="hero-badge">
-          <Sparkles size={14} /> Powered by Google Gemini
+          <Sparkles size={13} /> Powered by Google Gemini
         </span>
         <h1>
-          Rehearse the questions before they’re <span className="accent">asked for real</span>
+          Stop guessing.<br />
+          <span className="accent">Start rehearsing.</span>
         </h1>
         <p className="lead">
-          MockMate runs a focused mock interview for the exact role and experience level you’re
-          chasing, then grades every answer so you walk in knowing what to sharpen.
+          MockMate gives you a real mock interview for any tech role — AI-generated
+          questions, instant grading, and feedback you can actually use.
         </p>
         <div className="hero-cta">
           <Link to={user ? '/dashboard' : '/register'} className="btn btn-primary btn-lg">
-            {user ? 'Go to dashboard' : 'Start a mock interview'} <ArrowRight size={18} />
+            {user ? 'Go to dashboard' : 'Get started free'} <ArrowRight size={18} />
           </Link>
           {!user && (
             <Link to="/login" className="btn btn-ghost btn-lg">
-              I already have an account
+              Sign in
             </Link>
           )}
         </div>
+        <div className="hero-proof">
+          <CheckCircle2 size={15} /> No credit card needed
+          <span className="dot">·</span>
+          <CheckCircle2 size={15} /> Free forever tier
+        </div>
       </motion.section>
 
-      <section className="section-head">
-        <h2>Everything you need to prep</h2>
-        <p>A focused toolkit — real AI questions, quizzes, and honest feedback in one place.</p>
-      </section>
-      <section className="features">
-        {FEATURES.map((f) => (
-          <div className="feature-card" key={f.title}>
-            <div className="feature-ic">
-              <f.icon size={20} />
-            </div>
-            <h3>{f.title}</h3>
-            <p>{f.text}</p>
-          </div>
-        ))}
+      {/* ── Features ── */}
+      <section className="features-section">
+        <div className="section-head">
+          <h2>Everything you need to prep</h2>
+          <p>One place for questions, quizzes, and honest feedback.</p>
+        </div>
+
+        <div className="features">
+          {FEATURES.map((f, i) => (
+            <motion.div
+              className="feature-card"
+              key={f.title}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, margin: '-60px' }}
+              variants={fade}
+              transition={{ duration: 0.35, delay: i * 0.07 }}
+            >
+              <div className="feature-ic">
+                <f.icon size={22} />
+              </div>
+              <h3>{f.title}</h3>
+              <p>{f.text}</p>
+            </motion.div>
+          ))}
+        </div>
       </section>
 
-      <section className="steps">
-        {steps.map((s) => (
-          <div className="step" key={s.n}>
-            <span className="step-num">{s.n}</span>
-            <h3>{s.title}</h3>
-            <p className="muted">{s.text}</p>
-          </div>
-        ))}
+      {/* ── How it works ── */}
+      <section className="how-section">
+        <div className="section-head">
+          <h2>Three steps. That's it.</h2>
+          <p>No setup, no config files, no boilerplate.</p>
+        </div>
+
+        <div className="steps">
+          {steps.map((s, i) => (
+            <motion.div
+              className="step"
+              key={s.n}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, margin: '-60px' }}
+              variants={fade}
+              transition={{ duration: 0.35, delay: i * 0.1 }}
+            >
+              <span className="step-num">{s.n}</span>
+              <h3>{s.title}</h3>
+              <p>{s.text}</p>
+            </motion.div>
+          ))}
+        </div>
       </section>
+
+      {/* ── Bottom CTA ── */}
+      <motion.section
+        className="bottom-cta"
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true }}
+        variants={fade}
+        transition={{ duration: 0.4 }}
+      >
+        <h2>Ready to practice?</h2>
+        <p className="muted">Start a mock interview in under 30 seconds. For free.</p>
+        <Link to={user ? '/dashboard' : '/register'} className="btn btn-primary btn-lg">
+          {user ? 'Open dashboard' : 'Create free account'} <ArrowRight size={18} />
+        </Link>
+      </motion.section>
     </main>
   )
 }

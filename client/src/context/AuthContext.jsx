@@ -18,21 +18,17 @@ export function AuthProvider({ children }) {
     return data.requireEmailVerification === true
   }
 
-  // Restore the session on first load if a token is present.
+  // Restore session from HttpOnly cookie on boot.
   useEffect(() => {
-    if (!localStorage.getItem('token')) {
-      refreshVerificationSetting()
-        .catch(() => setRequireEmailVerification(false))
-        .finally(() => setLoading(false))
-      return
-    }
-    Promise.all([api.get('/auth/me'), refreshVerificationSetting().catch(() => false)])
-      .then(([res]) => setUser(res.data.user))
+    Promise.all([api.get('/auth/me').catch(() => null), refreshVerificationSetting().catch(() => false)])
+      .then(([res]) => {
+        if (res?.data?.user) {
+          setUser(res.data.user)
+        }
+      })
       .catch((err) => {
         if (err.response?.data?.needsVerification) {
           setUser({ email: err.response.data.email, isEmailVerified: false, isVerified: false })
-        } else {
-          localStorage.removeItem('token')
         }
       })
       .finally(() => setLoading(false))
@@ -53,7 +49,6 @@ export function AuthProvider({ children }) {
 
   async function login(email, password) {
     const { data } = await api.post('/auth/login', { email, password })
-    localStorage.setItem('token', data.token)
     setUser(data.user)
   }
 
@@ -63,7 +58,6 @@ export function AuthProvider({ children }) {
   }
 
   function establishSession(data) {
-    localStorage.setItem('token', data.token)
     setUser(data.user)
   }
 
@@ -76,9 +70,8 @@ export function AuthProvider({ children }) {
     try {
       await api.post('/auth/logout')
     } catch {
-      // ignore — clear locally regardless
+      // ignore
     }
-    localStorage.removeItem('token')
     setUser(null)
   }
 

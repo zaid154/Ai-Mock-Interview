@@ -16,7 +16,7 @@ function publicInterview(interview) {
 // A saved resume is always the candidate profile. Form fields are only used as
 // a fallback when the user has not uploaded a resume.
 async function startInterview(req, res) {
-  const { role, difficulty, count, experience, mode } = req.body
+  const { role, difficulty, count, experience, mode, category = 'General', timerMinutes = 0 } = req.body
 
   const user = await User.findById(req.userId).select('resumeText')
   const resumeText = user?.resumeText || ''
@@ -28,7 +28,7 @@ async function startInterview(req, res) {
   let questions
   if (mode === 'quiz') {
     try {
-      const quiz = await generateQuiz(role, difficulty, count, experience, resumeText)
+      const quiz = await generateQuiz(role, difficulty, count, experience, resumeText, category)
       questions = quiz.map((q) => ({
         prompt: q.prompt,
         options: q.options,
@@ -44,7 +44,7 @@ async function startInterview(req, res) {
     }
   } else {
     try {
-      const prompts = await generateQuestions(role, difficulty, count, experience, resumeText)
+      const prompts = await generateQuestions(role, difficulty, count, experience, resumeText, category)
       questions = prompts.map((prompt) => ({ prompt }))
     } catch (err) {
       if (hasResume) {
@@ -60,9 +60,11 @@ async function startInterview(req, res) {
   const interview = await Interview.create({
     user: req.userId,
     role: hasResume ? 'Resume-based Interview' : role,
+    category,
     experience,
     difficulty,
     mode,
+    timerMinutes: Number(timerMinutes) || 0,
     usesResume: hasResume,
     status: 'in_progress',
     questions,
@@ -75,9 +77,8 @@ async function startInterview(req, res) {
 async function listInterviews(req, res) {
   const interviews = await Interview.find({ user: req.userId })
     .sort({ createdAt: -1 })
-    .select('role difficulty mode status overallScore createdAt questions')
+    .select('role category experience difficulty mode timerMinutes status overallScore createdAt questions notes')
     .lean()
-  // Dashboard only needs the total count, never the actual question text.
   res.json({
     interviews: interviews.map(({ questions, ...interview }) => ({
       ...interview,
@@ -146,6 +147,59 @@ async function submitInterview(req, res) {
   res.json({ interview: publicInterview(interview) })
 }
 
+// PATCH /api/interviews/:id/notes — update notes on an interview or question
+async function updateNotes(req, res) {
+  const { notes, questionIndex } = req.body
+  const interview = await Interview.findOne({ _id: req.params.id, user: req.userId })
+  if (!interview) return res.status(404).json({ error: 'Interview not found' })
+
+  if (typeof questionIndex === 'number' && interview.questions[questionIndex]) {
+    interview.questions[questionIndex].notes = String(notes || '').trim()
+  } else {
+    interview.notes = String(notes || '').trim()
+  }
+
+  await interview.save()
+  res.json({ ok: true, interview: publicInterview(interview) })
+}
+
+// GET /api/interviews/leaderboard — get top users based on completed interviews and average scores.
+async function getLeaderboard(req, res) {
+  const stats = await Interview.aggregate([
+    { $match: { status: 'completed' } },
+    {
+      $group: {
+        _id: '$user',
+        totalCompleted: { $sum: 1 },
+        avgScore: { $avg: '$overallScore' },
+        highestScore: { $max: '$overallScore' },
+      },
+    },
+    { $sort: { avgScore: -1, totalCompleted: -1 } },
+    { $limit: 20 },
+  ])
+
+  const userIds = stats.map((s) => s._id)
+  const users = await User.find({ _id: { $in: userIds } }).select('name avatar bio').lean()
+  const userMap = new Map(users.map((u) => [String(u._id), u]))
+
+  const leaderboard = stats.map((stat, idx) => {
+    const userInfo = userMap.get(String(stat._id)) || { name: 'Anonymous User', avatar: '', bio: '' }
+    return {
+      rank: idx + 1,
+      userId: stat._id,
+      name: userInfo.name,
+      avatar: userInfo.avatar,
+      bio: userInfo.bio,
+      totalCompleted: stat.totalCompleted,
+      avgScore: Math.round(stat.avgScore || 0),
+      highestScore: stat.highestScore || 0,
+    }
+  })
+
+  res.json({ leaderboard })
+}
+
 // DELETE /api/interviews/:id — remove one of your own interviews from history.
 async function deleteInterview(req, res) {
   const result = await Interview.deleteOne({ _id: req.params.id, user: req.userId })
@@ -153,17 +207,12 @@ async function deleteInterview(req, res) {
   res.json({ ok: true })
 }
 
-// POST /api/interviews/resume — upload a CV (PDF). We extract the text in memory
-// (nothing is written to disk, so it works on serverless hosts) and save it on
-// the user so future interviews can be tailored to it.
+// POST /api/interviews/resume — upload a CV (PDF).
 async function uploadResume(req, res) {
   if (!req.file) return res.status(400).json({ error: 'Please attach a PDF file' })
 
   let text = ''
   try {
-    // unpdf is ESM-only, so load it with a dynamic import from CommonJS. It wraps
-    // an up-to-date pdf.js that reads modern PDFs (Word/Docs/Canva exports) that
-    // the old pdf-parse choked on, and runs fine on serverless hosts.
     const { extractText, getDocumentProxy } = await import('unpdf')
     const pdf = await getDocumentProxy(new Uint8Array(req.file.buffer))
     const result = await extractText(pdf, { mergePages: true })
@@ -182,6 +231,8 @@ module.exports = {
   listInterviews,
   getInterview,
   submitInterview,
+  updateNotes,
+  getLeaderboard,
   deleteInterview,
   uploadResume,
 }

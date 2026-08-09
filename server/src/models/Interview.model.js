@@ -14,6 +14,7 @@ const questionSchema = new Schema(
     options: { type: [String], default: undefined },
     correctIndex: { type: Number, default: null },
     selectedIndex: { type: Number, default: null },
+    notes: { type: String, default: '' },
   },
   { _id: false },
 )
@@ -22,14 +23,17 @@ const interviewSchema = new Schema(
   {
     user: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     role: { type: String, required: true },
+    category: { type: String, default: 'General' },
     experience: { type: String, default: 'Fresher' },
     difficulty: { type: String, enum: ['easy', 'medium', 'hard'], default: 'medium' },
     mode: { type: String, enum: ['questions', 'quiz'], default: 'questions' },
     usesResume: { type: Boolean, default: false },
+    timerMinutes: { type: Number, default: 0 },
     status: { type: String, enum: ['in_progress', 'completed'], default: 'in_progress' },
     questions: [questionSchema],
     overallScore: { type: Number, default: 0 },
     summary: { type: String, default: '' },
+    notes: { type: String, default: '' },
   },
   { timestamps: true },
 )

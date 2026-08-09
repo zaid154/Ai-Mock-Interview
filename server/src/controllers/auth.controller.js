@@ -27,6 +27,9 @@ const publicUser = (u) => ({
   name: u.name,
   email: u.email,
   role: u.role,
+  bio: u.bio || '',
+  avatar: u.avatar || '',
+  theme: u.theme || 'dark',
   // Keep `isVerified` for existing client code and expose the clearer field too.
   isVerified: emailVerified(u),
   isEmailVerified: emailVerified(u),
@@ -122,7 +125,7 @@ async function login(req, res) {
 
   const token = signToken(user.id, user.tokenVersion)
   res.cookie('token', token, cookieOptions())
-  return res.json({ token, user: publicUser(user) })
+  return res.json({ user: publicUser(user) })
 }
 
 // This is public so visitors can learn whether verification is mandatory
@@ -166,7 +169,7 @@ async function verifyOtp(req, res) {
   await user.save()
   const token = signToken(user.id, user.tokenVersion)
   res.cookie('token', token, cookieOptions())
-  return res.json({ token, user: publicUser(user), message: 'Email verified successfully.' })
+  return res.json({ user: publicUser(user), message: 'Email verified successfully.' })
 }
 
 async function completeRegistration(req, res) {
@@ -189,7 +192,7 @@ async function completeRegistration(req, res) {
   await user.save()
   const token = signToken(user.id, user.tokenVersion)
   res.cookie('token', token, cookieOptions())
-  return res.json({ token, user: publicUser(user) })
+  return res.json({ user: publicUser(user) })
 }
 
 async function resendOtp(req, res) {
@@ -227,6 +230,40 @@ async function resetPassword(req, res) {
   return res.json({ ok: true })
 }
 
+async function updateProfile(req, res) {
+  const { name, bio, avatar, theme } = req.body
+  const user = await User.findById(req.userId)
+  if (!user) return res.status(404).json({ error: 'User not found' })
+
+  if (typeof name === 'string' && name.trim()) user.name = name.trim()
+  if (typeof bio === 'string') user.bio = bio.trim()
+  if (typeof avatar === 'string') user.avatar = avatar.trim()
+  if (typeof theme === 'string' && ['dark', 'light'].includes(theme)) user.theme = theme
+
+  await user.save()
+  return res.json({ user: publicUser(user) })
+}
+
+async function changePassword(req, res) {
+  const { currentPassword, newPassword } = req.body
+  if (!currentPassword || !newPassword || newPassword.length < 6) {
+    return res.status(400).json({ error: 'New password must be at least 6 characters long.' })
+  }
+
+  const user = await User.findById(req.userId)
+  if (!user || !(await bcrypt.compare(currentPassword, user.passwordHash))) {
+    return res.status(400).json({ error: 'Current password is incorrect.' })
+  }
+
+  user.passwordHash = await bcrypt.hash(newPassword, 10)
+  user.tokenVersion = (user.tokenVersion || 0) + 1
+  await user.save()
+
+  const token = signToken(user.id, user.tokenVersion)
+  res.cookie('token', token, cookieOptions())
+  return res.json({ user: publicUser(user), message: 'Password updated successfully.' })
+}
+
 function logout(_req, res) {
   res.clearCookie('token', { httpOnly: true, sameSite: isProd() ? 'none' : 'lax', secure: isProd(), path: '/' })
   res.json({ ok: true })
@@ -238,4 +275,17 @@ async function me(req, res) {
   res.json({ user: publicUser(user) })
 }
 
-module.exports = { register, login, verificationSettings, verifyOtp, completeRegistration, resendOtp, forgotPassword, resetPassword, logout, me }
+module.exports = {
+  register,
+  login,
+  verificationSettings,
+  verifyOtp,
+  completeRegistration,
+  resendOtp,
+  forgotPassword,
+  resetPassword,
+  updateProfile,
+  changePassword,
+  logout,
+  me,
+}

@@ -35,7 +35,7 @@ async function getKeys() {
 }
 
 function modelName() {
-  return process.env.GEMINI_MODEL || 'gemini-2.5-flash'
+  return process.env.GEMINI_MODEL || 'gemini-1.5-flash'
 }
 
 // Ask Gemini for JSON, trying each key in order. Keys in cooldown are skipped
@@ -97,7 +97,8 @@ function resumeLine(resumeText) {
 }
 
 // ── Open-ended questions ─────────────────────────────────────────────────────
-async function generateQuestions(role, difficulty, count, experience, resumeText) {
+async function generateQuestions(role, difficulty, count, experience, resumeText, category) {
+  const categoryContext = category && category !== 'General' ? ` focus specifically on the "${category}" domain and technologies.` : ''
   const profile = resumeText
     ? 'the candidate described exclusively in the uploaded resume'
     : candidateLine(role, experience)
@@ -108,7 +109,7 @@ async function generateQuestions(role, difficulty, count, experience, resumeText
     ? ' Use the resume as the only candidate-profile source of truth. Do not use or mention role, experience, or difficulty values from a form. Ask about concrete technologies, projects, achievements, and responsibilities in it.'
     : ''
   const prompt = [
-    `You are a senior interviewer. Write ${count} interview questions for ${profile} ${level}.`,
+    `You are a senior interviewer. Write ${count} interview questions for ${profile} ${level}.${categoryContext}`,
     `Match the depth to the experience level (freshers get fundamentals,`,
     `senior candidates get scenario/design questions). Keep each question to one or two sentences and`,
     `mix conceptual and practical questions. Do not number them.${resumeRules}${resumeLine(resumeText)}`,
@@ -131,7 +132,8 @@ async function generateQuestions(role, difficulty, count, experience, resumeText
 // ── Multiple-choice quiz ─────────────────────────────────────────────────────
 // Returns [{ prompt, options: string[4], correctIndex: 0..3 }]. Includes
 // "what is the output of this code" style problem-solving questions.
-async function generateQuiz(role, difficulty, count, experience, resumeText) {
+async function generateQuiz(role, difficulty, count, experience, resumeText, category) {
+  const categoryContext = category && category !== 'General' ? ` focus specifically on the "${category}" topic.` : ''
   const profile = resumeText
     ? 'the candidate described exclusively in the uploaded resume'
     : candidateLine(role, experience)
@@ -142,7 +144,7 @@ async function generateQuiz(role, difficulty, count, experience, resumeText) {
     ? ' Use the resume as the only candidate-profile source of truth. Do not use or mention role, experience, or difficulty values from a form. Focus on concrete technologies, projects, achievements, and responsibilities in it.'
     : ''
   const prompt = [
-    `You are creating a multiple-choice quiz for ${profile} ${level}.`,
+    `You are creating a multiple-choice quiz for ${profile} ${level}.${categoryContext}`,
     `Write ${count} questions. Match difficulty to the experience level. Include a few problem-solving`,
     `"what is the output of this code?" questions with a short code snippet in the question text. Use real`,
     `line breaks in code; never write the literal characters \\n in a question or option. Each question must have exactly 4 options and exactly one correct answer.${resumeRules}${resumeLine(resumeText)}`,

@@ -18,9 +18,11 @@ const upload = multer({
 const startSchema = z.object({
   // Form fields are only required when the user has no saved resume.
   role: z.string().trim().max(120).default(''),
+  category: z.string().trim().default('General'),
   experience: z.string().min(1).default('Fresher'),
   difficulty: z.enum(['easy', 'medium', 'hard']).default('medium'),
   mode: z.enum(['questions', 'quiz']).default('questions'),
+  timerMinutes: z.coerce.number().int().min(0).max(120).default(0),
   count: z.coerce.number().int().min(3).max(10).default(5),
 })
 
@@ -31,9 +33,11 @@ const submitSchema = z.object({
 
 router.post('/', validate(startSchema), wrap(interview.startInterview))
 router.get('/', wrap(interview.listInterviews))
+router.get('/leaderboard', wrap(interview.getLeaderboard))
 router.post('/resume', upload.single('resume'), wrap(interview.uploadResume))
 router.get('/:id', wrap(interview.getInterview))
 router.post('/:id/submit', validate(submitSchema), wrap(interview.submitInterview))
+router.patch('/:id/notes', wrap(interview.updateNotes))
 router.delete('/:id', wrap(interview.deleteInterview))
 
 module.exports = router

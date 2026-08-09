@@ -44,5 +44,7 @@ router.post('/forgot-password', validate(emailSchema), wrap(auth.forgotPassword)
 router.post('/reset-password', validate(resetSchema), wrap(auth.resetPassword))
 router.post('/logout', auth.logout)
 router.get('/me', requireAuth, wrap(auth.me))
+router.patch('/profile', requireAuth, wrap(auth.updateProfile))
+router.post('/change-password', requireAuth, wrap(auth.changePassword))
 
 module.exports = router
