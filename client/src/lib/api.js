@@ -1,11 +1,18 @@
 import axios from 'axios'
 
-// Base URL: use VITE_API_URL if set, otherwise the relative '/api' (works both
-// with the Vite dev proxy and when the client is served same-origin in prod).
-// withCredentials: true ensures HttpOnly cookies are automatically attached to requests
+// Base URL: use VITE_API_URL if set, otherwise relative '/api'
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
   withCredentials: true,
+})
+
+// Automatically attach Bearer token header if present in localStorage
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('mockmate_token')
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
 })
 
 // Pull a readable message out of an axios error.

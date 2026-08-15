@@ -49,6 +49,9 @@ export function AuthProvider({ children }) {
 
   async function login(email, password) {
     const { data } = await api.post('/auth/login', { email, password })
+    if (data.token) {
+      localStorage.setItem('mockmate_token', data.token)
+    }
     setUser(data.user)
   }
 
@@ -58,6 +61,9 @@ export function AuthProvider({ children }) {
   }
 
   function establishSession(data) {
+    if (data.token) {
+      localStorage.setItem('mockmate_token', data.token)
+    }
     setUser(data.user)
   }
 
@@ -72,6 +78,7 @@ export function AuthProvider({ children }) {
     } catch {
       // ignore
     }
+    localStorage.removeItem('mockmate_token')
     setUser(null)
   }
 

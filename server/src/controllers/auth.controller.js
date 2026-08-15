@@ -12,7 +12,11 @@ const {
 const { sendOtpEmail } = require('../services/email')
 const { getSetting } = require('../utils/settings')
 
-const isProd = () => process.env.NODE_ENV === 'production'
+const isProd = () =>
+  process.env.NODE_ENV === 'production' ||
+  process.env.RENDER === 'true' ||
+  Boolean(process.env.RENDER_SERVICE_ID)
+
 const cookieOptions = () => ({
   httpOnly: true,
   sameSite: isProd() ? 'none' : 'lax',
@@ -125,7 +129,7 @@ async function login(req, res) {
 
   const token = signToken(user.id, user.tokenVersion)
   res.cookie('token', token, cookieOptions())
-  return res.json({ user: publicUser(user) })
+  return res.json({ user: publicUser(user), token })
 }
 
 // This is public so visitors can learn whether verification is mandatory
