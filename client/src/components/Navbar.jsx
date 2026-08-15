@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import {
-  MessagesSquare,
   LogOut,
   Shield,
   Sun,
@@ -14,6 +13,7 @@ import {
   Menu,
   X,
   LayoutDashboard,
+  Zap,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
@@ -22,14 +22,44 @@ export default function Navbar() {
   const { user, logout } = useAuth()
   const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
+  const location = useLocation()
 
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const menuRef = useRef(null)
 
-  const firstName = user?.name?.trim().split(/\s+/)[0] || 'User'
+  const firstName = user?.name?.trim().split(/\s+/)[0] || 'Candidate'
 
-  // Close user menu when clicking outside
+  const [hideThemeToggle, setHideThemeToggle] = useState(false)
+
+  useEffect(() => {
+    async function fetchSettings() {
+      try {
+        const res = await api.get('/auth/verification-settings')
+        if (res.data?.hideThemeToggle !== undefined) {
+          const val = res.data.hideThemeToggle
+          setHideThemeToggle(val === true || val === 'true')
+        }
+      } catch (err) {
+        // silent fallback
+      }
+    }
+
+    fetchSettings()
+
+    function handleSettingsUpdate(e) {
+      if (e?.detail?.hideThemeToggle !== undefined) {
+        const val = e.detail.hideThemeToggle
+        setHideThemeToggle(val === true || val === 'true')
+      } else {
+        fetchSettings()
+      }
+    }
+
+    window.addEventListener('settings-updated', handleSettingsUpdate)
+    return () => window.removeEventListener('settings-updated', handleSettingsUpdate)
+  }, [location.pathname])
+
   useEffect(() => {
     function handleClickOutside(event) {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -47,148 +77,126 @@ export default function Navbar() {
     navigate('/')
   }
 
+  const isActive = (path) => location.pathname === path
+
   return (
     <header className="navbar">
-      {/* Brand & Desktop Primary Links */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+      {/* Brand Logo & Desktop Nav Links */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '2.5rem' }}>
         <Link to={user ? '/dashboard' : '/'} className="brand">
-          <MessagesSquare size={22} />
-          <span>MockMate<span className="brand-accent">AI</span></span>
+          <div className="brand-icon-box">
+            <Zap size={18} />
+          </div>
+          <span>MockMate</span>
         </Link>
 
         {user && (
           <nav className="nav-links nav-links-desktop">
-            <Link to="/dashboard" className="nav-link">
-              <LayoutDashboard size={15} /> Dashboard
+            <Link to="/dashboard" className={`nav-link ${isActive('/dashboard') ? 'active' : ''}`}>
+              Dashboard
             </Link>
-            <Link to="/bookmarks" className="nav-link">
-              <Bookmark size={15} /> Bookmarks
+            <Link to="/bookmarks" className={`nav-link ${isActive('/bookmarks') ? 'active' : ''}`}>
+              Bookmarks
             </Link>
-            <Link to="/leaderboard" className="nav-link">
-              <Trophy size={15} /> Leaderboard
+            <Link to="/leaderboard" className={`nav-link ${isActive('/leaderboard') ? 'active' : ''}`}>
+              Leaderboard
             </Link>
-            <Link to="/certificates" className="nav-link">
-              <Award size={15} /> Certificates
+            <Link to="/certificates" className={`nav-link ${isActive('/certificates') ? 'active' : ''}`}>
+              Certificates
             </Link>
           </nav>
         )}
       </div>
 
-      {/* Right Controls */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-        <button
-          className="theme-toggle-btn"
-          onClick={toggleTheme}
-          title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
-          aria-label="Toggle Theme"
-        >
-          {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-        </button>
+      {/* Right User Controls */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+        {!hideThemeToggle && (
+          <button
+            className="theme-toggle-btn"
+            onClick={toggleTheme}
+            title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+            aria-label="Toggle Theme"
+          >
+            {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+          </button>
+        )}
 
         {user ? (
           <div className="nav-links-desktop" style={{ position: 'relative' }} ref={menuRef}>
             <button
               type="button"
               onClick={() => setUserMenuOpen((prev) => !prev)}
-              className="user-menu-btn"
+              className="btn btn-secondary btn-sm"
               style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.55rem',
-                background: 'var(--surface-2)',
-                border: '1px solid var(--border)',
-                borderRadius: '999px',
-                padding: '0.35rem 0.85rem 0.35rem 0.45rem',
-                color: 'var(--text)',
-                cursor: 'pointer',
-                font: 'inherit',
-                fontWeight: 600,
-                fontSize: '0.9rem',
-                transition: 'all 0.18s ease',
+                borderRadius: '8px',
+                padding: '0.35rem 0.75rem 0.35rem 0.4rem',
+                gap: '0.5rem',
               }}
             >
               <div
                 style={{
-                  width: '28px',
-                  height: '28px',
+                  width: '26px',
+                  height: '26px',
                   borderRadius: '50%',
-                  background: 'var(--accent-soft)',
-                  border: '1px solid var(--accent)',
+                  background: 'var(--accent-primary)',
                   display: 'grid',
                   placeItems: 'center',
-                  fontSize: '0.9rem',
+                  fontSize: '0.82rem',
+                  fontWeight: '700',
+                  color: '#ffffff',
                 }}
               >
-                {user.avatar || firstName.charAt(0)}
+                {user.avatar || firstName.charAt(0).toUpperCase()}
               </div>
-              <span>{firstName}</span>
-              <ChevronDown size={14} className="muted" style={{ transform: userMenuOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+              <span style={{ fontWeight: 600, fontSize: '0.88rem' }}>{firstName}</span>
+              <ChevronDown
+                size={14}
+                className="muted"
+                style={{
+                  transform: userMenuOpen ? 'rotate(180deg)' : 'none',
+                  transition: 'transform 0.15s',
+                }}
+              />
             </button>
 
-            {/* Dropdown Menu */}
             {userMenuOpen && (
               <div
-                className="user-dropdown"
+                className="panel"
                 style={{
                   position: 'absolute',
-                  top: 'calc(100% + 0.6rem)',
+                  top: 'calc(100% + 0.5rem)',
                   right: 0,
-                  width: '230px',
-                  background: 'var(--surface)',
-                  border: '1px solid var(--border)',
-                  borderRadius: '16px',
-                  boxShadow: 'var(--shadow)',
+                  width: '220px',
                   padding: '0.6rem',
-                  zIndex: 50,
-                  animation: 'fadeIn 0.15s ease',
+                  zIndex: 150,
+                  boxShadow: 'var(--shadow-md)',
                 }}
               >
-                {/* Header info */}
-                <div style={{ padding: '0.6rem 0.75rem 0.8rem', borderBottom: '1px solid var(--border-soft)' }}>
-                  <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)' }}>{user.name}</div>
-                  <div className="muted small" style={{ wordBreak: 'break-all', marginTop: '0.1rem' }}>{user.email}</div>
-                  <div style={{ marginTop: '0.4rem' }}>
-                    <span className="tag" style={{ margin: 0 }}>{user.role}</span>
+                <div style={{ padding: '0.4rem 0.5rem 0.6rem', borderBottom: '1px solid var(--border-soft)' }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text)' }}>{user.name}</div>
+                  <div className="muted mono" style={{ fontSize: '0.78rem', wordBreak: 'break-all', marginTop: '0.1rem' }}>
+                    {user.email}
                   </div>
                 </div>
 
-                {/* Items */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', marginTop: '0.4rem' }}>
                   <Link
                     to="/profile"
-                    className="dropdown-item"
+                    className="nav-link"
                     onClick={() => setUserMenuOpen(false)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.6rem',
-                      padding: '0.55rem 0.75rem',
-                      borderRadius: '8px',
-                      color: 'var(--text)',
-                      fontSize: '0.9rem',
-                      fontWeight: 500,
-                    }}
+                    style={{ width: '100%', justifyContent: 'flex-start' }}
                   >
-                    <User size={16} className="muted" /> Candidate Profile
+                    <User size={15} /> Profile &amp; Settings
                   </Link>
 
                   {user.role === 'admin' && (
                     <Link
                       to="/admin"
-                      className="dropdown-item"
+                      className="nav-link"
                       onClick={() => setUserMenuOpen(false)}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.6rem',
-                        padding: '0.55rem 0.75rem',
-                        borderRadius: '8px',
-                        color: 'var(--text)',
-                        fontSize: '0.9rem',
-                        fontWeight: 500,
-                      }}
+                      style={{ width: '100%', justifyContent: 'flex-start' }}
                     >
-                      <Shield size={16} style={{ color: 'var(--accent)' }} /> Admin Dashboard
+                      <Shield size={15} /> Admin Settings
                     </Link>
                   )}
 
@@ -197,24 +205,17 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="dropdown-item danger"
+                    className="nav-link"
                     style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.6rem',
-                      padding: '0.55rem 0.75rem',
-                      borderRadius: '8px',
-                      color: 'var(--bad)',
-                      background: 'none',
-                      border: 'none',
                       width: '100%',
-                      textAlign: 'left',
+                      justify: 'flex-start',
+                      color: 'var(--bad)',
+                      background: 'transparent',
+                      border: 'none',
                       cursor: 'pointer',
-                      fontSize: '0.9rem',
-                      fontWeight: 600,
                     }}
                   >
-                    <LogOut size={16} /> Sign out
+                    <LogOut size={15} /> Sign out
                   </button>
                 </div>
               </div>
@@ -222,12 +223,15 @@ export default function Navbar() {
           </div>
         ) : (
           <nav className="nav-links nav-links-desktop">
-            <Link to="/login" className="nav-link">Sign in</Link>
-            <Link to="/register" className="btn btn-primary">Get started</Link>
+            <Link to="/login" className="nav-link">
+              Sign in
+            </Link>
+            <Link to="/register" className="btn btn-primary btn-sm">
+              Get Started
+            </Link>
           </nav>
         )}
 
-        {/* Mobile menu hamburger toggle */}
         {user && (
           <button
             className="mobile-menu-btn"
@@ -239,17 +243,14 @@ export default function Navbar() {
         )}
       </div>
 
-      {/* Mobile Nav Drawer & Overlay */}
+      {/* Mobile Drawer */}
       {user && drawerOpen && (
         <>
-          <div
-            className="mobile-drawer-overlay"
-            onClick={() => setDrawerOpen(false)}
-          />
+          <div className="mobile-drawer-overlay" onClick={() => setDrawerOpen(false)} />
           <div className={`mobile-drawer ${drawerOpen ? 'open' : ''}`}>
-            <div className="mobile-drawer-header">
-              <span className="brand" style={{ fontSize: '1rem' }}>
-                <MessagesSquare size={18} /> MockMate<span className="brand-accent">AI</span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-soft)', paddingBottom: '0.8rem' }}>
+              <span className="brand" style={{ fontSize: '1.1rem' }}>
+                MockMate
               </span>
               <button
                 onClick={() => setDrawerOpen(false)}
@@ -259,34 +260,29 @@ export default function Navbar() {
               </button>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '0.5rem' }}>
-              <div style={{ paddingBottom: '0.5rem', borderBottom: '1px solid var(--border-soft)' }}>
-                <div style={{ fontWeight: 700 }}>{user.name}</div>
-                <div className="muted small">{user.email}</div>
-              </div>
-
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginTop: '0.5rem' }}>
               <Link to="/dashboard" className="nav-link" onClick={() => setDrawerOpen(false)}>
-                <LayoutDashboard size={16} /> Dashboard
+                Dashboard
               </Link>
               <Link to="/bookmarks" className="nav-link" onClick={() => setDrawerOpen(false)}>
-                <Bookmark size={16} /> Bookmarks
+                Bookmarks
               </Link>
               <Link to="/leaderboard" className="nav-link" onClick={() => setDrawerOpen(false)}>
-                <Trophy size={16} /> Leaderboard
+                Leaderboard
               </Link>
               <Link to="/certificates" className="nav-link" onClick={() => setDrawerOpen(false)}>
-                <Award size={16} /> Certificates
+                Certificates
               </Link>
               <Link to="/profile" className="nav-link" onClick={() => setDrawerOpen(false)}>
-                <User size={16} /> Profile
+                Profile
               </Link>
               {user.role === 'admin' && (
                 <Link to="/admin" className="nav-link" onClick={() => setDrawerOpen(false)}>
-                  <Shield size={16} /> Admin
+                  Admin
                 </Link>
               )}
-              <button className="btn btn-ghost btn-block" onClick={handleLogout} style={{ marginTop: '1rem', color: 'var(--bad)' }}>
-                <LogOut size={16} /> Sign out
+              <button className="btn btn-danger btn-block" onClick={handleLogout} style={{ marginTop: '1rem' }}>
+                Sign out
               </button>
             </div>
           </div>

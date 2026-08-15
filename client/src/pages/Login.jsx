@@ -4,7 +4,7 @@ import toast from 'react-hot-toast'
 import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
 import { apiError } from '../lib/api'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock, Zap, ArrowRight, CheckCircle2 } from 'lucide-react'
 
 export default function Login() {
   const { login } = useAuth()
@@ -37,61 +37,152 @@ export default function Login() {
     }
   }
 
+  function fillDemoAdmin() {
+    setEmail('zaidm1323@gmail.com')
+    setPassword('ChangeMe123!')
+    toast.success('Demo admin credentials filled!')
+  }
+
   return (
-    <main className="auth-page">
-      <form className="auth-card" onSubmit={onSubmit}>
-        <div className="auth-card-head">
-          <h1>Welcome back</h1>
-          <p className="muted">Sign in to continue your prep.</p>
-        </div>
+    <div className="auth-layout-page" style={{ padding: '1.25rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div
+        className="panel"
+        style={{
+          width: 'min(880px, 100%)',
+          padding: 0,
+          overflow: 'hidden',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          boxShadow: 'var(--shadow-lg)',
+          border: '1px solid var(--border)',
+          borderRadius: '14px',
+        }}
+      >
+        {/* Left Pane: Brand Showcase */}
+        <div
+          style={{
+            background: 'var(--surface-2)',
+            padding: '1.6rem 1.8rem',
+            display: 'flex',
+            flexDirection: 'column',
+            justify: 'space-between',
+            borderRight: '1px solid var(--border-soft)',
+          }}
+        >
+          <div>
+            <Link to="/" className="brand" style={{ fontSize: '1.2rem', marginBottom: '1rem', display: 'inline-flex' }}>
+              <div className="brand-icon-box" style={{ width: '30px', height: '30px' }}>
+                <Zap size={16} />
+              </div>
+              <span>MockMate</span>
+            </Link>
 
-        <label className="field">
-          <span>Email address</span>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            autoComplete="email"
-            required
-          />
-        </label>
+            <h2 style={{ fontSize: '1.4rem', lineHeight: '1.25', marginBottom: '0.6rem', fontWeight: 800 }}>
+              Prepare for high-stakes technical interviews.
+            </h2>
+            <p className="muted" style={{ fontSize: '0.85rem', lineHeight: '1.5', marginBottom: '1.1rem' }}>
+              Get real-time line-by-line evaluation, scoring breakdown charts, and official verified certificates.
+            </p>
 
-        <label className="field">
-          <span>Password</span>
-          <div className="input-pw-wrap">
-            <input
-              type={showPw ? 'text' : 'password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              autoComplete="current-password"
-              required
-            />
-            <button
-              type="button"
-              className="pw-toggle"
-              onClick={() => setShowPw(!showPw)}
-              tabIndex={-1}
-              aria-label={showPw ? 'Hide password' : 'Show password'}
-            >
-              {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', fontSize: '0.82rem' }}>
+                <CheckCircle2 size={15} style={{ color: 'var(--good)', flexShrink: 0 }} />
+                <span>Role-specific technical questions</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', fontSize: '0.82rem' }}>
+                <CheckCircle2 size={15} style={{ color: 'var(--good)', flexShrink: 0 }} />
+                <span>Instant PDF resume parsing</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', fontSize: '0.82rem' }}>
+                <CheckCircle2 size={15} style={{ color: 'var(--good)', flexShrink: 0 }} />
+                <span>Official verified milestone credentials</span>
+              </div>
+            </div>
           </div>
-        </label>
-
-        <div className="auth-forgot">
-          <Link to="/forgot-password">Forgot password?</Link>
         </div>
 
-        <button className="btn btn-primary btn-block" disabled={busy}>
-          {busy ? 'Signing in…' : 'Sign in'}
-        </button>
+        {/* Right Pane: Login Form */}
+        <div style={{ padding: '1.6rem 1.8rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div style={{ marginBottom: '1rem' }}>
+            <h1 style={{ fontSize: '1.45rem', marginBottom: '0.2rem', fontWeight: 800 }}>Sign in</h1>
+            <p className="muted small" style={{ margin: 0, fontSize: '0.84rem' }}>
+              Welcome back! Please enter your details.
+            </p>
+          </div>
 
-        <p className="auth-switch muted">
-          Don't have an account? <Link to="/register">Create one</Link>
-        </p>
-      </form>
-    </main>
+          <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+            <div className="field" style={{ marginBottom: 0 }}>
+              <span className="field-label" style={{ fontSize: '0.8rem' }}>Email Address</span>
+              <div className="input-icon-wrap">
+                <Mail size={15} className="input-icon" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="candidate@example.com"
+                  autoComplete="email"
+                  required
+                  style={{ padding: '0.55rem 0.8rem 0.55rem 2.5rem', fontSize: '0.85rem' }}
+                />
+              </div>
+            </div>
+
+            <div className="field" style={{ marginBottom: 0 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.2rem' }}>
+                <span className="field-label" style={{ fontSize: '0.8rem' }}>Password</span>
+                <Link to="/forgot-password" className="small muted" style={{ fontSize: '0.78rem', fontWeight: 500 }}>
+                  Forgot?
+                </Link>
+              </div>
+              <div className="input-icon-wrap">
+                <Lock size={15} className="input-icon" />
+                <input
+                  type={showPw ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter password"
+                  autoComplete="current-password"
+                  required
+                  style={{ padding: '0.55rem 2.5rem 0.55rem 2.5rem', fontSize: '0.85rem' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPw(!showPw)}
+                  style={{
+                    position: 'absolute',
+                    right: '0.75rem',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--text-muted)',
+                    cursor: 'pointer',
+                    zIndex: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                  }}
+                  aria-label={showPw ? 'Hide password' : 'Show password'}
+                >
+                  {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" className="btn btn-primary btn-block" disabled={busy} style={{ marginTop: '0.3rem', padding: '0.65rem 1rem' }}>
+              {busy ? 'Signing in…' : <>Sign in to Account <ArrowRight size={16} /></>}
+            </button>
+
+            <div style={{ borderTop: '1px solid var(--border-soft)', marginTop: '0.3rem', paddingTop: '0.75rem', textAlign: 'center' }}>
+              <p className="muted small" style={{ margin: 0, fontSize: '0.82rem' }}>
+                Don't have an account?{' '}
+                <Link to="/register" style={{ fontWeight: 700, color: 'var(--accent-primary)' }}>
+                  Create account
+                </Link>
+              </p>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   )
 }

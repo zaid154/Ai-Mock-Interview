@@ -1,21 +1,19 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { ChevronLeft, ChevronRight, Bookmark, Edit3 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Bookmark, Edit3, HelpCircle, CheckCircle2 } from 'lucide-react'
 import api, { apiError } from '../lib/api'
 import { formatGeneratedText } from '../lib/text'
 import Timer from '../components/Timer'
 
 const LETTERS = ['A', 'B', 'C', 'D']
 
-// Multiple-choice quiz. Pick one option per question, then submit. Scoring is
-// done on the server by comparing picks to the answer key.
 export default function Quiz() {
   const { id } = useParams()
   const navigate = useNavigate()
 
   const [quiz, setQuiz] = useState(null)
-  const [picks, setPicks] = useState([]) // selected option index per question, -1 = none
+  const [picks, setPicks] = useState([])
   const [notes, setNotes] = useState([])
   const [current, setCurrent] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -31,7 +29,6 @@ export default function Quiz() {
           navigate(`/results/${data._id}`, { replace: true })
           return
         }
-        // A questions session belongs on the interview screen.
         if (data.mode !== 'quiz') {
           navigate(`/interview/${data._id}`, { replace: true })
           return
@@ -99,42 +96,48 @@ export default function Quiz() {
     submit()
   }
 
-  if (loading) return <main className="page-center muted">Loading quiz…</main>
+  if (loading) return <main className="page-center muted">Loading technical quiz…</main>
   if (!quiz) return null
 
   const question = quiz.questions[current]
   if (!question) return null
 
   return (
-    <main className="container interview">
-      <div className="interview-head">
+    <main className="container" style={{ maxWidth: '960px' }}>
+      {/* Quiz HUD Header */}
+      <div className="interview-hud-head">
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <h2>{quiz.role} · Quiz</h2>
-            {quiz.category && quiz.category !== 'General' && <span className="tag">{quiz.category}</span>}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.2rem' }}>
+            <span className="badge-glow" style={{ fontSize: '0.72rem' }}>
+              <HelpCircle size={13} /> Technical MCQ Quiz
+            </span>
+            <span className="tag">{quiz.role}</span>
+            {quiz.category && quiz.category !== 'General' && <span className="tag-soft">{quiz.category}</span>}
           </div>
-          <p className="muted small">
-            {quiz.experience} · {quiz.difficulty} · {answered}/{total} answered
+          <p className="muted small" style={{ margin: 0 }}>
+            {quiz.experience} · {quiz.difficulty} difficulty · {answered}/{total} answered
           </p>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
           {quiz.timerMinutes > 0 && (
             <Timer minutes={quiz.timerMinutes} onTimeUp={handleTimeUp} />
           )}
-          <span className="counter">
+          <span className="mono" style={{ fontSize: '1.35rem', fontWeight: 800 }}>
             {current + 1} <span className="muted">/ {total}</span>
           </span>
         </div>
       </div>
 
+      {/* Progress Track */}
       <div className="progress-track">
         <div className="progress-fill" style={{ width: `${((current + 1) / total) * 100}%` }} />
       </div>
 
+      {/* Question Card */}
       <div className="question-card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-          <p className="question-label" style={{ margin: 0 }}>Question {current + 1}</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <span className="tag-soft mono" style={{ fontSize: '0.8rem' }}>Question {current + 1} of {total}</span>
           <button
             className="btn btn-ghost btn-sm"
             onClick={() => handleBookmark(question.prompt, question.options)}
@@ -145,57 +148,60 @@ export default function Quiz() {
           </button>
         </div>
 
-        {/* pre-wrap so code snippets keep their line breaks */}
         <p className="question-text" style={{ whiteSpace: 'pre-wrap' }}>
           {formatGeneratedText(question.prompt)}
         </p>
 
-        <div className="options">
+        {/* MCQ Option Cards */}
+        <div className="options-grid">
           {question.options.map((opt, i) => (
             <button
               type="button"
               key={i}
-              className={`option ${picks[current] === i ? 'selected' : ''}`}
+              className={`option-card ${picks[current] === i ? 'selected' : ''}`}
               onClick={() => pick(i)}
             >
               <span className="option-letter">{LETTERS[i]}</span>
-              <span style={{ whiteSpace: 'pre-wrap' }}>{formatGeneratedText(opt)}</span>
+              <span style={{ whiteSpace: 'pre-wrap', flex: 1, fontWeight: 500 }}>{formatGeneratedText(opt)}</span>
+              {picks[current] === i && <CheckCircle2 size={18} style={{ color: 'var(--accent-primary)' }} />}
             </button>
           ))}
         </div>
 
-        <div className="notes-box">
-          <div className="notes-header">
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-              <Edit3 size={14} /> Personal Note / Quick Reminder
+        {/* Personal Notes Box */}
+        <div className="glass-card" style={{ marginTop: '1.5rem', padding: '1.1rem', background: 'var(--surface-2)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+            <span className="field-label" style={{ margin: 0, display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+              <Edit3 size={15} style={{ color: 'var(--accent-primary)' }} /> Candidate Note / Key Recall
             </span>
           </div>
           <input
             type="text"
             value={notes[current]}
             onChange={(e) => updateNote(e.target.value)}
-            placeholder="Add a note to remember for this question..."
-            style={{ fontSize: '0.88rem', padding: '0.5rem 0.75rem' }}
+            placeholder="Add a note to review later for this question..."
+            style={{ fontSize: '0.9rem', padding: '0.65rem 0.85rem' }}
           />
         </div>
       </div>
 
-      <div className="interview-nav">
+      {/* Navigation Controls */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2rem' }}>
         <button
-          className="btn btn-ghost"
+          className="btn btn-secondary"
           onClick={() => setCurrent((c) => c - 1)}
           disabled={current === 0}
         >
-          <ChevronLeft size={16} /> Previous
+          <ChevronLeft size={18} /> Previous Question
         </button>
 
         {isLast ? (
-          <button className="btn btn-primary" onClick={submit} disabled={submitting}>
-            {submitting ? 'Scoring…' : 'Finish & see score'}
+          <button className="btn btn-primary btn-lg" onClick={submit} disabled={submitting}>
+            {submitting ? 'Scoring Quiz…' : 'Finish & See Results'}
           </button>
         ) : (
           <button className="btn btn-primary" onClick={() => setCurrent((c) => c + 1)}>
-            Next <ChevronRight size={16} />
+            Next Question <ChevronRight size={18} />
           </button>
         )}
       </div>

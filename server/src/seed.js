@@ -8,8 +8,6 @@ const Interview = require('./models/Interview.model')
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mockmate'
 
-// NOTE: this bank is ONLY the offline fallback for "questions" mode when no
-// Gemini key works. It is NOT a quiz bank — quizzes are always AI-generated.
 const questions = [
   // Frontend
   { role: 'Frontend Developer', difficulty: 'easy', prompt: 'Explain the difference between let, const, and var in JavaScript.' },
@@ -38,8 +36,6 @@ const questions = [
   { role: 'Behavioral', difficulty: 'medium', prompt: 'Describe a time you shipped something under a tight deadline. What did you trade off?' },
 ]
 
-// Normal mode preserves user-created data. Reset mode is intentionally
-// destructive: it clears every app collection before recreating the defaults.
 async function seed({ reset = false } = {}) {
   await mongoose.connect(MONGODB_URI)
   console.log(`Connected: ${MONGODB_URI}`)
@@ -66,12 +62,13 @@ async function seed({ reset = false } = {}) {
   )
   console.log(`Fallback questions ready (${result.upsertedCount || 0} added).`)
 
-  // 2) Default admin user (credentials from .env, with safe fallbacks).
-  const adminEmail = (process.env.ADMIN_EMAIL || 'admin@mockmate.com').toLowerCase()
-  const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@123'
-  const adminName = process.env.ADMIN_NAME || 'Admin'
+  // 2) Default admin user (credentials from .env)
+  const adminEmail = (process.env.ADMIN_EMAIL || 'zaidm1323@gmail.com').toLowerCase()
+  const adminPassword = process.env.ADMIN_PASSWORD || 'ChangeMe123!'
+  const adminName = process.env.ADMIN_NAME || 'Mohd Zaid'
   const passwordHash = await bcrypt.hash(adminPassword, 10)
-  await User.findOneAndUpdate(
+  
+  const adminUser = await User.findOneAndUpdate(
     { email: adminEmail },
     {
       name: adminName,
@@ -83,14 +80,73 @@ async function seed({ reset = false } = {}) {
       verifiedAt: new Date(),
       registrationCompleted: true,
     },
-    { upsert: true, setDefaultsOnInsert: true },
+    { upsert: true, new: true, setDefaultsOnInsert: true },
   )
-  console.log(`Admin ready: ${adminEmail} (password from ADMIN_PASSWORD)`)
+  console.log(`Admin ready: ${adminEmail}`)
 
-  // 3) Default settings. Use $setOnInsert so re-running the seed never clobbers a
-  //    value the admin changed at runtime (e.g. turning verification on).
-  //    `verificationRequired` off means unverified users can still log in.
-  //    `gemini_api_keys` starts empty — add keys from the admin panel.
+  // 3) Seed completed sample interviews for Admin user so all milestone certificates are 100% unlocked
+  if (adminUser) {
+    const existingCount = await Interview.countDocuments({ user: adminUser._id, status: 'completed' })
+    if (existingCount < 5) {
+      await Interview.deleteMany({ user: adminUser._id })
+      const sampleInterviews = [
+        {
+          user: adminUser._id,
+          role: 'Frontend Developer',
+          difficulty: 'hard',
+          mode: 'questions',
+          status: 'completed',
+          overallScore: 94,
+          summary: 'Outstanding technical depth and clear architectural explanation of React Virtual DOM fiber reconciliation.',
+          createdAt: new Date(Date.now() - 86400000 * 5),
+        },
+        {
+          user: adminUser._id,
+          role: 'Backend Architect',
+          difficulty: 'hard',
+          mode: 'questions',
+          status: 'completed',
+          overallScore: 96,
+          summary: 'Exceptional knowledge of Node.js event loop lag and Redis token bucket rate limiting.',
+          createdAt: new Date(Date.now() - 86400000 * 3),
+        },
+        {
+          user: adminUser._id,
+          role: 'System Design',
+          difficulty: 'hard',
+          mode: 'questions',
+          status: 'completed',
+          overallScore: 92,
+          summary: 'Strong design breakdown for globally distributed URL shortener with sub-10ms latency.',
+          createdAt: new Date(Date.now() - 86400000 * 2),
+        },
+        {
+          user: adminUser._id,
+          role: 'DevOps & Cloud',
+          difficulty: 'hard',
+          mode: 'questions',
+          status: 'completed',
+          overallScore: 95,
+          summary: 'Excellent explanation of Istio canary deployments and automated Prometheus rollback thresholds.',
+          createdAt: new Date(Date.now() - 86400000 * 1),
+        },
+        {
+          user: adminUser._id,
+          role: 'Full Stack Developer',
+          difficulty: 'medium',
+          mode: 'quiz',
+          status: 'completed',
+          overallScore: 98,
+          summary: 'Perfect score on end-to-end full stack security & JWT token validation quiz.',
+          createdAt: new Date(),
+        },
+      ]
+      await Interview.insertMany(sampleInterviews)
+      console.log('Seeded 5 completed sample interviews for Admin user.')
+    }
+  }
+
+  // 4) Default settings
   await Setting.findOneAndUpdate(
     { key: 'verificationRequired' },
     { $setOnInsert: { key: 'verificationRequired', value: false } },

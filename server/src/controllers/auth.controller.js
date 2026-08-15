@@ -131,8 +131,16 @@ async function login(req, res) {
 // This is public so visitors can learn whether verification is mandatory
 // before they have an authenticated session.
 async function verificationSettings(_req, res) {
-  const requireEmailVerification = (await getSetting('verificationRequired', false)) === true
-  res.json({ requireEmailVerification })
+  const v = await getSetting('verificationRequired', false)
+  const h = await getSetting('hide_theme_toggle', false)
+  const certSignatoryName = await getSetting('cert_signatory_name', 'Mohd Zaid')
+  const certSignatoryTitle = await getSetting('cert_signatory_title', 'Global Director of Candidate Assessments, MockMate AI')
+  const certSignatureImage = await getSetting('cert_signature_image', '')
+
+  const requireEmailVerification = v === true || v === 'true'
+  const hideThemeToggle = h === true || h === 'true'
+
+  res.json({ requireEmailVerification, hideThemeToggle, certSignatoryName, certSignatoryTitle, certSignatureImage })
 }
 
 async function verifyOtp(req, res) {

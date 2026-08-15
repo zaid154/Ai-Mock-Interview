@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { ChevronLeft, ChevronRight, Bookmark, Edit3 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Bookmark, Edit3, Sparkles, CheckCircle2, Clock } from 'lucide-react'
 import api, { apiError } from '../lib/api'
 import { formatGeneratedText } from '../lib/text'
 import Timer from '../components/Timer'
 
-// Open-ended interview: answer one question at a time, then submit for grading.
 export default function Interview() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -28,7 +27,6 @@ export default function Interview() {
           navigate(`/results/${data._id}`, { replace: true })
           return
         }
-        // A quiz session belongs on the quiz screen.
         if (data.mode === 'quiz') {
           navigate(`/quiz/${data._id}`, { replace: true })
           return
@@ -96,42 +94,50 @@ export default function Interview() {
     submit()
   }
 
-  if (loading) return <main className="page-center muted">Loading interview…</main>
+  if (loading) return <main className="page-center muted">Loading focus session environment…</main>
   if (!interview) return null
 
   const question = interview.questions[current]
   if (!question) return null
 
   return (
-    <main className="container interview">
-      <div className="interview-head">
+    <main className="container" style={{ maxWidth: '960px' }}>
+      {/* Focus Mode HUD Header */}
+      <div className="interview-hud-head">
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <h2>{interview.role}</h2>
-            {interview.category && interview.category !== 'General' && <span className="tag">{interview.category}</span>}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.2rem' }}>
+            <span className="badge-glow" style={{ fontSize: '0.72rem' }}>
+              <Sparkles size={12} /> Focus Mode Session
+            </span>
+            <span className="tag">{interview.role}</span>
+            {interview.category && interview.category !== 'General' && (
+              <span className="tag-soft">{interview.category}</span>
+            )}
           </div>
-          <p className="muted small">
-            {interview.experience} · {interview.difficulty} · {answered}/{total} answered
+          <p className="muted small" style={{ margin: 0 }}>
+            {interview.experience} · {interview.difficulty} difficulty · {answered}/{total} answered
           </p>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
           {interview.timerMinutes > 0 && (
             <Timer minutes={interview.timerMinutes} onTimeUp={handleTimeUp} />
           )}
-          <span className="counter">
+          <span className="mono" style={{ fontSize: '1.35rem', fontWeight: 800 }}>
             {current + 1} <span className="muted">/ {total}</span>
           </span>
         </div>
       </div>
 
+      {/* Progress Track */}
       <div className="progress-track">
         <div className="progress-fill" style={{ width: `${((current + 1) / total) * 100}%` }} />
       </div>
 
+      {/* Question Workbench Card */}
       <div className="question-card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-          <p className="question-label" style={{ margin: 0 }}>Question {current + 1}</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <span className="tag-soft mono" style={{ fontSize: '0.8rem' }}>Question {current + 1} of {total}</span>
           <button
             className="btn btn-ghost btn-sm"
             onClick={() => handleBookmark(question.prompt)}
@@ -142,47 +148,52 @@ export default function Interview() {
           </button>
         </div>
 
-        <p className="question-text" style={{ whiteSpace: 'pre-wrap' }}>{formatGeneratedText(question.prompt)}</p>
+        <p className="question-text" style={{ whiteSpace: 'pre-wrap' }}>
+          {formatGeneratedText(question.prompt)}
+        </p>
 
         <textarea
           value={answers[current]}
           onChange={(e) => updateAnswer(e.target.value)}
-          placeholder="Type your answer here. Think out loud — structure beats length."
-          rows={7}
+          placeholder="Type your response here. Structure your logic clearly — mention trade-offs, architecture choices, or code examples..."
+          rows={8}
+          style={{ fontSize: '1rem', lineHeight: '1.6', padding: '1.1rem' }}
         />
 
-        <div className="notes-box">
-          <div className="notes-header">
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-              <Edit3 size={14} /> Personal Note / Quick Reminder
+        {/* Candidate Note Drawer */}
+        <div className="glass-card" style={{ marginTop: '1.5rem', padding: '1.1rem', background: 'var(--surface-2)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+            <span className="field-label" style={{ margin: 0, display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+              <Edit3 size={15} style={{ color: 'var(--accent-primary)' }} /> Candidate Notepad / Scratchpad
             </span>
           </div>
           <input
             type="text"
             value={notes[current]}
             onChange={(e) => updateNote(e.target.value)}
-            placeholder="Add a note to remember for this question..."
-            style={{ fontSize: '0.88rem', padding: '0.5rem 0.75rem' }}
+            placeholder="Jot down quick key points or formulas to remember..."
+            style={{ fontSize: '0.9rem', padding: '0.65rem 0.85rem' }}
           />
         </div>
       </div>
 
-      <div className="interview-nav">
+      {/* Navigation Controls */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2rem' }}>
         <button
-          className="btn btn-ghost"
+          className="btn btn-secondary"
           onClick={() => setCurrent((c) => c - 1)}
           disabled={current === 0}
         >
-          <ChevronLeft size={16} /> Previous
+          <ChevronLeft size={18} /> Previous Question
         </button>
 
         {isLast ? (
-          <button className="btn btn-primary" onClick={submit} disabled={submitting}>
-            {submitting ? 'Scoring your answers…' : 'Finish & get feedback'}
+          <button className="btn btn-primary btn-lg" onClick={submit} disabled={submitting}>
+            {submitting ? 'Scoring your answers…' : 'Finish & Get Feedback'}
           </button>
         ) : (
           <button className="btn btn-primary" onClick={() => setCurrent((c) => c + 1)}>
-            Next <ChevronRight size={16} />
+            Next Question <ChevronRight size={18} />
           </button>
         )}
       </div>

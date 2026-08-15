@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
-import { Trash2, Save, Plus, KeyRound, ShieldPlus, ShieldMinus } from 'lucide-react'
+import { Trash2, Save, Plus, KeyRound, ShieldPlus, ShieldMinus, ShieldCheck, Users, Settings, Award, Sun, Moon } from 'lucide-react'
 import api, { apiError } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
 import { useConfirm } from '../components/ConfirmDialog'
 
-// Turn a setting value into text for an input, and back again. We try JSON first
-// (so booleans/arrays round-trip), and fall back to a plain string.
 function valueToText(value) {
   if (typeof value === 'string') return value
   return JSON.stringify(value)
@@ -21,18 +20,25 @@ function textToValue(text) {
 
 export default function AdminDashboard() {
   const { user: me } = useAuth()
+  const { theme, toggleTheme } = useTheme()
   const { confirm, promptText } = useConfirm()
   const [users, setUsers] = useState([])
   const [settings, setSettings] = useState([])
   const [loading, setLoading] = useState(true)
 
-  // dedicated controls
   const [verifyRequired, setVerifyRequired] = useState(false)
   const [savingVerification, setSavingVerification] = useState(false)
-  const [geminiKeys, setGeminiKeys] = useState([]) // array of API keys
+
+  const [hideThemeToggle, setHideThemeToggle] = useState(false)
+  const [savingThemeToggle, setSavingThemeToggle] = useState(false)
+
+  const [geminiKeys, setGeminiKeys] = useState([])
   const [newGeminiKey, setNewGeminiKey] = useState('')
 
-  // new-setting row
+  const [certSignatoryName, setCertSignatoryName] = useState('Mohd Zaid')
+  const [certSignatoryTitle, setCertSignatoryTitle] = useState('Global Director of Candidate Assessments, MockMate AI')
+  const [certSignatureImage, setCertSignatureImage] = useState('')
+
   const [newKey, setNewKey] = useState('')
   const [newValue, setNewValue] = useState('')
 
@@ -44,8 +50,21 @@ export default function AdminDashboard() {
 
       const vr = s.data.settings.find((x) => x.key === 'verificationRequired')
       setVerifyRequired(vr?.value === true)
+
+      const ht = s.data.settings.find((x) => x.key === 'hide_theme_toggle')
+      setHideThemeToggle(ht?.value === true || ht?.value === 'true')
+
       const gk = s.data.settings.find((x) => x.key === 'gemini_api_keys')
       setGeminiKeys(Array.isArray(gk?.value) ? gk.value : [])
+
+      const cName = s.data.settings.find((x) => x.key === 'cert_signatory_name')
+      if (cName?.value) setCertSignatoryName(cName.value)
+
+      const cTitle = s.data.settings.find((x) => x.key === 'cert_signatory_title')
+      if (cTitle?.value) setCertSignatoryTitle(cTitle.value)
+
+      const cImg = s.data.settings.find((x) => x.key === 'cert_signature_image')
+      if (cImg?.value) setCertSignatureImage(cImg.value)
     } catch (err) {
       toast.error(apiError(err, 'Could not load admin data'))
     } finally {
@@ -57,7 +76,6 @@ export default function AdminDashboard() {
     load()
   }, [])
 
-  // ── Users ──
   async function toggleVerified(user) {
     try {
       await api.patch(`/admin/users/${user._id}/verified`, { isVerified: !user.isVerified })
@@ -82,9 +100,9 @@ export default function AdminDashboard() {
 
   async function deleteUser(user) {
     const ok = await confirm({
-      title: 'Delete user',
-      message: `Permanently delete ${user.email}? This can't be undone.`,
-      confirmText: 'Delete',
+      title: 'Delete User Account',
+      message: `Permanently delete ${user.email}? This cannot be undone.`,
+      confirmText: 'Delete User',
       danger: true,
     })
     if (!ok) return
@@ -97,7 +115,6 @@ export default function AdminDashboard() {
     }
   }
 
-  // ── Settings helpers ──
   async function saveSetting(key, value) {
     await api.put('/admin/settings', { key, value })
   }
@@ -112,13 +129,61 @@ export default function AdminDashboard() {
       load()
     } catch (err) {
       setVerifyRequired(previous)
-      toast.error(apiError(err, 'Could not save the setting'))
+      toast.error(apiError(err, 'Could not save setting'))
     } finally {
       setSavingVerification(false)
     }
   }
 
-  // Save the full key list to the DB, updating local state on success.
+  async function onToggleHideThemeToggle(next) {
+    const previous = hideThemeToggle
+    setHideThemeToggle(next)
+    setSavingThemeToggle(true)
+    try {
+      await saveSetting('hide_theme_toggle', next)
+      window.dispatchEvent(new CustomEvent('settings-updated', { detail: { hideThemeToggle: next } }))
+      toast.success(`Theme toggle button is now ${next ? 'hidden' : 'visible'}`)
+      load()
+    } catch (err) {
+      setHideThemeToggle(previous)
+      toast.error(apiError(err, 'Could not save theme toggle setting'))
+    } finally {
+      setSavingThemeToggle(false)
+    }
+  }
+
+  async function saveCertSignatureSettings(e) {
+    e.preventDefault()
+    try {
+      await Promise.all([
+        saveSetting('cert_signatory_name', certSignatoryName.trim()),
+        saveSetting('cert_signatory_title', certSignatoryTitle.trim()),
+        saveSetting('cert_signature_image', certSignatureImage.trim()),
+      ])
+      toast.success('Certificate signature settings saved successfully!')
+      load()
+    } catch (err) {
+      toast.error(apiError(err, 'Could not save signature settings'))
+    }
+  }
+
+  function handleSignatureFileUpload(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Signature file must be under 2MB')
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      setCertSignatureImage(reader.result)
+      toast.success('Signature image loaded!')
+    }
+    reader.readAsDataURL(file)
+  }
+
   async function persistGeminiKeys(keys) {
     await saveSetting('gemini_api_keys', keys)
     setGeminiKeys(keys)
@@ -137,15 +202,15 @@ export default function AdminDashboard() {
       setNewGeminiKey('')
       toast.success('API key added')
     } catch (err) {
-      toast.error(apiError(err, 'Could not add the key'))
+      toast.error(apiError(err, 'Could not add key'))
     }
   }
 
   async function removeGeminiKey(index) {
     const ok = await confirm({
-      title: 'Delete API key',
-      message: 'Remove this Gemini API key?',
-      confirmText: 'Delete',
+      title: 'Delete Gemini Key',
+      message: 'Remove this API key from rotation?',
+      confirmText: 'Remove Key',
       danger: true,
     })
     if (!ok) return
@@ -153,11 +218,10 @@ export default function AdminDashboard() {
       await persistGeminiKeys(geminiKeys.filter((_, i) => i !== index))
       toast.success('API key deleted')
     } catch (err) {
-      toast.error(apiError(err, 'Could not delete the key'))
+      toast.error(apiError(err, 'Could not delete key'))
     }
   }
 
-  // Show only the ends of a key so it's identifiable but not fully exposed.
   function maskKey(k) {
     if (k.length <= 10) return k
     return `${k.slice(0, 6)}…${k.slice(-4)}`
@@ -169,13 +233,13 @@ export default function AdminDashboard() {
       toast.success(`Saved "${setting.key}"`)
       load()
     } catch (err) {
-      toast.error(apiError(err, 'Could not save the setting'))
+      toast.error(apiError(err, 'Could not save setting'))
     }
   }
 
   async function renameSetting(setting) {
     const newName = await promptText({
-      title: 'Rename setting',
+      title: 'Rename Setting',
       message: `Rename "${setting.key}" to:`,
       defaultValue: setting.key,
       confirmText: 'Rename',
@@ -183,7 +247,7 @@ export default function AdminDashboard() {
     if (!newName || newName === setting.key) return
     try {
       await api.patch(`/admin/settings/${encodeURIComponent(setting.key)}/rename`, { newKey: newName })
-      toast.success('Renamed')
+      toast.success('Renamed setting')
       load()
     } catch (err) {
       toast.error(apiError(err, 'Could not rename'))
@@ -192,15 +256,15 @@ export default function AdminDashboard() {
 
   async function deleteSetting(key) {
     const ok = await confirm({
-      title: 'Delete setting',
+      title: 'Delete Setting',
       message: `Delete the "${key}" setting?`,
-      confirmText: 'Delete',
+      confirmText: 'Delete Setting',
       danger: true,
     })
     if (!ok) return
     try {
       await api.delete(`/admin/settings/${encodeURIComponent(key)}`)
-      toast.success('Deleted')
+      toast.success('Deleted setting')
       load()
     } catch (err) {
       toast.error(apiError(err, 'Could not delete'))
@@ -214,115 +278,270 @@ export default function AdminDashboard() {
       await saveSetting(newKey.trim(), textToValue(newValue))
       setNewKey('')
       setNewValue('')
-      toast.success('Added')
+      toast.success('Setting added')
       load()
     } catch (err) {
-      toast.error(apiError(err, 'Could not add the setting'))
+      toast.error(apiError(err, 'Could not add setting'))
     }
   }
 
-  if (loading) return <main className="page-center muted">Loading admin…</main>
+  if (loading) return <main className="page-center muted">Loading admin panel…</main>
 
-  // Keys that have dedicated controls above — hidden from the free-form list.
-  const MANAGED_KEYS = ['gemini_api_keys', 'verificationRequired']
+  const MANAGED_KEYS = ['gemini_api_keys', 'verificationRequired', 'hide_theme_toggle', 'cert_signatory_name', 'cert_signatory_title', 'cert_signature_image']
   const customSettings = settings.filter((s) => !MANAGED_KEYS.includes(s.key))
 
   return (
-    <main className="container admin">
-      <h2>Admin panel</h2>
-
-      {/* Verification requirement toggle */}
-      <section className="panel">
-        <h3>Email verification</h3>
-        <label className="checkbox">
-          <input
-            type="checkbox"
-            checked={verifyRequired}
-            onChange={(e) => onToggleVerifyRequired(e.target.checked)}
-            disabled={savingVerification}
-          />
-          <span>
-            Require email verification before login
-            <br />
-            <span className="muted small">
-              Off: unverified users can still sign in. On: they must verify first.
+    <main className="container" style={{ maxWidth: '1000px' }}>
+      {/* Section Head with Theme Switcher Control for Admin */}
+      <div className="section-head" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.3rem' }}>
+            <span className="badge-glow" style={{ fontSize: '0.75rem' }}>
+              <ShieldCheck size={13} /> Administrative Operations
             </span>
-          </span>
-        </label>
+          </div>
+          <h2>Admin Command Control</h2>
+          <p>Manage system credentials, user accounts, and platform configurations.</p>
+        </div>
+
+        {/* Dedicated Admin Theme Preview Toggle */}
+        <button
+          className="btn btn-secondary btn-sm"
+          onClick={toggleTheme}
+          title="Toggle Dark/Light theme mode"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.2rem' }}
+        >
+          {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+          <span>{theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}</span>
+        </button>
+      </div>
+
+      {/* Security & Interface Controls */}
+      <section className="panel" style={{ marginBottom: '1.75rem' }}>
+        <h3 style={{ fontSize: '1.15rem', marginBottom: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <ShieldCheck size={18} style={{ color: 'var(--accent-primary)' }} /> Platform &amp; Interface Controls
+        </h3>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.8rem', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={verifyRequired}
+              onChange={(e) => onToggleVerifyRequired(e.target.checked)}
+              disabled={savingVerification}
+              style={{ width: 'auto', marginTop: '0.25rem' }}
+            />
+            <div>
+              <strong style={{ fontSize: '0.98rem' }}>Require Email Verification Before Login</strong>
+              <p className="muted small" style={{ margin: '0.2rem 0 0' }}>
+                When enabled, new candidates must verify their email via OTP before accessing dashboard features.
+              </p>
+            </div>
+          </label>
+
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.8rem', cursor: 'pointer', paddingTop: '0.8rem', borderTop: '1px solid var(--border-soft)' }}>
+            <input
+              type="checkbox"
+              checked={hideThemeToggle}
+              onChange={(e) => onToggleHideThemeToggle(e.target.checked)}
+              disabled={savingThemeToggle}
+              style={{ width: 'auto', marginTop: '0.25rem' }}
+            />
+            <div>
+              <strong style={{ fontSize: '0.98rem' }}>Hide Light / Dark Mode Toggle Button</strong>
+              <p className="muted small" style={{ margin: '0.2rem 0 0' }}>
+                When enabled, the theme switch button (Sun/Moon icon) in the header navbar is hidden from candidates.
+              </p>
+            </div>
+          </label>
+        </div>
       </section>
 
-      {/* Gemini API keys — add/remove individual keys. Auto-fallback tries them
-          in order and skips a rate-limited key for a minute. */}
-      <section className="panel">
-        <h3>
-          <KeyRound size={16} /> Gemini API keys
+      {/* Certificate Signature Control */}
+      <section className="panel" style={{ marginBottom: '1.75rem' }}>
+        <h3 style={{ fontSize: '1.15rem', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <Award size={18} style={{ color: 'var(--accent-primary)' }} /> Certificate Authority Signature Control
         </h3>
-        <p className="muted small">
-          Add one or more keys. Generation tries them in order and skips a rate-limited key for a
-          minute. Get a free key at{' '}
+        <p className="muted small" style={{ marginBottom: '1.2rem' }}>
+          Upload or edit the official signature image, signatory name, and title rendered on all milestone certificates.
+        </p>
+
+        <form onSubmit={saveCertSignatureSettings} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+            <div className="field" style={{ marginBottom: 0 }}>
+              <span className="field-label" style={{ fontSize: '0.8rem' }}>Signatory Name</span>
+              <input
+                value={certSignatoryName}
+                onChange={(e) => setCertSignatoryName(e.target.value)}
+                placeholder="Mohd Zaid"
+              />
+            </div>
+            <div className="field" style={{ marginBottom: 0 }}>
+              <span className="field-label" style={{ fontSize: '0.8rem' }}>Signatory Title</span>
+              <input
+                value={certSignatoryTitle}
+                onChange={(e) => setCertSignatoryTitle(e.target.value)}
+                placeholder="Global Director of Candidate Assessments, MockMate AI"
+              />
+            </div>
+          </div>
+
+          <div className="field" style={{ marginBottom: 0 }}>
+            <span className="field-label" style={{ fontSize: '0.8rem' }}>Signature Image (PNG / SVG Data URL or Image Link)</span>
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <input
+                value={certSignatureImage}
+                onChange={(e) => setCertSignatureImage(e.target.value)}
+                placeholder="Paste Image URL or click Upload button"
+                style={{ flex: 1 }}
+              />
+              <label className="btn btn-secondary" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                Upload Image
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleSignatureFileUpload}
+                  style={{ display: 'none' }}
+                />
+              </label>
+            </div>
+          </div>
+
+          {certSignatureImage && (
+            <div style={{ padding: '0.75rem', background: 'var(--surface-2)', borderRadius: '8px', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <span className="muted small">Signature Preview:</span>
+              <img src={certSignatureImage} alt="Signature Preview" style={{ maxHeight: '42px', objectFit: 'contain' }} />
+            </div>
+          )}
+
+          <button type="submit" className="btn btn-primary" style={{ alignSelf: 'flex-start' }}>
+            <Save size={16} /> Save Signature Settings
+          </button>
+        </form>
+      </section>
+
+      {/* Gemini Keys Pool */}
+      <section className="panel" style={{ marginBottom: '1.75rem' }}>
+        <h3 style={{ fontSize: '1.15rem', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <KeyRound size={18} style={{ color: 'var(--accent-primary)' }} /> Gemini API Key Pool ({geminiKeys.length})
+        </h3>
+        <p className="muted small" style={{ marginBottom: '1.2rem' }}>
+          API keys are rotated automatically. Get free keys at{' '}
           <a href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer">
             Google AI Studio
-          </a>
-          .
+          </a>.
         </p>
 
         {geminiKeys.length === 0 ? (
-          <p className="muted small empty-hint">No keys yet — add one below to enable AI questions & quizzes.</p>
+          <p className="muted small" style={{ fontStyle: 'italic', marginBottom: '1rem' }}>No keys configured. Add a key below.</p>
         ) : (
-          <div className="key-list">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginBottom: '1.2rem' }}>
             {geminiKeys.map((k, i) => (
-              <div className="key-row" key={i}>
-                <span className="key-badge">#{i + 1}</span>
-                <code className="key-val">{maskKey(k)}</code>
+              <div
+                key={i}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  background: 'var(--surface-2)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '12px',
+                  padding: '0.65rem 1rem',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                  <span className="tag-soft mono">#{i + 1}</span>
+                  <code className="mono" style={{ color: 'var(--text)', fontSize: '0.9rem' }}>{maskKey(k)}</code>
+                </div>
                 <button
-                  className="btn btn-ghost btn-sm"
+                  className="history-del"
                   onClick={() => removeGeminiKey(i)}
                   title="Delete key"
-                  aria-label="Delete key"
                 >
-                  <Trash2 size={15} />
+                  <Trash2 size={16} />
                 </button>
               </div>
             ))}
           </div>
         )}
 
-        <form className="key-add" onSubmit={addGeminiKey}>
+        <form onSubmit={addGeminiKey} style={{ display: 'flex', gap: '0.75rem' }}>
           <input
             value={newGeminiKey}
             onChange={(e) => setNewGeminiKey(e.target.value)}
             placeholder="Paste a Gemini API key (AIza…)"
+            style={{ flex: 1 }}
           />
-          <button className="btn btn-primary">
-            <Plus size={16} /> Add key
+          <button type="submit" className="btn btn-primary">
+            <Plus size={16} /> Add Key
           </button>
         </form>
       </section>
 
-      {/* Users — a responsive card list (usable on mobile; the actions never
-          scroll off-screen the way a wide table would). */}
-      <section className="panel">
-        <h3>Users ({users.length})</h3>
-        <div className="user-list">
+      {/* User Management */}
+      <section className="panel" style={{ marginBottom: '1.75rem' }}>
+        <h3 style={{ fontSize: '1.15rem', marginBottom: '1.2rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <Users size={18} style={{ color: 'var(--accent-primary)' }} /> Registered Candidates ({users.length})
+        </h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           {users.map((u) => (
-            <div className="user-card" key={u._id}>
-              <div className="user-info">
-                <strong>{u.name}</strong>
-                <span className="muted small">{u.email}</span>
+            <div
+              key={u._id}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                background: 'var(--surface-2)',
+                border: '1px solid var(--border)',
+                borderRadius: '14px',
+                padding: '0.9rem 1.2rem',
+                flexWrap: 'wrap',
+                gap: '0.8rem',
+              }}
+            >
+              <div>
+                <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{u.name}</div>
+                <div className="muted mono small">{u.email}</div>
               </div>
-              <div className="user-meta">
-                <span className="pill">{u.role}</span>
-                <span className={u.isVerified ? 'pill good' : 'pill bad'}>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <span
+                  style={{
+                    padding: '0.2rem 0.65rem',
+                    borderRadius: '6px',
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    background: u.role === 'admin' ? 'rgba(99, 102, 241, 0.15)' : 'var(--surface)',
+                    color: u.role === 'admin' ? 'var(--accent-primary)' : 'var(--text-muted)',
+                    border: `1px solid ${u.role === 'admin' ? 'rgba(99, 102, 241, 0.3)' : 'var(--border)'}`,
+                  }}
+                >
+                  {u.role}
+                </span>
+
+                <span
+                  style={{
+                    padding: '0.2rem 0.65rem',
+                    borderRadius: '6px',
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    background: u.isVerified ? 'var(--good-soft)' : 'var(--bad-soft)',
+                    color: u.isVerified ? 'var(--good)' : 'var(--bad)',
+                    border: `1px solid ${u.isVerified ? 'rgba(4, 120, 87, 0.25)' : 'rgba(190, 18, 60, 0.25)'}`,
+                  }}
+                >
                   {u.isVerified ? 'Verified' : 'Unverified'}
                 </span>
-              </div>
-              <div className="row-actions">
-                <button className="btn btn-ghost btn-sm" onClick={() => toggleVerified(u)}>
+
+                <button className="btn btn-secondary btn-sm" onClick={() => toggleVerified(u)}>
                   {u.isVerified ? 'Unverify' : 'Verify'}
                 </button>
-                {u._id === me?.id ? (
-                  <span className="muted small">you</span>
-                ) : (
+
+                {u._id !== me?.id && (
                   <>
                     <button
                       className="btn btn-ghost btn-sm"
@@ -331,8 +550,8 @@ export default function AdminDashboard() {
                     >
                       {u.role === 'admin' ? <ShieldMinus size={15} /> : <ShieldPlus size={15} />}
                     </button>
-                    <button className="btn btn-ghost btn-sm" onClick={() => deleteUser(u)} title="Delete user">
-                      <Trash2 size={15} />
+                    <button className="history-del" onClick={() => deleteUser(u)} title="Delete user">
+                      <Trash2 size={16} />
                     </button>
                   </>
                 )}
@@ -342,19 +561,14 @@ export default function AdminDashboard() {
         </div>
       </section>
 
-      {/* Custom settings — anything except the two managed above (API keys /
-          verification), which have their own controls. */}
+      {/* Custom Settings */}
       <section className="panel">
-        <h3>Custom settings</h3>
-        <p className="muted small">
-          Extra key/value config for your own use (e.g. a site name or feature flag). API keys and
-          email verification are managed in their own sections above.
-        </p>
+        <h3 style={{ fontSize: '1.15rem', marginBottom: '0.6rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <Settings size={18} style={{ color: 'var(--accent-primary)' }} /> System Settings &amp; Flags
+        </h3>
 
-        {customSettings.length === 0 ? (
-          <p className="muted small empty-hint">No custom settings yet. Add one below.</p>
-        ) : (
-          <div className="settings-list">
+        {customSettings.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.2rem' }}>
             {customSettings.map((s) => (
               <SettingRow
                 key={s.key}
@@ -367,19 +581,21 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        <form className="setting-add" onSubmit={addSetting}>
+        <form onSubmit={addSetting} style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
           <input
-            placeholder="key (e.g. siteName)"
+            placeholder="Setting key (e.g. siteName)"
             value={newKey}
             onChange={(e) => setNewKey(e.target.value)}
+            style={{ flex: 1, minWidth: '150px' }}
           />
           <input
-            placeholder="value"
+            placeholder="Setting value"
             value={newValue}
             onChange={(e) => setNewValue(e.target.value)}
+            style={{ flex: 1, minWidth: '150px' }}
           />
-          <button className="btn btn-primary">
-            <Plus size={16} /> Add
+          <button type="submit" className="btn btn-primary">
+            <Plus size={16} /> Add Setting
           </button>
         </form>
       </section>
@@ -387,27 +603,32 @@ export default function AdminDashboard() {
   )
 }
 
-// One editable settings row (its own draft state so typing doesn't refetch).
 function SettingRow({ setting, onSave, onRename, onDelete }) {
   const [text, setText] = useState(valueToText(setting.value))
 
   return (
-    <div className="setting-row">
-      <span className="setting-key">{setting.key}</span>
-      <input value={text} onChange={(e) => setText(e.target.value)} placeholder="value" />
-      <button className="btn btn-ghost btn-sm" onClick={() => onSave(setting, text)}>
-        <Save size={15} /> Save
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.75rem',
+        background: 'var(--surface-2)',
+        border: '1px solid var(--border)',
+        borderRadius: '12px',
+        padding: '0.6rem 0.9rem',
+        flexWrap: 'wrap',
+      }}
+    >
+      <span className="mono" style={{ fontWeight: 700, fontSize: '0.9rem', minWidth: '120px' }}>{setting.key}</span>
+      <input value={text} onChange={(e) => setText(e.target.value)} style={{ flex: 1, minWidth: '140px' }} />
+      <button className="btn btn-secondary btn-sm" onClick={() => onSave(setting, text)}>
+        <Save size={14} /> Save
       </button>
-      <button className="btn btn-ghost btn-sm" onClick={() => onRename(setting, text)}>
+      <button className="btn btn-ghost btn-sm" onClick={() => onRename(setting)}>
         Rename
       </button>
-      <button
-        className="btn btn-ghost btn-sm"
-        onClick={() => onDelete(setting.key)}
-        title="Delete setting"
-        aria-label="Delete setting"
-      >
-        <Trash2 size={15} />
+      <button className="history-del" onClick={() => onDelete(setting.key)} title="Delete setting">
+        <Trash2 size={16} />
       </button>
     </div>
   )

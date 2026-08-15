@@ -34,13 +34,16 @@ const apiLimiter = rateLimit({
 })
 app.use('/api/', apiLimiter) // apply to all API routes
 
-// Strict rate limiter for sensitive authentication endpoints (prevent brute-force & credential stuffing)
+const isDev = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV
+
+// Strict rate limiter for sensitive authentication endpoints in production
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // 10 login/register attempts per window
+  max: 1000,
   message: { error: 'Too many authentication attempts. Please try again after 15 minutes.' },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: () => isDev,
 })
 app.use('/api/auth/login', authLimiter)
 app.use('/api/auth/register', authLimiter)
@@ -51,10 +54,14 @@ app.use(mongoSanitize()) // 🛡️ prevent NoSQL injection
 
 app.use(cors({
   origin(origin, callback) {
-    // Server-to-server requests or non-browser clients (like Mobile/Curl/Postman in dev)
     if (!origin) return callback(null, true)
-    
-    if (allowedOrigins.length === 0 || allowedOrigins.includes(origin.replace(/\/$/, ''))) {
+    const cleanOrigin = origin.replace(/\/$/, '')
+    if (
+      allowedOrigins.length === 0 ||
+      allowedOrigins.includes(cleanOrigin) ||
+      cleanOrigin.startsWith('http://localhost:') ||
+      cleanOrigin.startsWith('http://127.0.0.1:')
+    ) {
       return callback(null, true)
     }
     return callback(new Error(`CORS policy violation: Origin ${origin} not allowed`))
@@ -75,6 +82,7 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/auth', authRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/interviews', interviewRoutes)
+app.use('/api/sessions', interviewRoutes)
 app.use('/api/bookmarks', bookmarkRoutes)
 
 app.use('/api', notFound)

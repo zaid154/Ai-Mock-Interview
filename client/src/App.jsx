@@ -17,6 +17,7 @@ import Profile from './pages/Profile'
 import Bookmarks from './pages/Bookmarks'
 import Leaderboard from './pages/Leaderboard'
 import Certificates from './pages/Certificates'
+import VerifyCertificate from './pages/VerifyCertificate'
 
 // Route table. Public auth pages, then protected app pages, then admin panel.
 export default function App() {
@@ -30,6 +31,8 @@ export default function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/verify" element={<OtpVerify />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/verify-certificate/:certId" element={<VerifyCertificate />} />
+          <Route path="/verify-certificate" element={<VerifyCertificate />} />
 
           <Route
             path="/dashboard"
