@@ -48,6 +48,16 @@ A full-stack MERN application that runs a **React (Vite + JavaScript) client** a
 
 ---
 
+## 👨‍💻 Author & Lead Engineer
+
+Designed, Engineered & Built with ❤️ by **Mohd Zaid**
+
+- 🌐 **Developer Portfolio:** [portfolio-zeta-drab-97.vercel.app](https://portfolio-zeta-drab-97.vercel.app/)
+- 🐙 **GitHub Profile:** [@zaid154](https://github.com/zaid154)
+- 💼 **LinkedIn Profile:** [linkedin.com/in/mohd-zaid-794090231](https://www.linkedin.com/in/mohd-zaid-794090231/)
+
+---
+
 ## 🚀 Quick Start
 
 ```bash

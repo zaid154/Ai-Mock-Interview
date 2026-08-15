@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Zap, Github, Twitter, Linkedin, Heart, Sparkles } from 'lucide-react'
+import { Zap, Github, Globe, Linkedin, Heart, Sparkles } from 'lucide-react'
 
 export default function Footer() {
   const year = new Date().getFullYear()
@@ -20,9 +20,9 @@ export default function Footer() {
               Master technical engineering interviews with AI-driven practice sessions, instant line-by-line scoring, and verified credential certificates.
             </p>
             <div className="social-links">
-              <a href="https://github.com" target="_blank" rel="noreferrer" aria-label="GitHub"><Github size={18} /></a>
-              <a href="https://twitter.com" target="_blank" rel="noreferrer" aria-label="Twitter"><Twitter size={18} /></a>
-              <a href="https://linkedin.com" target="_blank" rel="noreferrer" aria-label="LinkedIn"><Linkedin size={18} /></a>
+              <a href="https://github.com/zaid154" target="_blank" rel="noreferrer" aria-label="GitHub Profile" title="GitHub (@zaid154)"><Github size={18} /></a>
+              <a href="https://portfolio-zeta-drab-97.vercel.app/" target="_blank" rel="noreferrer" aria-label="Developer Portfolio" title="Portfolio (Mohd Zaid)"><Globe size={18} /></a>
+              <a href="https://www.linkedin.com/in/mohd-zaid-794090231/" target="_blank" rel="noreferrer" aria-label="LinkedIn Profile" title="LinkedIn (Mohd Zaid)"><Linkedin size={18} /></a>
             </div>
           </div>
           
@@ -43,11 +43,10 @@ export default function Footer() {
           </div>
 
           <div className="footer-links-col">
-            <h4>Legal &amp; Privacy</h4>
-            <Link to="/">Privacy Policy</Link>
-            <Link to="/">Terms of Service</Link>
-            <Link to="/">Security Overview</Link>
-            <Link to="/">Contact Support</Link>
+            <h4>Creator Profile</h4>
+            <a href="https://portfolio-zeta-drab-97.vercel.app/" target="_blank" rel="noreferrer">Developer Portfolio ↗</a>
+            <a href="https://github.com/zaid154" target="_blank" rel="noreferrer">GitHub Repository ↗</a>
+            <a href="https://www.linkedin.com/in/mohd-zaid-794090231/" target="_blank" rel="noreferrer">Connect on LinkedIn ↗</a>
           </div>
         </div>
       </div>
@@ -55,7 +54,7 @@ export default function Footer() {
       <div className="footer-bottom-bar">
         <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', padding: '0' }}>
           <p className="muted small" style={{ margin: 0 }}>
-            © {year} MockMate AI Platform. Built with <Heart size={13} style={{ color: 'var(--bad)', verticalAlign: 'middle', margin: '0 0.2rem' }} /> for developers worldwide.
+            © {year} MockMate AI. Engineered &amp; Developed with <Heart size={13} style={{ color: 'var(--bad)', verticalAlign: 'middle', margin: '0 0.2rem' }} /> by <a href="https://portfolio-zeta-drab-97.vercel.app/" target="_blank" rel="noreferrer" style={{ fontWeight: 700, color: 'var(--accent-primary)', textDecoration: 'underline' }}>Mohd Zaid</a>.
           </p>
           <div className="badge-glow" style={{ fontSize: '0.72rem', padding: '0.2rem 0.65rem' }}>
             <Sparkles size={13} /> Powered by Google Gemini AI
