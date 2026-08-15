@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Zap, Github, Globe, Linkedin, Sparkles, ArrowUpRight } from 'lucide-react'
+import { Zap, Github, Globe, Linkedin, Sparkles, ArrowUpRight, Mail } from 'lucide-react'
 
 export default function Footer() {
   const year = new Date().getFullYear()
@@ -23,7 +23,7 @@ export default function Footer() {
               AI-driven technical engineering interviews, real-time feedback, and verified milestone certificates.
             </p>
 
-            {/* Premium Minimalist Creator Pill & Socials */}
+            {/* Premium Minimalist Creator Pill, Email & Socials */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
               <a
                 href="https://portfolio-zeta-drab-97.vercel.app/"
@@ -45,6 +45,27 @@ export default function Footer() {
               >
                 <span>Created by <strong style={{ color: 'var(--accent-primary)' }}>Mohd Zaid</strong></span>
                 <ArrowUpRight size={13} style={{ color: 'var(--text-muted)' }} />
+              </a>
+
+              <a
+                href="mailto:zaidm1323@gmail.com"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  padding: '0.35rem 0.8rem',
+                  borderRadius: '999px',
+                  background: 'var(--surface-2)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--text-muted)',
+                  fontSize: '0.82rem',
+                  fontWeight: 500,
+                  textDecoration: 'none',
+                }}
+                title="Send Direct Email"
+              >
+                <Mail size={14} style={{ color: 'var(--accent-primary)' }} />
+                <span>zaidm1323@gmail.com</span>
               </a>
 
               <div className="social-links" style={{ margin: 0 }}>
@@ -81,11 +102,14 @@ export default function Footer() {
 
           <div className="footer-links-col">
             <h4>Connect &amp; Author</h4>
-            <a href="https://github.com/zaid154" target="_blank" rel="noreferrer">
-              GitHub Profile ↗
+            <a href="mailto:zaidm1323@gmail.com" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+              <Mail size={14} style={{ color: 'var(--accent-primary)' }} /> zaidm1323@gmail.com
             </a>
             <a href="https://portfolio-zeta-drab-97.vercel.app/" target="_blank" rel="noreferrer">
               Portfolio Site ↗
+            </a>
+            <a href="https://github.com/zaid154" target="_blank" rel="noreferrer">
+              GitHub Profile ↗
             </a>
             <a href="https://www.linkedin.com/in/mohd-zaid-794090231/" target="_blank" rel="noreferrer">
               LinkedIn Network ↗
@@ -97,7 +121,7 @@ export default function Footer() {
       <div className="footer-bottom-bar">
         <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', padding: '0' }}>
           <p className="muted small" style={{ margin: 0 }}>
-            © {year} MockMate AI. Built by <a href="https://portfolio-zeta-drab-97.vercel.app/" target="_blank" rel="noreferrer" style={{ fontWeight: 700, color: 'var(--text)' }}>Mohd Zaid</a>.
+            © {year} MockMate AI. Built by <a href="https://portfolio-zeta-drab-97.vercel.app/" target="_blank" rel="noreferrer" style={{ fontWeight: 700, color: 'var(--text)' }}>Mohd Zaid</a> (<a href="mailto:zaidm1323@gmail.com" style={{ color: 'var(--accent-primary)' }}>zaidm1323@gmail.com</a>).
           </p>
           <div className="badge-glow" style={{ fontSize: '0.75rem', padding: '0.25rem 0.7rem' }}>
             <Sparkles size={13} /> Powered by Google Gemini AI
