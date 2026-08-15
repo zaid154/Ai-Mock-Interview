@@ -14,6 +14,9 @@ const { notFound, errorHandler } = require('./middleware/error')
 
 const app = express()
 
+// Trust reverse proxies (Render, Vercel, Cloudflare, NGINX) to enable rate-limiting behind proxies
+app.set('trust proxy', 1)
+
 // CORS: CLIENT_URL accepts one origin or a comma-separated allow-list. This
 // lets the Render API serve the live Vercel site (and optional preview URLs)
 // without accidentally allowing every production website.
