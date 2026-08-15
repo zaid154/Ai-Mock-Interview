@@ -68,14 +68,15 @@ export default function Footer() {
             <Link to="/bookmarks">Saved Bookmarks</Link>
             <Link to="/leaderboard">Leaderboard</Link>
             <Link to="/certificates">Certificates</Link>
+            <Link to="/profile">Profile Settings</Link>
           </div>
 
           <div className="footer-links-col">
             <h4>Prep Tracks</h4>
-            <Link to="/">Frontend Engineering</Link>
-            <Link to="/">Backend Architecture</Link>
-            <Link to="/">Fullstack &amp; MERN</Link>
-            <Link to="/">System Design &amp; SQL</Link>
+            <Link to="/dashboard">Frontend Engineering</Link>
+            <Link to="/dashboard">Backend Architecture</Link>
+            <Link to="/dashboard">Fullstack &amp; MERN</Link>
+            <Link to="/dashboard">System Design &amp; SQL</Link>
           </div>
 
           <div className="footer-links-col">
