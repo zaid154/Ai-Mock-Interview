@@ -27,17 +27,18 @@ const allowedOrigins = (process.env.CLIENT_URL || '')
 
 app.use(helmet()) // 🛡️ set secure HTTP headers
 
-// Global rate limiting: 100 requests per 15 minutes per IP (adjust as needed)
+const isDev = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV
+
+// Global rate limiting: 1000 requests per 15 minutes per IP in production, skipped in development
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 1000,
   message: { error: 'Too many requests, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: () => isDev,
 })
 app.use('/api/', apiLimiter) // apply to all API routes
-
-const isDev = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV
 
 // Strict rate limiter for sensitive authentication endpoints in production
 const authLimiter = rateLimit({
