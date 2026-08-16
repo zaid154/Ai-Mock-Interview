@@ -31,13 +31,23 @@ export default function Navbar() {
     navigate('/login')
   }
 
-  const isActive = (path) => location.pathname === path
+  const isDashboardActive =
+    location.pathname === '/dashboard' ||
+    location.pathname.startsWith('/interview') ||
+    location.pathname.startsWith('/quiz') ||
+    location.pathname.startsWith('/results')
+
+  const isBookmarksActive = location.pathname === '/bookmarks'
+  const isLeaderboardActive = location.pathname === '/leaderboard'
+  const isCertificatesActive =
+    location.pathname === '/certificates' ||
+    location.pathname.startsWith('/verify-certificate')
 
   function scrollToSection(id) {
     if (id === 'overview') {
       if (location.pathname !== '/') {
         navigate('/')
-        setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100)
+        setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50)
       } else {
         window.scrollTo({ top: 0, behavior: 'smooth' })
       }
@@ -49,22 +59,20 @@ export default function Navbar() {
       setTimeout(() => {
         const el = document.getElementById(id)
         if (el) {
-          const y = el.getBoundingClientRect().top + window.pageYOffset - 80
-          window.scrollTo({ top: y, behavior: 'smooth' })
+          el.scrollIntoView({ behavior: 'smooth' })
         }
       }, 100)
     } else {
       const el = document.getElementById(id)
       if (el) {
-        const y = el.getBoundingClientRect().top + window.pageYOffset - 80
-        window.scrollTo({ top: y, behavior: 'smooth' })
+        el.scrollIntoView({ behavior: 'smooth' })
       }
     }
   }
 
   return (
     <header className="navbar">
-      <div className="container nav-inner">
+      <div className="nav-inner">
         {/* Brand */}
         <Link to={user ? '/dashboard' : '/'} className="brand">
           <div className="brand-icon-box">
@@ -79,16 +87,16 @@ export default function Navbar() {
         <nav className="nav-links nav-links-desktop">
           {user ? (
             <>
-              <Link to="/dashboard" className={`nav-link ${isActive('/dashboard') ? 'active' : ''}`}>
+              <Link to="/dashboard" className={`nav-link ${isDashboardActive ? 'active' : ''}`}>
                 Dashboard
               </Link>
-              <Link to="/bookmarks" className={`nav-link ${isActive('/bookmarks') ? 'active' : ''}`}>
+              <Link to="/bookmarks" className={`nav-link ${isBookmarksActive ? 'active' : ''}`}>
                 Bookmarks
               </Link>
-              <Link to="/leaderboard" className={`nav-link ${isActive('/leaderboard') ? 'active' : ''}`}>
+              <Link to="/leaderboard" className={`nav-link ${isLeaderboardActive ? 'active' : ''}`}>
                 Leaderboard
               </Link>
-              <Link to="/certificates" className={`nav-link ${isActive('/certificates') ? 'active' : ''}`}>
+              <Link to="/certificates" className={`nav-link ${isCertificatesActive ? 'active' : ''}`}>
                 Certificates
               </Link>
             </>
@@ -97,7 +105,7 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => scrollToSection('overview')}
-                className="nav-link"
+                className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}
                 style={{ background: 'none', border: 'none', font: 'inherit', cursor: 'pointer' }}
               >
                 Overview
@@ -126,7 +134,7 @@ export default function Navbar() {
               >
                 How-to
               </button>
-              <Link to="/leaderboard" className={`nav-link ${isActive('/leaderboard') ? 'active' : ''}`}>
+              <Link to="/leaderboard" className={`nav-link ${isLeaderboardActive ? 'active' : ''}`}>
                 Leaderboard
               </Link>
             </>
@@ -184,7 +192,7 @@ export default function Navbar() {
               {/* User Dropdown Menu */}
               {userMenuOpen && (
                 <div
-                  className="glass-card"
+                  className="glass-card dropdown-menu-anim"
                   style={{
                     position: 'absolute',
                     top: 'calc(100% + 0.5rem)',
@@ -245,14 +253,14 @@ export default function Navbar() {
               )}
             </div>
           ) : (
-            <nav className="nav-links nav-links-desktop">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Link to="/login" className="nav-link">
                 Sign in
               </Link>
               <Link to="/register" className="btn btn-primary btn-sm">
                 Get Started
               </Link>
-            </nav>
+            </div>
           )}
 
           <button

@@ -97,10 +97,19 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px;
+}
+
 html, body, #root {
   margin: 0;
   padding: 0;
   min-height: 100dvh;
+}
+
+section[id] {
+  scroll-margin-top: 80px;
 }
 
 body {
@@ -144,6 +153,90 @@ a:hover {
   color: var(--accent-secondary);
 }
 
+/* Keyframe Animations & Micro-Interactions */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(99, 102, 241, 0);
+  }
+}
+
+@keyframes floatGentle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Animation Utility Classes */
+.animate-fade-in {
+  animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-slide-up {
+  animation: fadeSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-scale {
+  animation: scaleIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-float {
+  animation: floatGentle 3.5s ease-in-out infinite;
+}
+
+.dropdown-menu-anim {
+  animation: fadeSlideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: top right;
+}
+
 /* Layout Wrappers */
 .app-shell {
   display: flex;
@@ -154,12 +247,14 @@ a:hover {
   flex: 1;
   display: flex;
   flex-direction: column;
+  animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .container {
   width: min(1120px, 92vw);
   margin: 0 auto;
   padding: 2rem 0 3.5rem;
+  animation: fadeSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .auth-layout-page {
@@ -169,6 +264,7 @@ a:hover {
   justify-content: center;
   padding: 3rem 1rem;
   width: 100%;
+  animation: fadeSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .page-center {
@@ -178,19 +274,23 @@ a:hover {
   justify-content: center;
   min-height: 55vh;
   text-align: center;
+  animation: fadeSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* Panels & Cards (Vercel Style Clean Borders) */
+/* Panels & Cards (Vercel Style Clean Borders with Fluid Hover) */
 .panel, .glass-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 1.5rem;
   box-shadow: var(--shadow-sm);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.2s ease,
+              box-shadow 0.25s ease;
 }
 
-.glass-card-hover:hover {
+.glass-card-hover:hover, .panel-hover:hover {
+  transform: translateY(-3px);
   border-color: var(--border-strong);
   box-shadow: var(--shadow-md);
 }
@@ -210,7 +310,7 @@ a:hover {
   max-width: 55ch;
 }
 
-/* Button System (Vercel / Linear Precision) */
+/* Button System (Micro-interactions with Smooth Press Feedback) */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -223,12 +323,19 @@ a:hover {
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.15s ease;
+  transition: transform 0.16s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.18s ease,
+              border-color 0.18s ease,
+              box-shadow 0.2s ease,
+              color 0.15s ease;
   border: 1px solid transparent;
   outline: none;
 }
-.btn:active {
-  transform: scale(0.98);
+.btn:hover:not(:disabled) {
+  transform: translateY(-1.5px);
+}
+.btn:active:not(:disabled) {
+  transform: translateY(1px) scale(0.98);
 }
 .btn:disabled {
   opacity: 0.5;
@@ -244,7 +351,7 @@ a:hover {
 }
 .btn-primary:hover:not(:disabled) {
   background: var(--accent-secondary);
-  box-shadow: 0 4px 12px var(--accent-glow);
+  box-shadow: 0 6px 20px var(--accent-glow);
 }
 
 .btn-secondary {
@@ -370,7 +477,7 @@ input, select, textarea {
   font-family: var(--font-body);
   font-size: 0.9rem;
   width: 100%;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, transform 0.15s ease;
 }
 input::placeholder, textarea::placeholder {
   color: var(--text-subtle);
@@ -378,8 +485,9 @@ input::placeholder, textarea::placeholder {
 input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px var(--accent-glow);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
   background: var(--surface-3);
+  transform: translateY(-0.5px);
 }
 
 /* Dedicated Input Icon Wrap */
@@ -469,13 +577,18 @@ input:focus, select:focus, textarea:focus {
   position: sticky;
   top: 0;
   z-index: 100;
+  width: 100%;
 }
 .nav-inner {
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
-  height: 56px;
-  gap: 1rem;
+  width: min(1120px, 92vw) !important;
+  margin: 0 auto !important;
+  height: 56px !important;
+  padding: 0 !important;
+  gap: 1rem !important;
+  animation: none !important;
 }
 .brand {
   display: inline-flex;
@@ -488,6 +601,10 @@ input:focus, select:focus, textarea:focus {
   letter-spacing: -0.03em;
   text-decoration: none;
   flex-shrink: 0;
+  transition: opacity 0.15s ease;
+}
+.brand:hover {
+  opacity: 0.92;
 }
 .brand-icon-box {
   width: 30px;
@@ -498,6 +615,11 @@ input:focus, select:focus, textarea:focus {
   place-items: center;
   color: #ffffff;
   flex-shrink: 0;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+}
+.brand:hover .brand-icon-box {
+  transform: rotate(8deg) scale(1.08);
+  box-shadow: 0 4px 12px var(--accent-glow);
 }
 .brand-accent {
   background: var(--accent-grad);
@@ -527,11 +649,18 @@ input:focus, select:focus, textarea:focus {
   padding: 0.32rem 0.85rem;
   border-radius: 999px;
   text-decoration: none;
-  transition: all 0.15s ease;
+  transition: transform 0.16s cubic-bezier(0.16, 1, 0.3, 1),
+              color 0.15s ease,
+              background-color 0.15s ease,
+              box-shadow 0.15s ease;
   white-space: nowrap;
 }
 .nav-link:hover {
   color: var(--text);
+  transform: translateY(-1px);
+}
+.nav-link:active {
+  transform: scale(0.97);
 }
 .nav-link.active {
   color: var(--text);
@@ -616,11 +745,16 @@ input:focus, select:focus, textarea:focus {
   border-radius: 10px;
   padding: 0.9rem 1.1rem;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.2s ease,
+              background-color 0.2s ease,
+              box-shadow 0.2s ease;
 }
 .history-item:hover {
   border-color: var(--border-strong);
   background: var(--surface-3);
+  transform: translateX(4px);
+  box-shadow: var(--shadow-sm);
 }
 
 .history-del {
@@ -790,6 +924,7 @@ input:focus, select:focus, textarea:focus {
   display: grid;
   place-items: center;
   padding: 1rem;
+  animation: fadeIn 0.2s ease forwards;
 }
 .modal {
   width: min(420px, 100%);
@@ -798,6 +933,7 @@ input:focus, select:focus, textarea:focus {
   border-radius: 14px;
   box-shadow: var(--shadow-lg);
   padding: 1.8rem;
+  animation: scaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Official Coursera / Google Grade Certificate CSS */

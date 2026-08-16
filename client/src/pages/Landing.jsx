@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Zap,
@@ -16,11 +16,8 @@ import {
   Sliders,
   TrendingUp,
   Activity,
-  ChevronRight,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-
-import { useEffect } from 'react'
 
 export default function Landing() {
   const { user } = useAuth()
@@ -51,7 +48,7 @@ export default function Landing() {
             backgroundPosition: 'center',
             display: 'flex',
             flexDirection: 'column',
-            justify: 'center',
+            justifyContent: 'center',
             alignItems: 'center',
             textAlign: 'center',
             padding: '3.5rem 2rem',
@@ -105,45 +102,57 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 4-Column Minimal Feature Icons Grid */}
-      <section className="container" id="benefits" style={{ padding: '3.5rem 0' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '2.5rem' }}>
-          <div>
-            <div style={{ marginBottom: '1.2rem', color: 'var(--accent-primary)' }}>
-              <Activity size={26} />
+      {/* 4-Column Feature Cards Section */}
+      <section className="container" id="benefits" style={{ padding: '4.5rem 0 3rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+          <div className="tag" style={{ marginBottom: '0.8rem', padding: '0.35rem 0.9rem' }}>
+            Core Advantages
+          </div>
+          <h2 style={{ fontSize: 'clamp(2rem, 4vw, 2.8rem)', fontWeight: 800, letterSpacing: '-0.025em', margin: '0 0 0.5rem' }}>
+            Engineered for High-Stakes Tech Rounds
+          </h2>
+          <p className="muted" style={{ maxWidth: '58ch', margin: '0 auto', fontSize: '1.05rem', lineHeight: '1.6' }}>
+            Everything you need to benchmark your technical depth, refine system architecture reasoning, and get certified.
+          </p>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
+          <div className="panel glass-card-hover" style={{ padding: '2rem 1.6rem', display: 'flex', flexDirection: 'column', height: '100%', borderRadius: '16px' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--accent-grad-subtle)', border: '1px solid rgba(99, 102, 241, 0.25)', display: 'grid', placeItems: 'center', color: 'var(--accent-primary)', marginBottom: '1.3rem' }}>
+              <Activity size={24} />
             </div>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.6rem' }}>Amplify Insights</h3>
-            <p className="muted" style={{ fontSize: '0.94rem', lineHeight: '1.65', margin: 0 }}>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.6rem' }}>Amplify Insights</h3>
+            <p className="muted" style={{ fontSize: '0.92rem', lineHeight: '1.65', margin: 0 }}>
               Unlock data-driven candidate evaluation with comprehensive AI analytics, revealing key growth opportunities for technical rounds.
             </p>
           </div>
 
-          <div>
-            <div style={{ marginBottom: '1.2rem', color: 'var(--accent-primary)' }}>
-              <Globe size={26} />
+          <div className="panel glass-card-hover" style={{ padding: '2rem 1.6rem', display: 'flex', flexDirection: 'column', height: '100%', borderRadius: '16px' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--accent-grad-subtle)', border: '1px solid rgba(99, 102, 241, 0.25)', display: 'grid', placeItems: 'center', color: 'var(--accent-primary)', marginBottom: '1.3rem' }}>
+              <Globe size={24} />
             </div>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.6rem' }}>Control Your Global Standings</h3>
-            <p className="muted" style={{ fontSize: '0.94rem', lineHeight: '1.65', margin: 0 }}>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.6rem' }}>Control Global Standings</h3>
+            <p className="muted" style={{ fontSize: '0.92rem', lineHeight: '1.65', margin: 0 }}>
               Track past interview history, verified score reports, and community standings to benchmark your candidate rank worldwide.
             </p>
           </div>
 
-          <div>
-            <div style={{ marginBottom: '1.2rem', color: 'var(--accent-primary)' }}>
-              <Sliders size={26} />
+          <div className="panel glass-card-hover" style={{ padding: '2rem 1.6rem', display: 'flex', flexDirection: 'column', height: '100%', borderRadius: '16px' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--accent-grad-subtle)', border: '1px solid rgba(99, 102, 241, 0.25)', display: 'grid', placeItems: 'center', color: 'var(--accent-primary)', marginBottom: '1.3rem' }}>
+              <Sliders size={24} />
             </div>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.6rem' }}>Remove Skill Barriers</h3>
-            <p className="muted" style={{ fontSize: '0.94rem', lineHeight: '1.65', margin: 0 }}>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.6rem' }}>Remove Skill Barriers</h3>
+            <p className="muted" style={{ fontSize: '0.92rem', lineHeight: '1.65', margin: 0 }}>
               Adapt to diverse engineering domains (Frontend, Backend, DevOps, System Design) with tailored practice modules.
             </p>
           </div>
 
-          <div>
-            <div style={{ marginBottom: '1.2rem', color: 'var(--accent-primary)' }}>
-              <TrendingUp size={26} />
+          <div className="panel glass-card-hover" style={{ padding: '2rem 1.6rem', display: 'flex', flexDirection: 'column', height: '100%', borderRadius: '16px' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--accent-grad-subtle)', border: '1px solid rgba(99, 102, 241, 0.25)', display: 'grid', placeItems: 'center', color: 'var(--accent-primary)', marginBottom: '1.3rem' }}>
+              <TrendingUp size={24} />
             </div>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.6rem' }}>Visualize Technical Growth</h3>
-            <p className="muted" style={{ fontSize: '0.94rem', lineHeight: '1.65', margin: 0 }}>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.6rem' }}>Visualize Technical Growth</h3>
+            <p className="muted" style={{ fontSize: '0.92rem', lineHeight: '1.65', margin: 0 }}>
               Generate precise, visually compelling score reports illustrating your growth trajectories over time.
             </p>
           </div>
@@ -151,10 +160,13 @@ export default function Landing() {
       </section>
 
       {/* Split Section: "See the Big Picture" */}
-      <section className="container" id="specifications" style={{ padding: '4rem 0' }}>
+      <section className="container" id="specifications" style={{ padding: '4.5rem 0 3.5rem' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '3.5rem', alignItems: 'center' }}>
           {/* Left Column Text & Numbered List */}
           <div>
+            <div className="tag" style={{ marginBottom: '0.8rem', padding: '0.35rem 0.9rem' }}>
+              Deep Analytics &amp; Scoring
+            </div>
             <h2 style={{ fontSize: 'clamp(2.4rem, 4vw, 3.4rem)', fontWeight: 800, lineHeight: 1.15, marginBottom: '1.25rem', letterSpacing: '-0.02em' }}>
               See the Big Picture
             </h2>
@@ -254,7 +266,7 @@ export default function Landing() {
                 minHeight: '480px',
                 display: 'flex',
                 flexDirection: 'column',
-                justify: 'flex-end',
+                justifyContent: 'flex-end',
                 position: 'relative',
               }}
             >
