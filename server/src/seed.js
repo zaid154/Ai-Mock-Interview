@@ -84,6 +84,24 @@ async function seed({ reset = false } = {}) {
   )
   console.log(`Admin ready: ${adminEmail}`)
 
+  // 2b) Secondary Admin User (admin@shop.com / Admin@123)
+  const secondaryHash = await bcrypt.hash('Admin@123', 10)
+  await User.findOneAndUpdate(
+    { email: 'admin@shop.com' },
+    {
+      name: 'Mohd Zaid',
+      email: 'admin@shop.com',
+      passwordHash: secondaryHash,
+      role: 'admin',
+      isVerified: true,
+      isEmailVerified: true,
+      verifiedAt: new Date(),
+      registrationCompleted: true,
+    },
+    { upsert: true, new: true, setDefaultsOnInsert: true },
+  )
+  console.log('Secondary Admin ready: admin@shop.com')
+
   // 3) Seed completed sample interviews for Admin user so all milestone certificates are 100% unlocked
   if (adminUser) {
     const existingCount = await Interview.countDocuments({ user: adminUser._id, status: 'completed' })
