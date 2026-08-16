@@ -258,52 +258,26 @@ export default function Certificates() {
                     target="_blank"
                     rel="noreferrer"
                     style={{ margin: '0.4rem 0 0.2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textDecoration: 'none' }}
-                    title="Click or scan to verify credential"
+                    title="Scan or click to verify credential"
                   >
-                    <svg width="52" height="52" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ border: '1px solid #cbd5e1', padding: '3px', background: '#ffffff', borderRadius: '4px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
-                      {/* Top Left Finder */}
-                      <rect x="6" y="6" width="26" height="26" fill="#0f172a" />
-                      <rect x="10" y="10" width="18" height="18" fill="#ffffff" />
-                      <rect x="14" y="14" width="10" height="10" fill="#0f172a" />
-
-                      {/* Top Right Finder */}
-                      <rect x="68" y="6" width="26" height="26" fill="#0f172a" />
-                      <rect x="72" y="10" width="18" height="18" fill="#ffffff" />
-                      <rect x="76" y="14" width="10" height="10" fill="#0f172a" />
-
-                      {/* Bottom Left Finder */}
-                      <rect x="6" y="68" width="26" height="26" fill="#0f172a" />
-                      <rect x="10" y="72" width="18" height="18" fill="#ffffff" />
-                      <rect x="14" y="76" width="10" height="10" fill="#0f172a" />
-
-                      {/* Data Matrix */}
-                      <rect x="40" y="8" width="6" height="6" fill="#0f172a" />
-                      <rect x="52" y="8" width="6" height="6" fill="#0f172a" />
-                      <rect x="40" y="20" width="6" height="6" fill="#0f172a" />
-                      <rect x="46" y="26" width="6" height="6" fill="#0f172a" />
-                      <rect x="58" y="20" width="6" height="6" fill="#0f172a" />
-
-                      <rect x="8" y="40" width="6" height="6" fill="#0f172a" />
-                      <rect x="20" y="40" width="6" height="6" fill="#0f172a" />
-                      <rect x="26" y="46" width="6" height="6" fill="#0f172a" />
-
-                      <rect x="40" y="40" width="8" height="8" fill="#4f46e5" />
-                      <rect x="52" y="40" width="6" height="6" fill="#0f172a" />
-                      <rect x="46" y="52" width="6" height="6" fill="#0f172a" />
-
-                      <rect x="72" y="40" width="6" height="6" fill="#0f172a" />
-                      <rect x="84" y="46" width="6" height="6" fill="#0f172a" />
-                      <rect x="78" y="52" width="6" height="6" fill="#0f172a" />
-
-                      <rect x="40" y="68" width="6" height="6" fill="#0f172a" />
-                      <rect x="52" y="74" width="6" height="6" fill="#0f172a" />
-                      <rect x="46" y="84" width="6" height="6" fill="#0f172a" />
-
-                      <rect x="68" y="68" width="6" height="6" fill="#0f172a" />
-                      <rect x="80" y="74" width="6" height="6" fill="#0f172a" />
-                      <rect x="74" y="84" width="12" height="6" fill="#0f172a" />
-                    </svg>
-                    <span style={{ fontSize: '0.55rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '2px', fontWeight: 800 }}>
+                    <img
+                      src={`https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
+                        typeof window !== 'undefined' ? `${window.location.origin}/verify-certificate/${certId}` : `https://ai-mock-interview-three-pi.vercel.app/verify-certificate/${certId}`
+                      )}&size=200x200&margin=2`}
+                      alt="Real Scannable Verification QR Code"
+                      crossOrigin="anonymous"
+                      style={{
+                        width: '60px',
+                        height: '60px',
+                        border: '1px solid #cbd5e1',
+                        padding: '2px',
+                        background: '#ffffff',
+                        borderRadius: '4px',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+                        objectFit: 'contain',
+                      }}
+                    />
+                    <span style={{ fontSize: '0.55rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '3px', fontWeight: 800 }}>
                       SCAN TO VERIFY
                     </span>
                   </a>
