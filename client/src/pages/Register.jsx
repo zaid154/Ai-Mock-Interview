@@ -1,18 +1,22 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, Navigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { useAuth } from '../context/AuthContext'
 import { apiError } from '../lib/api'
 import { Eye, EyeOff, User, Mail, Lock, Zap, ArrowRight, CheckCircle2 } from 'lucide-react'
 
 export default function Register() {
-  const { register } = useAuth()
+  const { user, register } = useAuth()
   const navigate = useNavigate()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPw, setShowPw] = useState(false)
   const [busy, setBusy] = useState(false)
+
+  if (user) {
+    return <Navigate to="/dashboard" replace />
+  }
 
   async function onSubmit(e) {
     e.preventDefault()

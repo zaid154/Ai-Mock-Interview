@@ -79,6 +79,21 @@ export default function Navbar() {
 
   const isActive = (path) => location.pathname === path
 
+  function scrollToSection(id) {
+    if (location.pathname !== '/') {
+      navigate('/')
+      setTimeout(() => {
+        const el = document.getElementById(id)
+        if (el) el.scrollIntoView({ behavior: 'smooth' })
+      }, 100)
+    } else {
+      const el = document.getElementById(id)
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' })
+      }
+    }
+  }
+
   return (
     <header className="navbar">
       {/* Brand Logo & Desktop Nav Links */}
@@ -90,7 +105,7 @@ export default function Navbar() {
           <span>MockMate</span>
         </Link>
 
-        {user && (
+        {user ? (
           <nav className="nav-links nav-links-desktop">
             <Link to="/dashboard" className={`nav-link ${isActive('/dashboard') ? 'active' : ''}`}>
               Dashboard
@@ -104,6 +119,21 @@ export default function Navbar() {
             <Link to="/certificates" className={`nav-link ${isActive('/certificates') ? 'active' : ''}`}>
               Certificates
             </Link>
+          </nav>
+        ) : (
+          <nav className="nav-links nav-links-desktop">
+            <button type="button" onClick={() => scrollToSection('overview')} className="nav-link" style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+              Overview
+            </button>
+            <button type="button" onClick={() => scrollToSection('benefits')} className="nav-link" style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+              Benefits
+            </button>
+            <button type="button" onClick={() => scrollToSection('specifications')} className="nav-link" style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+              Specifications
+            </button>
+            <button type="button" onClick={() => scrollToSection('how-it-works')} className="nav-link" style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+              How-to
+            </button>
           </nav>
         )}
       </div>

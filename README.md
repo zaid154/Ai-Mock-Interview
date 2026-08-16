@@ -1,6 +1,6 @@
 # MockMate AI
 
-> AI-Powered Mock Interview Platform with Real-Time Gemini Line-by-Line Evaluation, Automated Certificate Generation & Public Credential Verification.
+> AI-Powered Mock Interview Platform with Real-Time Gemini Line-by-Line Evaluation, Persistent ISO Certificates & Public Credential Verification.
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-6366f1?style=for-the-badge&logo=vercel)](https://ai-mock-interview-three-pi.vercel.app/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
@@ -16,27 +16,30 @@ A full-stack MERN application that runs a **React (Vite + JavaScript) client** a
 - **Role, Level & Category Aware**: Customize interviews by technical category (**Frontend, Backend, Fullstack, MERN, Java, Python, .NET, SQL, HR, Aptitude**), experience level, and difficulty.
 - **Resume-Tailored Questions**: Upload a PDF resume (`unpdf` parsing); extracted text is passed to Gemini to tailor questions to your specific skill set.
 - **Multiple Gemini API Keys with Auto-Fallback**: Automatically rotates keys in a pool when rate limits occur.
-- **Offline Question Fallback**: Falls back to a seeded question bank and heuristic grading if no Gemini API key is active.
+- **Dynamic Question Shuffling**: Fisher-Yates shuffle algorithm prevents question order predictability across offline and online sessions.
 
-### 📜 Official Milestone Credentials & Public Verification Portal
-- **🎓 4 Milestone Certificates**: Earn official credentials (1st Interview, 3 Interviews, 5 Interviews, 80%+ High Score).
+### 📜 Persistent ISO Certificates & Public Verification Portal
+- **🎓 4 Milestone Credentials**: Earn official credentials (1st Interview, 3 Interviews, 5 Interviews, 80%+ High Score).
+- **🗄️ MongoDB Atlas Certificate Model (`Certificate.model.js`)**: Persistent certificate storage containing unique verification codes (`MM-CERT-XXXXXXXX`), scores, candidate details, and issue dates.
 - **📥 1-Click High-Res PDF Download**: Download vector landscape A4 certificate PDF files directly into your Downloads folder (`html2canvas` + `jsPDF`).
-- **🔗 Public Credential Verification Portal (`/verify-certificate/:certId`)**: Every certificate includes a unique verification code (`MM-CERT-XXXXXXXX`), vector QR code, and public verification link. Anyone can verify candidate authenticity on the live portal!
+- **🔗 Public Credential Verification Portal (`/verify-certificate/:certId`)**: Every certificate includes a unique verification code, vector QR code, and public verification link. Anyone can verify candidate authenticity on the live portal!
 - **✍️ Admin Certificate Authority Signature Control**: Admins can upload custom handwritten signature images (PNG/SVG) and set signatory name & title from the Admin Control Panel.
+
+### 🔖 Self-Assessment Revision Flashcards Vault (`/bookmarks`)
+- **Interactive Flashcard Mode**: Reveal or hide model answers with 1 click during self-assessment revision rounds.
+- **1-Click Quick Copy**: Instant copy-to-clipboard for question prompts and model answers.
+- **Category & Topic Filters**: Filter saved bookmarks by Frontend, Backend, DevOps, System Design, or Behavioral topics.
+- **Personal Notes Drawer**: Annotate bookmarked questions with custom study notes.
+
+### 🏆 Community Standings & Candidate Avatars (`/leaderboard`)
+- **Candidate Photo Avatars**: Render high-resolution candidate photo avatars across champion podiums and standings tables.
+- **Real-Time Profile Sync**: Custom photo uploads instantly update across Navbar, Profile, and Leaderboard globally.
 
 ### 🛡️ Administrative Command Control (`/admin`)
 - **🔑 Gemini API Key Rotation Pool**: Add, monitor, and remove Gemini API keys in rotation.
 - **🔒 Email Verification Policy**: Toggle mandatory OTP email verification requirement before user logins.
 - **🌗 Theme Toggle Visibility Control**: Admins can hide/show candidate light/dark theme switchers in real-time.
 - **👥 Candidate User Management**: Verify, demote, promote, or delete candidate accounts.
-
-### 🚀 Additional Platform Capabilities
-1. **🌗 Dark & Light Mode**: Sleek dark mode and bright modern light mode with high-contrast UI tokens.
-2. **👤 Candidate Profile Page (`/profile`)**: Customize name, bio headline, avatar, theme, and safely change passwords.
-3. **🔖 Question Bookmarks (`/bookmarks`)**: Save key interview questions for later review, add personal notes, and filter by category.
-4. **🏆 Community Leaderboard (`/leaderboard`)**: Rank top candidates based on overall scores and session counts.
-5. **⏱️ Optional Interview Timer**: Countdown timers (per question or total time limit) with visual urgency alerts.
-6. **📝 Personal Session Notes**: Record per-question notes during sessions or overall interview takeaways.
 
 ---
 
@@ -65,7 +68,7 @@ cd "MockMate AI"
 
 npm run setup          # 1) Install root + client + server dependencies
 cp .env.example .env   # 2) Create your env file (fill in secrets)
-npm run seed           # 3) Seed admin user + default settings + completed sample interviews
+npm run seed           # 3) Seed admin user + default settings + completed sample interviews & certificates
 npm run dev            # 4) Run client + server together
 ```
 
@@ -142,6 +145,7 @@ MockMate AI/
 │   │   │   └── interview.controller.js
 │   │   ├── models/
 │   │   │   ├── Bookmark.model.js
+│   │   │   ├── Certificate.model.js
 │   │   │   ├── Interview.model.js
 │   │   │   ├── Question.model.js
 │   │   │   ├── Setting.model.js
@@ -160,6 +164,7 @@ MockMate AI/
     │   ├── main.jsx
     │   ├── index.css
     │   ├── components/
+    │   │   ├── CandidateAvatar.jsx
     │   │   ├── Navbar.jsx
     │   │   ├── ProtectedRoute.jsx
     │   │   ├── ScoreChart.jsx

@@ -104,7 +104,8 @@ async function register(req, res) {
 }
 
 async function login(req, res) {
-  const { email, password } = req.body
+  const email = (req.body.email || '').toLowerCase().trim()
+  const password = req.body.password || ''
   const user = await User.findOne({ email })
   if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
     return res.status(401).json({ error: 'Invalid email or password' })

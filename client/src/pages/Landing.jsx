@@ -20,59 +20,33 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
+import { useEffect } from 'react'
+
 export default function Landing() {
   const { user } = useAuth()
   const [activeFeature, setActiveFeature] = useState(1)
 
+  useEffect(() => {
+    if (window.location.hash) {
+      const id = window.location.hash.replace('#', '')
+      const el = document.getElementById(id)
+      if (el) {
+        setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 50)
+      }
+    }
+  }, [])
+
   return (
     <div style={{ background: 'var(--bg)', color: 'var(--text)', minHeight: '100vh', overflowX: 'hidden' }}>
-      {/* Floating Centered Pill Navigation */}
-      <div style={{ position: 'sticky', top: '1.25rem', zIndex: 100, display: 'flex', justifyContent: 'center', padding: '0 1rem', marginBottom: '2rem' }}>
-        <nav
-          style={{
-            background: 'var(--surface-elevated)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            border: '1px solid var(--border)',
-            borderRadius: '999px',
-            padding: '0.5rem 1.6rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '2rem',
-            boxShadow: 'var(--shadow-md)',
-          }}
-        >
-          <a href="#overview" style={{ color: 'var(--text)', fontWeight: 600, fontSize: '0.9rem', textDecoration: 'none' }}>
-            Overview
-          </a>
-          <a href="#benefits" style={{ color: 'var(--text)', fontWeight: 600, fontSize: '0.9rem', textDecoration: 'none' }}>
-            Benefits
-          </a>
-          <a href="#specifications" style={{ color: 'var(--text)', fontWeight: 600, fontSize: '0.9rem', textDecoration: 'none' }}>
-            Specifications
-          </a>
-          <a href="#how-it-works" style={{ color: 'var(--text)', fontWeight: 600, fontSize: '0.9rem', textDecoration: 'none' }}>
-            How-to
-          </a>
-          <Link
-            to={user ? '/dashboard' : '/register'}
-            className="btn btn-primary btn-sm"
-            style={{ borderRadius: '999px', padding: '0.45rem 1.1rem', fontSize: '0.85rem' }}
-          >
-            {user ? 'Workbench' : 'Get Started'} <ArrowRight size={14} />
-          </Link>
-        </nav>
-      </div>
-
-      {/* Top Panoramic Hero Visual Canvas */}
-      <section className="container" id="overview" style={{ paddingTop: '1rem', paddingBottom: '3rem' }}>
+      {/* Nature Landscape Panoramic Hero Visual Canvas */}
+      <section className="container" id="overview" style={{ paddingTop: '2.5rem', paddingBottom: '3.5rem' }}>
         <div
           style={{
             position: 'relative',
             borderRadius: '28px',
             overflow: 'hidden',
-            height: '380px',
-            background: 'linear-gradient(135deg, rgba(30, 27, 75, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%), url("https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1600&q=80")',
+            minHeight: '420px',
+            background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 27, 75, 0.92) 100%), url("https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1600&q=80")',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             display: 'flex',
@@ -80,7 +54,7 @@ export default function Landing() {
             justify: 'center',
             alignItems: 'center',
             textAlign: 'center',
-            padding: '2rem',
+            padding: '3.5rem 2rem',
             border: '1px solid var(--border)',
             boxShadow: 'var(--shadow-lg)',
           }}
@@ -88,41 +62,44 @@ export default function Landing() {
           <div
             className="badge-glow"
             style={{
-              marginBottom: '1rem',
-              padding: '0.4rem 1.1rem',
-              fontSize: '0.82rem',
+              marginBottom: '1.2rem',
+              padding: '0.45rem 1.25rem',
+              fontSize: '0.85rem',
               background: 'rgba(255, 255, 255, 0.12)',
               color: '#ffffff',
               borderColor: 'rgba(255, 255, 255, 0.25)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
             }}
           >
-            <Sparkles size={14} /> AI-Powered Mock Interview Platform
+            <Sparkles size={15} /> AI-Powered Technical Interview Platform
           </div>
 
           <h1
             style={{
-              fontSize: 'clamp(2.2rem, 5vw, 3.8rem)',
+              fontSize: 'clamp(2.4rem, 5.5vw, 4.2rem)',
               color: '#ffffff',
               fontWeight: 800,
-              letterSpacing: '-0.02em',
-              marginBottom: '1rem',
-              maxWidth: '22ch',
-              lineHeight: 1.15,
+              letterSpacing: '-0.03em',
+              marginBottom: '1.25rem',
+              maxWidth: '24ch',
+              lineHeight: 1.12,
             }}
           >
             Master Technical Interviews with Precision
           </h1>
 
-          <p style={{ color: 'rgba(255, 255, 255, 0.82)', fontSize: '1.1rem', maxWidth: '54ch', margin: '0 auto 1.8rem', lineHeight: 1.6 }}>
-            Real-time Gemini AI candidate evaluation, line-by-line code feedback, and verifiable ISO certificates.
+          <p style={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: '1.15rem', maxWidth: '58ch', margin: '0 auto 2.2rem', lineHeight: 1.6 }}>
+            Practice role-specific mock interviews with real-time Gemini AI evaluation, line-by-line code feedback, and verifiable ISO credentials.
           </p>
 
-          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-            <Link to={user ? '/dashboard' : '/register'} className="btn btn-primary btn-lg" style={{ borderRadius: '999px', padding: '0.75rem 2rem' }}>
-              <Zap size={18} /> Start Free Session <ArrowRight size={18} />
+          <div style={{ display: 'flex', gap: '1.2rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <Link to={user ? '/dashboard' : '/register'} className="btn btn-primary btn-lg" style={{ borderRadius: '999px', padding: '0.85rem 2.4rem', fontSize: '1rem' }}>
+              <Zap size={19} /> Start Free Session <ArrowRight size={19} />
             </Link>
-            <Link to="/leaderboard" className="btn btn-secondary btn-lg" style={{ borderRadius: '999px', padding: '0.75rem 2rem', background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }}>
-              <Trophy size={18} /> Community Leaderboard
+            <Link to="/leaderboard" className="btn btn-secondary btn-lg" style={{ borderRadius: '999px', padding: '0.85rem 2.4rem', fontSize: '1rem', background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }}>
+              <Trophy size={19} /> Community Standings
             </Link>
           </div>
         </div>
@@ -132,7 +109,7 @@ export default function Landing() {
       <section className="container" id="benefits" style={{ padding: '3.5rem 0' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '2.5rem' }}>
           <div>
-            <div style={{ marginBottom: '1.2rem', color: 'var(--text)' }}>
+            <div style={{ marginBottom: '1.2rem', color: 'var(--accent-primary)' }}>
               <Activity size={26} />
             </div>
             <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.6rem' }}>Amplify Insights</h3>
@@ -142,7 +119,7 @@ export default function Landing() {
           </div>
 
           <div>
-            <div style={{ marginBottom: '1.2rem', color: 'var(--text)' }}>
+            <div style={{ marginBottom: '1.2rem', color: 'var(--accent-primary)' }}>
               <Globe size={26} />
             </div>
             <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.6rem' }}>Control Your Global Standings</h3>
@@ -152,7 +129,7 @@ export default function Landing() {
           </div>
 
           <div>
-            <div style={{ marginBottom: '1.2rem', color: 'var(--text)' }}>
+            <div style={{ marginBottom: '1.2rem', color: 'var(--accent-primary)' }}>
               <Sliders size={26} />
             </div>
             <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.6rem' }}>Remove Skill Barriers</h3>
@@ -162,7 +139,7 @@ export default function Landing() {
           </div>
 
           <div>
-            <div style={{ marginBottom: '1.2rem', color: 'var(--text)' }}>
+            <div style={{ marginBottom: '1.2rem', color: 'var(--accent-primary)' }}>
               <TrendingUp size={26} />
             </div>
             <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.6rem' }}>Visualize Technical Growth</h3>
@@ -178,7 +155,7 @@ export default function Landing() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '3.5rem', alignItems: 'center' }}>
           {/* Left Column Text & Numbered List */}
           <div>
-            <h2 style={{ fontSize: 'clamp(2.4rem, 4vw, 3.2rem)', fontWeight: 800, lineHeight: 1.15, marginBottom: '1.25rem', letterSpacing: '-0.02em' }}>
+            <h2 style={{ fontSize: 'clamp(2.4rem, 4vw, 3.4rem)', fontWeight: 800, lineHeight: 1.15, marginBottom: '1.25rem', letterSpacing: '-0.02em' }}>
               See the Big Picture
             </h2>
             <p className="muted" style={{ fontSize: '1.08rem', lineHeight: '1.65', marginBottom: '2.5rem', maxWidth: '44ch' }}>
@@ -196,11 +173,11 @@ export default function Landing() {
                   cursor: 'pointer',
                   paddingBottom: '1.2rem',
                   borderBottom: '1px solid var(--border-soft)',
-                  opacity: activeFeature === 1 ? 1 : 0.65,
+                  opacity: activeFeature === 1 ? 1 : 0.6,
                   transition: 'opacity 0.2s',
                 }}
               >
-                <span className="mono" style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-subtle)' }}>01</span>
+                <span className="mono" style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--accent-primary)' }}>01</span>
                 <div>
                   <h4 style={{ fontSize: '1.1rem', fontWeight: 700, margin: '0 0 0.35rem' }}>
                     Spot Trends in Seconds
@@ -221,11 +198,11 @@ export default function Landing() {
                   cursor: 'pointer',
                   paddingBottom: '1.2rem',
                   borderBottom: '1px solid var(--border-soft)',
-                  opacity: activeFeature === 2 ? 1 : 0.65,
+                  opacity: activeFeature === 2 ? 1 : 0.6,
                   transition: 'opacity 0.2s',
                 }}
               >
-                <span className="mono" style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-subtle)' }}>02</span>
+                <span className="mono" style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--accent-primary)' }}>02</span>
                 <div>
                   <h4 style={{ fontSize: '1.1rem', fontWeight: 700, margin: '0 0 0.35rem' }}>
                     Get Everyone on the Same Page
@@ -245,11 +222,11 @@ export default function Landing() {
                   alignItems: 'flex-start',
                   cursor: 'pointer',
                   paddingBottom: '1.2rem',
-                  opacity: activeFeature === 3 ? 1 : 0.65,
+                  opacity: activeFeature === 3 ? 1 : 0.6,
                   transition: 'opacity 0.2s',
                 }}
               >
-                <span className="mono" style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-subtle)' }}>03</span>
+                <span className="mono" style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--accent-primary)' }}>03</span>
                 <div>
                   <h4 style={{ fontSize: '1.1rem', fontWeight: 700, margin: '0 0 0.35rem' }}>
                     Resume Intelligence Matching
@@ -262,60 +239,73 @@ export default function Landing() {
             </div>
           </div>
 
-          {/* Right Column Showcase Container */}
+          {/* Right Column Graphic Card */}
           <div>
             <div
               style={{
                 borderRadius: '28px',
-                background: 'var(--surface-elevated)',
+                backgroundImage: 'url("https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80")',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
                 border: '1px solid var(--border)',
                 boxShadow: 'var(--shadow-lg)',
                 overflow: 'hidden',
-                padding: '2.5rem 2rem',
-                minHeight: '440px',
+                padding: '2.5rem 1.8rem',
+                minHeight: '480px',
                 display: 'flex',
                 flexDirection: 'column',
-                justify: 'center',
-                alignItems: 'center',
-                textAlign: 'center',
+                justify: 'flex-end',
                 position: 'relative',
               }}
             >
-              {activeFeature === 1 && (
-                <div>
-                  <div className="score-chip" style={{ fontSize: '1.2rem', padding: '0.5rem 1.4rem', margin: '0 auto 1.2rem' }}>
-                    94.5% Overall Average Score
+              <div
+                style={{
+                  background: 'rgba(15, 23, 42, 0.88)',
+                  backdropFilter: 'blur(16px)',
+                  WebkitBackdropFilter: 'blur(16px)',
+                  borderRadius: '16px',
+                  padding: '1.4rem',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  color: '#ffffff',
+                  textAlign: 'left',
+                }}
+              >
+                {activeFeature === 1 && (
+                  <div>
+                    <span className="tag" style={{ background: 'var(--accent-primary)', color: '#fff', marginBottom: '0.6rem' }}>
+                      Line-by-Line AI Scoring
+                    </span>
+                    <h3 style={{ fontSize: '1.2rem', marginBottom: '0.4rem', color: '#ffffff' }}>Spot Trends in Seconds</h3>
+                    <p style={{ margin: 0, fontSize: '0.9rem', color: 'rgba(255,255,255,0.82)', lineHeight: '1.55' }}>
+                      Evaluates code syntax, computational complexity (Big-O), and architectural trade-offs automatically.
+                    </p>
                   </div>
-                  <h3 style={{ fontSize: '1.3rem', marginBottom: '0.8rem' }}>Line-by-Line AI Scoring</h3>
-                  <p className="muted" style={{ maxWidth: '36ch', margin: '0 auto', fontSize: '0.95rem', lineHeight: '1.6' }}>
-                    Evaluates code syntax, computational complexity (Big-O), and architectural trade-offs automatically.
-                  </p>
-                </div>
-              )}
+                )}
 
-              {activeFeature === 2 && (
-                <div>
-                  <div className="tag" style={{ background: 'var(--good)', color: '#fff', padding: '0.4rem 1.1rem', margin: '0 auto 1.2rem', fontSize: '0.9rem' }}>
-                    <ShieldCheck size={16} /> ISO 18004 Verified Credential
+                {activeFeature === 2 && (
+                  <div>
+                    <span className="tag" style={{ background: 'var(--good)', color: '#fff', marginBottom: '0.6rem' }}>
+                      ISO 18004 Verified Credential
+                    </span>
+                    <h3 style={{ fontSize: '1.2rem', marginBottom: '0.4rem', color: '#ffffff' }}>Shareable Verification Portal</h3>
+                    <p style={{ margin: 0, fontSize: '0.9rem', color: 'rgba(255,255,255,0.82)', lineHeight: '1.55' }}>
+                      Generate dynamic, scannable QR certificates with unique verification IDs to showcase on LinkedIn.
+                    </p>
                   </div>
-                  <h3 style={{ fontSize: '1.3rem', marginBottom: '0.8rem' }}>Shareable Verification Portal</h3>
-                  <p className="muted" style={{ maxWidth: '36ch', margin: '0 auto', fontSize: '0.95rem', lineHeight: '1.6' }}>
-                    Generate dynamic, scannable QR certificates with unique verification IDs to showcase on LinkedIn.
-                  </p>
-                </div>
-              )}
+                )}
 
-              {activeFeature === 3 && (
-                <div>
-                  <div className="badge-glow" style={{ margin: '0 auto 1.2rem', padding: '0.4rem 1.1rem' }}>
-                    <FileText size={16} /> Resume PDF Extraction
+                {activeFeature === 3 && (
+                  <div>
+                    <span className="tag" style={{ background: 'var(--warn)', color: '#000', marginBottom: '0.6rem' }}>
+                      PDF Resume Extraction
+                    </span>
+                    <h3 style={{ fontSize: '1.2rem', marginBottom: '0.4rem', color: '#ffffff' }}>Personalized Interview Generator</h3>
+                    <p style={{ margin: 0, fontSize: '0.9rem', color: 'rgba(255,255,255,0.82)', lineHeight: '1.55' }}>
+                      Extracts tech stacks from your resume PDF to craft custom system design and code questions.
+                    </p>
                   </div>
-                  <h3 style={{ fontSize: '1.3rem', marginBottom: '0.8rem' }}>Personalized Interview Generator</h3>
-                  <p className="muted" style={{ maxWidth: '36ch', margin: '0 auto', fontSize: '0.95rem', lineHeight: '1.6' }}>
-                    Extracts tech stacks from your resume PDF to craft custom system design and code questions.
-                  </p>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -339,7 +329,7 @@ export default function Landing() {
       </section>
 
       {/* 3-Step How-To Section */}
-      <section className="container" id="how-it-works" style={{ padding: '5rem 0' }}>
+      <section className="container" id="how-it-works" style={{ padding: '4rem 0 5rem' }}>
         <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
           <span className="tag" style={{ marginBottom: '0.5rem' }}>Simple Workflow</span>
           <h2 style={{ fontSize: '2.4rem', fontWeight: 800 }}>How MockMate Works</h2>

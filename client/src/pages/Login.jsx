@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, Navigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
@@ -7,12 +7,16 @@ import { apiError } from '../lib/api'
 import { Eye, EyeOff, Mail, Lock, Zap, ArrowRight, CheckCircle2 } from 'lucide-react'
 
 export default function Login() {
-  const { login } = useAuth()
+  const { user, login } = useAuth()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPw, setShowPw] = useState(false)
   const [busy, setBusy] = useState(false)
+
+  if (user) {
+    return <Navigate to="/dashboard" replace />
+  }
 
   async function onSubmit(e) {
     e.preventDefault()
@@ -170,6 +174,15 @@ export default function Login() {
 
             <button type="submit" className="btn btn-primary btn-block" disabled={busy} style={{ marginTop: '0.3rem', padding: '0.65rem 1rem' }}>
               {busy ? 'Signing in…' : <>Sign in to Account <ArrowRight size={16} /></>}
+            </button>
+
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={fillDemoAdmin}
+              style={{ width: '100%', fontSize: '0.78rem', color: 'var(--accent-primary)', borderColor: 'var(--border)' }}
+            >
+              ⚡ Quick Fill Admin Credentials
             </button>
 
             <div style={{ borderTop: '1px solid var(--border-soft)', marginTop: '0.3rem', paddingTop: '0.75rem', textAlign: 'center' }}>

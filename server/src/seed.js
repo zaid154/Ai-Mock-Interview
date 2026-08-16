@@ -1,10 +1,11 @@
-require('./config/env')
+require('./config/env') // load the shared root .env first
 const mongoose = require('mongoose')
 const bcrypt = require('bcryptjs')
-const Question = require('./models/Question.model')
 const User = require('./models/User.model')
-const Setting = require('./models/Setting.model')
+const Question = require('./models/Question.model')
 const Interview = require('./models/Interview.model')
+const Setting = require('./models/Setting.model')
+const Certificate = require('./models/Certificate.model')
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mockmate'
 
@@ -56,7 +57,7 @@ const SAMPLE_CANDIDATES = [
     name: 'Mohd Zaid',
     email: 'zaidm1323@gmail.com',
     role: 'admin',
-    avatar: '👨‍💻',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
     bio: 'Lead Fullstack & AI Systems Architect',
     password: 'ChangeMe123!',
     interviews: [
@@ -71,7 +72,7 @@ const SAMPLE_CANDIDATES = [
     name: 'Aarav Sharma',
     email: 'aarav.sharma@gmail.com',
     role: 'user',
-    avatar: '🚀',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
     bio: 'Senior Distributed Systems & Backend Engineer',
     password: 'Password123!',
     interviews: [
@@ -85,7 +86,7 @@ const SAMPLE_CANDIDATES = [
     name: 'Priya Patel',
     email: 'priya.patel@gmail.com',
     role: 'user',
-    avatar: '⚡',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=80',
     bio: 'Frontend UI/UX Specialist & React Guru',
     password: 'Password123!',
     interviews: [
@@ -99,7 +100,7 @@ const SAMPLE_CANDIDATES = [
     name: 'Rohan Verma',
     email: 'rohan.verma@gmail.com',
     role: 'user',
-    avatar: '🛡️',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
     bio: 'MERN Stack Developer & Cloud Enthusiast',
     password: 'Password123!',
     interviews: [
@@ -112,7 +113,7 @@ const SAMPLE_CANDIDATES = [
     name: 'Ananya Gupta',
     email: 'ananya.gupta@gmail.com',
     role: 'user',
-    avatar: '☁️',
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=300&q=80',
     bio: 'DevOps & Kubernetes Cloud Specialist',
     password: 'Password123!',
     interviews: [
@@ -158,9 +159,10 @@ async function seed({ reset = true } = {}) {
   )
   if (secAdminDoc) {
     await Interview.deleteMany({ user: secAdminDoc._id })
+    await Certificate.deleteMany({ user: secAdminDoc._id })
   }
 
-  // 3) Seed Candidates and Completed Interview Sessions
+  // 3) Seed Candidates, Completed Interview Sessions, and Persistent Certificates
   for (let i = 0; i < SAMPLE_CANDIDATES.length; i++) {
     const cand = SAMPLE_CANDIDATES[i]
     const hash = await bcrypt.hash(cand.password, 10)
@@ -182,8 +184,9 @@ async function seed({ reset = true } = {}) {
       { upsert: true, new: true, setDefaultsOnInsert: true },
     )
 
-    // Clear old interviews for this sample user and re-seed clean completed sessions
+    // Clear old records for this candidate
     await Interview.deleteMany({ user: userDoc._id })
+    await Certificate.deleteMany({ user: userDoc._id })
 
     const interviewDocs = cand.interviews.map((item, idx) => ({
       user: userDoc._id,
@@ -210,8 +213,35 @@ async function seed({ reset = true } = {}) {
       createdAt: new Date(Date.now() - 86400000 * (i * 2 + idx + 1)),
     }))
 
-    await Interview.insertMany(interviewDocs)
-    console.log(`Candidate #${i + 1} ready: ${cand.name} (${cand.email}) - ${cand.interviews.length} sessions`)
+    const createdInterviews = await Interview.insertMany(interviewDocs)
+
+    // Seed Certificates for qualifying sessions (score >= 70)
+    const certDocs = []
+    for (const intDoc of createdInterviews) {
+      if (intDoc.overallScore >= 70) {
+        const certId = `MM-CERT-${intDoc._id.toString().slice(-8).toUpperCase()}`
+        const verifyUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/verify-certificate/${certId}`
+        const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(verifyUrl)}&size=200x200`
+        certDocs.push({
+          certId,
+          user: userDoc._id,
+          interview: intDoc._id,
+          candidateName: userDoc.name,
+          candidateEmail: userDoc.email,
+          role: intDoc.role,
+          difficulty: intDoc.difficulty,
+          score: intDoc.overallScore,
+          issueDate: intDoc.createdAt,
+          verifyUrl,
+          qrCodeUrl,
+        })
+      }
+    }
+    if (certDocs.length) {
+      await Certificate.insertMany(certDocs)
+    }
+
+    console.log(`Candidate #${i + 1} ready: ${cand.name} (${cand.email}) - ${cand.interviews.length} sessions, ${certDocs.length} certificates`)
   }
 
   // 4) Default settings
