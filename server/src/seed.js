@@ -126,10 +126,10 @@ async function seed({ reset = true } = {}) {
 
   // 2) Secondary Admin (admin@shop.com)
   const secondaryHash = await bcrypt.hash('Admin@123', 10)
-  await User.findOneAndUpdate(
+  const secAdminDoc = await User.findOneAndUpdate(
     { email: 'admin@shop.com' },
     {
-      name: 'Mohd Zaid',
+      name: 'Admin Support',
       email: 'admin@shop.com',
       passwordHash: secondaryHash,
       role: 'admin',
@@ -140,6 +140,9 @@ async function seed({ reset = true } = {}) {
     },
     { upsert: true, new: true, setDefaultsOnInsert: true },
   )
+  if (secAdminDoc) {
+    await Interview.deleteMany({ user: secAdminDoc._id })
+  }
 
   // 3) Seed Candidates and Completed Interview Sessions
   for (let i = 0; i < SAMPLE_CANDIDATES.length; i++) {

@@ -28,7 +28,8 @@ export default function Profile() {
 
   const [activeTab, setActiveTab] = useState('overview')
 
-  const [name, setName] = useState(user?.name || '')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [bio, setBio] = useState(user?.bio || '')
   const [avatar, setAvatar] = useState(user?.avatar || PRESET_AVATARS[0])
   const [savingProfile, setSavingProfile] = useState(false)
@@ -48,7 +49,9 @@ export default function Profile() {
 
   useEffect(() => {
     if (user) {
-      setName(user.name || '')
+      const parts = (user.name || '').trim().split(/\s+/)
+      setFirstName(parts[0] || '')
+      setLastName(parts.slice(1).join(' ') || '')
       setBio(user.bio || '')
       setAvatar(user.avatar || PRESET_AVATARS[0])
     }
@@ -90,10 +93,11 @@ export default function Profile() {
 
   async function handleSaveProfile(e) {
     e.preventDefault()
-    if (!name.trim()) return toast.error('Name is required')
+    const fullName = `${firstName.trim()} ${lastName.trim()}`.trim()
+    if (!fullName) return toast.error('First name is required')
     setSavingProfile(true)
     try {
-      await api.patch('/auth/profile', { name, bio, avatar })
+      await api.patch('/auth/profile', { name: fullName, bio, avatar })
       toast.success('Profile updated successfully!')
       if (refreshUser) await refreshUser()
     } catch (err) {
@@ -162,7 +166,7 @@ export default function Profile() {
             display: 'flex',
             flexWrap: 'wrap',
             alignItems: 'flex-end',
-            justifyContent: 'space-between',
+            justify: 'space-between',
             gap: '1.5rem',
             marginTop: '-45px',
           }}
@@ -271,7 +275,7 @@ export default function Profile() {
       )}
 
       {activeTab === 'edit' && (
-        <div className="panel" style={{ maxWidth: '600px' }}>
+        <div className="panel" style={{ maxWidth: '640px' }}>
           <h3 style={{ fontSize: '1.25rem', marginBottom: '1.5rem' }}>Edit Candidate Profile</h3>
           <form onSubmit={handleSaveProfile} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             <div className="field">
@@ -298,9 +302,28 @@ export default function Profile() {
               </div>
             </div>
 
-            <div className="field">
-              <span className="field-label">Full Name</span>
-              <input type="text" value={name} onChange={(e) => setName(e.target.value)} required />
+            {/* First & Last Name Inputs */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+              <div className="field">
+                <span className="field-label">First Name</span>
+                <input
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="Mohd"
+                  required
+                />
+              </div>
+
+              <div className="field">
+                <span className="field-label">Last Name</span>
+                <input
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Zaid"
+                />
+              </div>
             </div>
 
             <div className="field">
