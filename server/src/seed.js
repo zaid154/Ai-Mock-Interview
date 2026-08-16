@@ -12,22 +12,37 @@ const questions = [
   // Frontend
   { role: 'Frontend Developer', difficulty: 'easy', prompt: 'Explain the difference between let, const, and var in JavaScript.' },
   { role: 'Frontend Developer', difficulty: 'easy', prompt: 'What is the box model in CSS?' },
+  { role: 'Frontend Developer', difficulty: 'easy', prompt: 'How does event delegation work in DOM scripting, and what are its benefits?' },
   { role: 'Frontend Developer', difficulty: 'medium', prompt: "How does React's virtual DOM work, and why is it useful?" },
   { role: 'Frontend Developer', difficulty: 'medium', prompt: 'When would you reach for useMemo or useCallback, and what are the risks of overusing them?' },
+  { role: 'Frontend Developer', difficulty: 'medium', prompt: 'Explain the difference between Server-Side Rendering (SSR), Static Site Generation (SSG), and Client-Side Rendering (CSR).' },
   { role: 'Frontend Developer', difficulty: 'hard', prompt: 'A page is janky while scrolling a long list. How do you diagnose and fix it?' },
+  { role: 'Frontend Developer', difficulty: 'hard', prompt: 'How would you architect a micro-frontend architecture for a large enterprise web portal?' },
 
   // Backend
   { role: 'Backend Developer', difficulty: 'easy', prompt: 'What is the difference between PUT and PATCH in a REST API?' },
+  { role: 'Backend Developer', difficulty: 'easy', prompt: 'What are database indexes, and how do B-tree indexes speed up SELECT queries?' },
   { role: 'Backend Developer', difficulty: 'medium', prompt: 'What are the trade-offs between SQL and NoSQL databases?' },
   { role: 'Backend Developer', difficulty: 'medium', prompt: 'How would you design an idempotent payment endpoint?' },
+  { role: 'Backend Developer', difficulty: 'medium', prompt: 'Explain how the Node.js event loop handles non-blocking I/O operations.' },
   { role: 'Backend Developer', difficulty: 'hard', prompt: 'Design a rate limiter for a public REST API. Walk through your approach.' },
   { role: 'Backend Developer', difficulty: 'hard', prompt: 'A query that used to take 20ms now takes 3s under load. How do you investigate?' },
+  { role: 'Backend Developer', difficulty: 'hard', prompt: 'How do you handle distributed transactions across multiple microservices without 2PC deadlocks?' },
 
   // Full Stack
   { role: 'Full Stack Developer', difficulty: 'easy', prompt: 'Walk me through what happens when a user types a URL and hits enter.' },
+  { role: 'Full Stack Developer', difficulty: 'easy', prompt: 'What are CORS headers, and how do you configure them securely on client and server?' },
   { role: 'Full Stack Developer', difficulty: 'medium', prompt: 'How would you secure a JWT-based authentication flow end to end?' },
   { role: 'Full Stack Developer', difficulty: 'medium', prompt: 'How do you keep the client and server in sync on shared validation rules?' },
+  { role: 'Full Stack Developer', difficulty: 'medium', prompt: 'Compare WebSockets vs Server-Sent Events (SSE) vs Polling for real-time notifications.' },
   { role: 'Full Stack Developer', difficulty: 'hard', prompt: 'Design a URL shortener. Cover the API, storage, and how you generate short codes.' },
+  { role: 'Full Stack Developer', difficulty: 'hard', prompt: 'How would you build a real-time collaborative document editor like Google Docs?' },
+
+  // System Design & DevOps
+  { role: 'System Design', difficulty: 'medium', prompt: 'How do content delivery networks (CDNs) cache dynamic asset payloads near edge users?' },
+  { role: 'System Design', difficulty: 'hard', prompt: 'Design a high-throughput notification service that handles millions of push notifications per second.' },
+  { role: 'DevOps & Cloud', difficulty: 'medium', prompt: 'What is the difference between Docker containers and virtual machines?' },
+  { role: 'DevOps & Cloud', difficulty: 'hard', prompt: 'Walk through setting up a zero-downtime blue/green deployment strategy on Kubernetes.' },
 
   // Behavioral
   { role: 'Behavioral', difficulty: 'easy', prompt: 'Tell me about a time you resolved a conflict with a teammate.' },

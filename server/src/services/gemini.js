@@ -197,18 +197,42 @@ async function evaluateInterview(role, items) {
   }
 }
 
+function shuffleArray(array) {
+  const arr = [...array]
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[arr[i], arr[j]] = [arr[j], arr[i]]
+  }
+  return arr
+}
+
 // ── Offline fallbacks (no working key) ───────────────────────────────────────
 async function fallbackQuestions(role, difficulty, count) {
   const byRole = await Question.find({ role, difficulty }).lean()
   const byDifficulty = byRole.length < count ? await Question.find({ difficulty }).lean() : []
-  const any = byRole.length + byDifficulty.length < count ? await Question.find().lean() : []
+  const any = await Question.find().lean()
 
-  const prompts = [...byRole, ...byDifficulty, ...any].map((q) => q.prompt)
-  const unique = [...new Set(prompts)].slice(0, count)
-  while (unique.length < count) {
-    unique.push(`Walk me through a challenging problem you solved as a ${role}.`)
+  const pool = [...shuffleArray(byRole), ...shuffleArray(byDifficulty), ...shuffleArray(any)]
+  const prompts = pool.map((q) => q.prompt)
+  const unique = [...new Set(prompts)]
+  
+  // Shuffle final selection so questions are never predictable
+  const shuffledSelection = shuffleArray(unique).slice(0, count)
+  
+  const DEFAULT_PROMPTS = [
+    `Walk me through a challenging architecture problem you solved as a ${role}.`,
+    `How do you handle production outages and perform root cause analysis as a ${role}?`,
+    `Explain your step-by-step approach to code reviews and maintaining quality standards.`,
+    `How do you evaluate performance bottlenecks and memory leaks in your applications?`,
+    `Describe how you design secure, scalable REST/GraphQL APIs for high concurrency.`,
+  ]
+
+  let defaultIdx = 0
+  while (shuffledSelection.length < count) {
+    shuffledSelection.push(DEFAULT_PROMPTS[defaultIdx % DEFAULT_PROMPTS.length])
+    defaultIdx++
   }
-  return unique
+  return shuffledSelection
 }
 
 function fallbackEvaluation(items) {
