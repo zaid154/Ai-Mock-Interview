@@ -1,8 +1,27 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Zap, Github, Globe, Linkedin, Sparkles, ArrowUpRight, Mail } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 
 export default function Footer() {
   const year = new Date().getFullYear()
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  function scrollToSection(id) {
+    if (location.pathname !== '/') {
+      navigate('/')
+      setTimeout(() => {
+        const el = document.getElementById(id)
+        if (el) el.scrollIntoView({ behavior: 'smooth' })
+      }, 100)
+    } else {
+      const el = document.getElementById(id)
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' })
+      }
+    }
+  }
 
   return (
     <footer className="footer">
@@ -85,19 +104,31 @@ export default function Footer() {
           {/* Navigation Columns */}
           <div className="footer-links-col">
             <h4>Platform</h4>
-            <Link to="/dashboard">Dashboard</Link>
-            <Link to="/bookmarks">Saved Bookmarks</Link>
-            <Link to="/leaderboard">Leaderboard</Link>
-            <Link to="/certificates">Certificates</Link>
-            <Link to="/profile">Profile Settings</Link>
+            {user ? (
+              <>
+                <Link to="/dashboard">Dashboard</Link>
+                <Link to="/bookmarks">Saved Bookmarks</Link>
+                <Link to="/leaderboard">Leaderboard</Link>
+                <Link to="/certificates">Certificates</Link>
+                <Link to="/profile">Profile Settings</Link>
+              </>
+            ) : (
+              <>
+                <button type="button" onClick={() => scrollToSection('overview')} style={{ background: 'none', border: 'none', color: 'inherit', padding: 0, font: 'inherit', cursor: 'pointer', textAlign: 'left' }}>Overview</button>
+                <button type="button" onClick={() => scrollToSection('benefits')} style={{ background: 'none', border: 'none', color: 'inherit', padding: 0, font: 'inherit', cursor: 'pointer', textAlign: 'left' }}>Benefits</button>
+                <button type="button" onClick={() => scrollToSection('specifications')} style={{ background: 'none', border: 'none', color: 'inherit', padding: 0, font: 'inherit', cursor: 'pointer', textAlign: 'left' }}>Specifications</button>
+                <button type="button" onClick={() => scrollToSection('how-it-works')} style={{ background: 'none', border: 'none', color: 'inherit', padding: 0, font: 'inherit', cursor: 'pointer', textAlign: 'left' }}>How-to</button>
+                <Link to="/leaderboard">Leaderboard</Link>
+              </>
+            )}
           </div>
 
           <div className="footer-links-col">
             <h4>Prep Tracks</h4>
-            <Link to="/dashboard">Frontend Engineering</Link>
-            <Link to="/dashboard">Backend Architecture</Link>
-            <Link to="/dashboard">Fullstack &amp; MERN</Link>
-            <Link to="/dashboard">System Design &amp; SQL</Link>
+            <Link to={user ? '/dashboard' : '/register'}>Frontend Engineering</Link>
+            <Link to={user ? '/dashboard' : '/register'}>Backend Architecture</Link>
+            <Link to={user ? '/dashboard' : '/register'}>Fullstack &amp; MERN</Link>
+            <Link to={user ? '/dashboard' : '/register'}>System Design &amp; SQL</Link>
           </div>
 
           <div className="footer-links-col">
