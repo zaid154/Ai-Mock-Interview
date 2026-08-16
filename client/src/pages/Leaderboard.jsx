@@ -3,56 +3,86 @@ import { Trophy, Award, Crown, CheckCircle2, User, Medal, Star } from 'lucide-re
 import api, { apiError } from '../lib/api'
 import toast from 'react-hot-toast'
 
+function CandidateAvatar({ avatar, name, size = 42 }) {
+  const isImg = Boolean(avatar && (avatar.startsWith('http') || avatar.startsWith('data:image')))
+
+  return (
+    <div
+      style={{
+        width: `${size}px`,
+        height: `${size}px`,
+        borderRadius: '50%',
+        background: 'var(--accent-grad)',
+        border: '1.5px solid var(--border)',
+        display: 'grid',
+        placeItems: 'center',
+        fontWeight: '700',
+        fontSize: `${size * 0.42}px`,
+        color: '#ffffff',
+        overflow: 'hidden',
+        flexShrink: 0,
+        boxShadow: 'var(--shadow-sm)',
+      }}
+    >
+      {isImg ? (
+        <img src={avatar} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      ) : (
+        avatar || name?.charAt(0).toUpperCase() || 'C'
+      )}
+    </div>
+  )
+}
+
 const SAMPLE_LEADERBOARD = [
   {
     userId: 'mock-1',
     rank: 1,
-    name: 'Sarah Chen',
-    avatar: 'SC',
+    name: 'Mohd Zaid',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
     bio: 'Staff Frontend Architect',
     totalCompleted: 18,
-    avgScore: 94.5,
+    avgScore: 95.0,
     highestScore: 98.0,
   },
   {
     userId: 'mock-2',
     rank: 2,
-    name: 'Alex Rivera',
-    avatar: 'AR',
+    name: 'Aarav Sharma',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=250&q=80',
     bio: 'Senior Backend Engineer',
     totalCompleted: 14,
     avgScore: 91.2,
-    highestScore: 96.0,
+    highestScore: 94.0,
   },
   {
     userId: 'mock-3',
     rank: 3,
-    name: 'Devon Vance',
-    avatar: 'DV',
-    bio: 'DevOps Lead & Cloud Specialist',
+    name: 'Priya Patel',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=250&q=80',
+    bio: 'Frontend UI/UX Specialist',
     totalCompleted: 12,
     avgScore: 89.0,
-    highestScore: 93.5,
+    highestScore: 92.0,
   },
   {
     userId: 'mock-4',
     rank: 4,
-    name: 'Priya Sharma',
-    avatar: 'PS',
+    name: 'Rohan Verma',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=250&q=80',
     bio: 'Fullstack Developer',
     totalCompleted: 9,
-    avgScore: 86.8,
-    highestScore: 92.0,
+    avgScore: 82.0,
+    highestScore: 84.0,
   },
   {
     userId: 'mock-5',
     rank: 5,
-    name: 'Marcus Brody',
-    avatar: 'MB',
-    bio: 'System Design Architect',
+    name: 'Ananya Gupta',
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=250&q=80',
+    bio: 'DevOps & Kubernetes Lead',
     totalCompleted: 7,
-    avgScore: 84.5,
-    highestScore: 90.0,
+    avgScore: 78.0,
+    highestScore: 82.0,
   },
 ]
 
@@ -84,9 +114,9 @@ export default function Leaderboard() {
 
   return (
     <main className="container">
-      {/* Clean Human Section Head */}
+      {/* Clean Section Head */}
       <div className="section-head">
-        <h2>Leaderboard</h2>
+        <h2>Global Leaderboard</h2>
         <p>Top candidate practitioners ranked by interview evaluations and completed sessions.</p>
       </div>
 
@@ -106,11 +136,9 @@ export default function Leaderboard() {
                   <span className="mono" style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--good)' }}>{first.avgScore}%</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-                  <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: 'var(--accent-primary)', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 700 }}>
-                    {first.avatar || first.name?.charAt(0)}
-                  </div>
+                  <CandidateAvatar avatar={first.avatar} name={first.name} size={46} />
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: '1rem' }}>{first.name}</div>
+                    <div style={{ fontWeight: 700, fontSize: '1.05rem' }}>{first.name}</div>
                     <div className="muted small" style={{ fontSize: '0.8rem' }}>{first.bio}</div>
                   </div>
                 </div>
@@ -125,9 +153,7 @@ export default function Leaderboard() {
                   <span className="mono" style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text)' }}>{second.avgScore}%</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-                  <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: 'var(--surface-2)', border: '1px solid var(--border)', display: 'grid', placeItems: 'center', fontWeight: 700 }}>
-                    {second.avatar || second.name?.charAt(0)}
-                  </div>
+                  <CandidateAvatar avatar={second.avatar} name={second.name} size={42} />
                   <div>
                     <div style={{ fontWeight: 700, fontSize: '1rem' }}>{second.name}</div>
                     <div className="muted small" style={{ fontSize: '0.8rem' }}>{second.bio}</div>
@@ -144,9 +170,7 @@ export default function Leaderboard() {
                   <span className="mono" style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text)' }}>{third.avgScore}%</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-                  <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: 'var(--surface-2)', border: '1px solid var(--border)', display: 'grid', placeItems: 'center', fontWeight: 700 }}>
-                    {third.avatar || third.name?.charAt(0)}
-                  </div>
+                  <CandidateAvatar avatar={third.avatar} name={third.name} size={42} />
                   <div>
                     <div style={{ fontWeight: 700, fontSize: '1rem' }}>{third.name}</div>
                     <div className="muted small" style={{ fontSize: '0.8rem' }}>{third.bio}</div>
@@ -176,24 +200,9 @@ export default function Leaderboard() {
                     </td>
                     <td style={{ padding: '0.85rem 1rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        <div
-                          style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '50%',
-                            background: 'var(--surface-2)',
-                            border: '1px solid var(--border)',
-                            display: 'grid',
-                            placeItems: 'center',
-                            fontWeight: '700',
-                            fontSize: '0.85rem',
-                            flexShrink: 0,
-                          }}
-                        >
-                          {item.avatar || item.name?.charAt(0).toUpperCase()}
-                        </div>
+                        <CandidateAvatar avatar={item.avatar} name={item.name} size={38} />
                         <div>
-                          <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{item.name}</div>
+                          <div style={{ fontWeight: 600, fontSize: '0.92rem' }}>{item.name}</div>
                           {item.bio && <div className="muted small" style={{ fontSize: '0.78rem' }}>{item.bio}</div>}
                         </div>
                       </div>
