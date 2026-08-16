@@ -48,22 +48,11 @@ export default function Login() {
   }
 
   return (
-    <div className="auth-layout-page" style={{ padding: '1.25rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div
-        className="panel"
-        style={{
-          width: 'min(880px, 100%)',
-          padding: 0,
-          overflow: 'hidden',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-          boxShadow: 'var(--shadow-lg)',
-          border: '1px solid var(--border)',
-          borderRadius: '14px',
-        }}
-      >
+    <div className="auth-layout-page">
+      <div className="auth-card-panel">
         {/* Left Pane: Brand Showcase */}
         <div
+          className="auth-left-pane"
           style={{
             background: 'var(--surface-2)',
             padding: '1.6rem 1.8rem',

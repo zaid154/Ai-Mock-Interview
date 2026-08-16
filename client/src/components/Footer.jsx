@@ -39,25 +39,25 @@ export default function Footer() {
 
   return (
     <footer className="footer">
-      <div className="container" style={{ padding: '0' }}>
-        <div className="footer-grid" style={{ gridTemplateColumns: '1.8fr 1fr 1fr 1fr' }}>
+      <div className="container" style={{ padding: '0 1rem' }}>
+        <div className="footer-grid">
           {/* Brand & Creator Bio */}
           <div className="footer-brand-col">
-            <Link to="/" className="brand" style={{ fontSize: '1.35rem' }}>
-              <div className="brand-icon-box" style={{ width: '34px', height: '34px' }}>
-                <Zap size={18} />
+            <Link to="/" className="brand" style={{ fontSize: '1.3rem' }}>
+              <div className="brand-icon-box" style={{ width: '32px', height: '32px' }}>
+                <Zap size={17} />
               </div>
               <span>
                 MockMate <span className="brand-accent">AI</span>
               </span>
             </Link>
 
-            <p style={{ margin: '0.6rem 0 1.2rem', maxWidth: '36ch', fontSize: '0.9rem', lineHeight: '1.6' }}>
-              AI-driven technical engineering interviews, real-time feedback, and verified milestone certificates.
+            <p style={{ margin: '0.5rem 0 1rem', maxWidth: '38ch', fontSize: '0.86rem', lineHeight: '1.55', color: 'var(--text-muted)' }}>
+              AI-driven technical engineering interviews, real-time feedback, and verified milestone credentials.
             </p>
 
-            {/* Premium Minimalist Creator Pill, Email & Socials */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+            {/* Creator Badge & Social Icons */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
               <a
                 href="https://portfolio-zeta-drab-97.vercel.app/"
                 target="_blank"
@@ -65,51 +65,30 @@ export default function Footer() {
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '0.45rem',
-                  padding: '0.35rem 0.8rem',
+                  gap: '0.4rem',
+                  padding: '0.3rem 0.75rem',
                   borderRadius: '999px',
                   background: 'var(--surface-2)',
                   border: '1px solid var(--border-strong)',
                   color: 'var(--text)',
-                  fontSize: '0.82rem',
+                  fontSize: '0.78rem',
                   fontWeight: 600,
-                  transition: 'all 0.15s ease',
+                  textDecoration: 'none',
                 }}
               >
                 <span>Created by <strong style={{ color: 'var(--accent-primary)' }}>Mohd Zaid</strong></span>
-                <ArrowUpRight size={13} style={{ color: 'var(--text-muted)' }} />
-              </a>
-
-              <a
-                href="mailto:zaidm1323@gmail.com"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  padding: '0.35rem 0.8rem',
-                  borderRadius: '999px',
-                  background: 'var(--surface-2)',
-                  border: '1px solid var(--border)',
-                  color: 'var(--text-muted)',
-                  fontSize: '0.82rem',
-                  fontWeight: 500,
-                  textDecoration: 'none',
-                }}
-                title="Send Direct Email"
-              >
-                <Mail size={14} style={{ color: 'var(--accent-primary)' }} />
-                <span>zaidm1323@gmail.com</span>
+                <ArrowUpRight size={12} style={{ color: 'var(--text-muted)' }} />
               </a>
 
               <div className="social-links" style={{ margin: 0 }}>
                 <a href="https://github.com/zaid154" target="_blank" rel="noreferrer" title="GitHub (@zaid154)">
-                  <Github size={16} />
+                  <Github size={15} />
                 </a>
                 <a href="https://portfolio-zeta-drab-97.vercel.app/" target="_blank" rel="noreferrer" title="Portfolio">
-                  <Globe size={16} />
+                  <Globe size={15} />
                 </a>
                 <a href="https://www.linkedin.com/in/mohd-zaid-794090231/" target="_blank" rel="noreferrer" title="LinkedIn">
-                  <Linkedin size={16} />
+                  <Linkedin size={15} />
                 </a>
               </div>
             </div>
@@ -121,7 +100,7 @@ export default function Footer() {
             {user ? (
               <>
                 <Link to="/dashboard">Dashboard</Link>
-                <Link to="/bookmarks">Saved Bookmarks</Link>
+                <Link to="/bookmarks">Bookmarks</Link>
                 <Link to="/leaderboard">Leaderboard</Link>
                 <Link to="/certificates">Certificates</Link>
                 <Link to="/profile">Profile Settings</Link>
@@ -148,7 +127,7 @@ export default function Footer() {
           <div className="footer-links-col">
             <h4>Connect &amp; Author</h4>
             <a href="mailto:zaidm1323@gmail.com" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
-              <Mail size={14} style={{ color: 'var(--accent-primary)' }} /> zaidm1323@gmail.com
+              <Mail size={13} style={{ color: 'var(--accent-primary)' }} /> zaidm1323@gmail.com
             </a>
             <a href="https://portfolio-zeta-drab-97.vercel.app/" target="_blank" rel="noreferrer">
               Portfolio Site ↗
@@ -164,12 +143,12 @@ export default function Footer() {
       </div>
 
       <div className="footer-bottom-bar">
-        <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', padding: '0' }}>
-          <p className="muted small" style={{ margin: 0 }}>
-            © {year} MockMate AI. Built by <a href="https://portfolio-zeta-drab-97.vercel.app/" target="_blank" rel="noreferrer" style={{ fontWeight: 700, color: 'var(--text)' }}>Mohd Zaid</a> (<a href="mailto:zaidm1323@gmail.com" style={{ color: 'var(--accent-primary)' }}>zaidm1323@gmail.com</a>).
+        <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.8rem', padding: '0 1rem' }}>
+          <p className="muted small" style={{ margin: 0, fontSize: '0.8rem' }}>
+            © {year} MockMate AI. Built by <a href="https://portfolio-zeta-drab-97.vercel.app/" target="_blank" rel="noreferrer" style={{ fontWeight: 700, color: 'var(--text)' }}>Mohd Zaid</a> (<a href="mailto:zaidm1323@gmail.com" style={{ color: 'var(--accent-primary)', textDecoration: 'none' }}>zaidm1323@gmail.com</a>).
           </p>
-          <div className="badge-glow" style={{ fontSize: '0.75rem', padding: '0.25rem 0.7rem' }}>
-            <Sparkles size={13} /> Powered by Google Gemini AI
+          <div className="badge-glow" style={{ fontSize: '0.74rem', padding: '0.2rem 0.65rem' }}>
+            <Sparkles size={12} /> Powered by Google Gemini AI
           </div>
         </div>
       </div>

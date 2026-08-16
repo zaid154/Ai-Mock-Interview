@@ -203,7 +203,7 @@ export default function Dashboard() {
       </div>
 
       {/* Main Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.15fr) minmax(0, 1fr)', gap: '2rem' }}>
+      <div className="dashboard-grid">
         {/* Left Column: Form */}
         <div className="panel">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.5rem' }}>
