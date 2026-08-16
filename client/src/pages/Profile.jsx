@@ -97,7 +97,7 @@ export default function Profile() {
     return () => { mounted = false }
   }, [])
 
-  function handlePhotoFileUpload(e) {
+  async function handlePhotoFileUpload(e) {
     const file = e.target.files?.[0]
     if (!file) return
     if (file.size > 3 * 1024 * 1024) {
@@ -105,18 +105,55 @@ export default function Profile() {
       return
     }
     const reader = new FileReader()
-    reader.onload = (event) => {
-      setAvatar(event.target.result)
-      toast.success('Photo loaded! Click Save Profile to apply.')
+    reader.onload = async (event) => {
+      const newAvatar = event.target.result
+      setAvatar(newAvatar)
+      try {
+        await api.patch('/auth/profile', { avatar: newAvatar })
+        toast.success('Profile picture updated & saved!')
+        if (refreshUser) await refreshUser()
+      } catch (err) {
+        toast.error(apiError(err, 'Could not save photo'))
+      }
     }
     reader.readAsDataURL(file)
   }
 
-  function handleApplyCustomUrl() {
+  async function handleApplyCustomUrl() {
     if (!customUrl.trim()) return
-    setAvatar(customUrl.trim())
+    const newAvatar = customUrl.trim()
+    setAvatar(newAvatar)
     setCustomUrl('')
-    toast.success('Custom photo URL applied! Click Save Profile to save.')
+    try {
+      await api.patch('/auth/profile', { avatar: newAvatar })
+      toast.success('Photo URL updated & saved!')
+      if (refreshUser) await refreshUser()
+    } catch (err) {
+      toast.error(apiError(err, 'Could not save photo URL'))
+    }
+  }
+
+  async function handleRemovePhoto() {
+    const defaultAvatar = PRESET_AVATARS[0]
+    setAvatar(defaultAvatar)
+    try {
+      await api.patch('/auth/profile', { avatar: defaultAvatar })
+      toast.success('Profile photo removed!')
+      if (refreshUser) await refreshUser()
+    } catch (err) {
+      toast.error(apiError(err, 'Could not remove photo'))
+    }
+  }
+
+  async function handleSelectEmojiAvatar(emoji) {
+    setAvatar(emoji)
+    try {
+      await api.patch('/auth/profile', { avatar: emoji })
+      toast.success('Avatar updated & saved!')
+      if (refreshUser) await refreshUser()
+    } catch (err) {
+      toast.error(apiError(err))
+    }
   }
 
   async function handleSaveProfile(e) {
@@ -390,7 +427,7 @@ export default function Profile() {
                       <button
                         type="button"
                         className="btn btn-ghost btn-sm"
-                        onClick={() => setAvatar(PRESET_AVATARS[0])}
+                        onClick={handleRemovePhoto}
                         style={{ color: 'var(--bad)' }}
                       >
                         <Trash2 size={14} /> Remove Photo
@@ -430,7 +467,7 @@ export default function Profile() {
                   <button
                     type="button"
                     key={emoji}
-                    onClick={() => setAvatar(emoji)}
+                    onClick={() => handleSelectEmojiAvatar(emoji)}
                     style={{
                       width: '40px',
                       height: '40px',
