@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
-import { Trash2, Save, Plus, KeyRound, ShieldPlus, ShieldMinus, ShieldCheck, Users, Settings, Award, Sun, Moon } from 'lucide-react'
+import { Trash2, Save, Plus, KeyRound, ShieldPlus, ShieldMinus, ShieldCheck, Users, Settings, Award } from 'lucide-react'
 import api, { apiError } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
-import { useTheme } from '../context/ThemeContext'
+
 import { useConfirm } from '../components/ConfirmDialog'
 
 function valueToText(value) {
@@ -20,7 +20,7 @@ function textToValue(text) {
 
 export default function AdminDashboard() {
   const { user: me } = useAuth()
-  const { theme, toggleTheme } = useTheme()
+
   const { confirm, promptText } = useConfirm()
   const [users, setUsers] = useState([])
   const [settings, setSettings] = useState([])
@@ -29,8 +29,7 @@ export default function AdminDashboard() {
   const [verifyRequired, setVerifyRequired] = useState(false)
   const [savingVerification, setSavingVerification] = useState(false)
 
-  const [hideThemeToggle, setHideThemeToggle] = useState(false)
-  const [savingThemeToggle, setSavingThemeToggle] = useState(false)
+
 
   const [geminiKeys, setGeminiKeys] = useState([])
   const [newGeminiKey, setNewGeminiKey] = useState('')
@@ -51,8 +50,7 @@ export default function AdminDashboard() {
       const vr = s.data.settings.find((x) => x.key === 'verificationRequired')
       setVerifyRequired(vr?.value === true)
 
-      const ht = s.data.settings.find((x) => x.key === 'hide_theme_toggle')
-      setHideThemeToggle(ht?.value === true || ht?.value === 'true')
+
 
       const gk = s.data.settings.find((x) => x.key === 'gemini_api_keys')
       setGeminiKeys(Array.isArray(gk?.value) ? gk.value : [])
@@ -135,22 +133,7 @@ export default function AdminDashboard() {
     }
   }
 
-  async function onToggleHideThemeToggle(next) {
-    const previous = hideThemeToggle
-    setHideThemeToggle(next)
-    setSavingThemeToggle(true)
-    try {
-      await saveSetting('hide_theme_toggle', next)
-      window.dispatchEvent(new CustomEvent('settings-updated', { detail: { hideThemeToggle: next } }))
-      toast.success(`Theme toggle button is now ${next ? 'hidden' : 'visible'}`)
-      load()
-    } catch (err) {
-      setHideThemeToggle(previous)
-      toast.error(apiError(err, 'Could not save theme toggle setting'))
-    } finally {
-      setSavingThemeToggle(false)
-    }
-  }
+
 
   async function saveCertSignatureSettings(e) {
     e.preventDefault()
@@ -304,16 +287,7 @@ export default function AdminDashboard() {
           <p>Manage system credentials, user accounts, and platform configurations.</p>
         </div>
 
-        {/* Dedicated Admin Theme Preview Toggle */}
-        <button
-          className="btn btn-secondary btn-sm"
-          onClick={toggleTheme}
-          title="Toggle Dark/Light theme mode"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.2rem' }}
-        >
-          {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
-          <span>{theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}</span>
-        </button>
+
       </div>
 
       {/* Security & Interface Controls */}
@@ -339,21 +313,7 @@ export default function AdminDashboard() {
             </div>
           </label>
 
-          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.8rem', cursor: 'pointer', paddingTop: '0.8rem', borderTop: '1px solid var(--border-soft)' }}>
-            <input
-              type="checkbox"
-              checked={hideThemeToggle}
-              onChange={(e) => onToggleHideThemeToggle(e.target.checked)}
-              disabled={savingThemeToggle}
-              style={{ width: 'auto', marginTop: '0.25rem' }}
-            />
-            <div>
-              <strong style={{ fontSize: '0.98rem' }}>Hide Light / Dark Mode Toggle Button</strong>
-              <p className="muted small" style={{ margin: '0.2rem 0 0' }}>
-                When enabled, the theme switch button (Sun/Moon icon) in the header navbar is hidden from candidates.
-              </p>
-            </div>
-          </label>
+
         </div>
       </section>
 

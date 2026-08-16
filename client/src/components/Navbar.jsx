@@ -4,8 +4,6 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import {
   Zap,
-  Sun,
-  Moon,
   User,
   LogOut,
   Shield,
@@ -19,30 +17,12 @@ export default function Navbar() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark')
-  const [hideThemeToggle, setHideThemeToggle] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme)
-    localStorage.setItem('theme', theme)
-  }, [theme])
-
-  useEffect(() => {
-    fetch('/api/auth/verification-settings')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data && typeof data.hideThemeToggle === 'boolean') {
-          setHideThemeToggle(data.hideThemeToggle)
-        }
-      })
-      .catch(() => {})
+    document.documentElement.setAttribute('data-theme', 'light')
   }, [])
-
-  function toggleTheme() {
-    setTheme((t) => (t === 'dark' ? 'light' : 'dark'))
-  }
 
   function handleLogout() {
     setUserMenuOpen(false)
@@ -155,16 +135,7 @@ export default function Navbar() {
 
         {/* Right Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          {!hideThemeToggle && (
-            <button
-              onClick={toggleTheme}
-              className="icon-btn"
-              title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-              aria-label="Toggle Theme"
-            >
-              {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
-            </button>
-          )}
+
 
           {user ? (
             <div style={{ position: 'relative' }}>
