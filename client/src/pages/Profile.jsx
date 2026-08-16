@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   User as UserIcon,
   Lock,
@@ -15,6 +15,10 @@ import {
   ExternalLink,
   Mail,
   ShieldAlert,
+  Camera,
+  Upload,
+  Link as LinkIcon,
+  Trash2,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import api, { apiError } from '../lib/api'
@@ -32,7 +36,9 @@ export default function Profile() {
   const [lastName, setLastName] = useState('')
   const [bio, setBio] = useState(user?.bio || '')
   const [avatar, setAvatar] = useState(user?.avatar || PRESET_AVATARS[0])
+  const [customUrl, setCustomUrl] = useState('')
   const [savingProfile, setSavingProfile] = useState(false)
+  const fileInputRef = useRef(null)
 
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -91,6 +97,28 @@ export default function Profile() {
     return () => { mounted = false }
   }, [])
 
+  function handlePhotoFileUpload(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 3 * 1024 * 1024) {
+      toast.error('Please choose an image file under 3 MB')
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      setAvatar(event.target.result)
+      toast.success('Photo loaded! Click Save Profile to apply.')
+    }
+    reader.readAsDataURL(file)
+  }
+
+  function handleApplyCustomUrl() {
+    if (!customUrl.trim()) return
+    setAvatar(customUrl.trim())
+    setCustomUrl('')
+    toast.success('Custom photo URL applied! Click Save Profile to save.')
+  }
+
   async function handleSaveProfile(e) {
     e.preventDefault()
     const fullName = `${firstName.trim()} ${lastName.trim()}`.trim()
@@ -137,6 +165,7 @@ export default function Profile() {
   }
 
   const pwdStrength = getPasswordStrength(newPassword)
+  const isImageAvatar = Boolean(avatar && (avatar.startsWith('http') || avatar.startsWith('data:image')))
 
   return (
     <main className="container">
@@ -172,22 +201,56 @@ export default function Profile() {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: '1.25rem', flexWrap: 'wrap' }}>
-            <div
-              style={{
-                width: '90px',
-                height: '90px',
-                borderRadius: '50%',
-                background: 'var(--accent-grad)',
-                display: 'grid',
-                placeItems: 'center',
-                fontSize: '2.5rem',
-                boxShadow: 'var(--shadow-md)',
-                color: '#ffffff',
-                border: '3px solid var(--surface)',
-              }}
-            >
-              {avatar || user?.name?.charAt(0).toUpperCase() || 'C'}
+            {/* Profile Picture Avatar Box */}
+            <div style={{ position: 'relative' }}>
+              <div
+                style={{
+                  width: '94px',
+                  height: '94px',
+                  borderRadius: '50%',
+                  background: 'var(--accent-grad)',
+                  display: 'grid',
+                  placeItems: 'center',
+                  fontSize: '2.5rem',
+                  boxShadow: 'var(--shadow-md)',
+                  color: '#ffffff',
+                  border: '4px solid var(--surface)',
+                  overflow: 'hidden',
+                }}
+              >
+                {isImageAvatar ? (
+                  <img src={avatar} alt={user?.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  avatar || user?.name?.charAt(0).toUpperCase() || 'C'
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('edit')
+                  fileInputRef.current?.click()
+                }}
+                style={{
+                  position: 'absolute',
+                  bottom: '2px',
+                  right: '2px',
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '50%',
+                  background: 'var(--accent-primary)',
+                  color: '#ffffff',
+                  border: '2px solid var(--surface)',
+                  display: 'grid',
+                  placeItems: 'center',
+                  cursor: 'pointer',
+                  boxShadow: 'var(--shadow-sm)',
+                }}
+                title="Upload Profile Picture"
+              >
+                <Camera size={14} />
+              </button>
             </div>
+
             <div>
               <h1 style={{ fontSize: '1.8rem', margin: 0, display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                 {user?.name}
@@ -227,7 +290,7 @@ export default function Profile() {
             onClick={() => setActiveTab('edit')}
             style={{ borderRadius: 0, padding: '0.85rem 1rem' }}
           >
-            <UserIcon size={16} /> Edit Profile
+            <UserIcon size={16} /> Edit Profile &amp; Photo
           </button>
           <button
             type="button"
@@ -239,6 +302,15 @@ export default function Profile() {
           </button>
         </div>
       </div>
+
+      {/* Hidden File Input for Custom Photo Upload */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handlePhotoFileUpload}
+        style={{ display: 'none' }}
+      />
 
       {/* Tab Contents */}
       {activeTab === 'overview' && (
@@ -276,23 +348,96 @@ export default function Profile() {
 
       {activeTab === 'edit' && (
         <div className="panel" style={{ maxWidth: '640px' }}>
-          <h3 style={{ fontSize: '1.25rem', marginBottom: '1.5rem' }}>Edit Candidate Profile</h3>
+          <h3 style={{ fontSize: '1.25rem', marginBottom: '1.5rem' }}>Edit Candidate Profile &amp; Photo</h3>
           <form onSubmit={handleSaveProfile} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            {/* Custom Profile Photo Upload Section */}
             <div className="field">
-              <span className="field-label">Avatar Badge</span>
-              <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', marginTop: '0.4rem' }}>
+              <span className="field-label">Profile Picture</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', marginTop: '0.4rem', flexWrap: 'wrap' }}>
+                <div
+                  style={{
+                    width: '64px',
+                    height: '64px',
+                    borderRadius: '50%',
+                    background: 'var(--accent-grad)',
+                    display: 'grid',
+                    placeItems: 'center',
+                    fontSize: '1.8rem',
+                    color: '#ffffff',
+                    border: '2px solid var(--border)',
+                    overflow: 'hidden',
+                    flexShrink: 0,
+                  }}
+                >
+                  {isImageAvatar ? (
+                    <img src={avatar} alt="Profile preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    avatar || 'C'
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      className="btn btn-secondary btn-sm"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Upload size={14} /> Upload Custom Photo
+                    </button>
+
+                    {isImageAvatar && (
+                      <button
+                        type="button"
+                        className="btn btn-ghost btn-sm"
+                        onClick={() => setAvatar(PRESET_AVATARS[0])}
+                        style={{ color: 'var(--bad)' }}
+                      >
+                        <Trash2 size={14} /> Remove Photo
+                      </button>
+                    )}
+                  </div>
+                  <span className="muted small" style={{ fontSize: '0.78rem' }}>PNG, JPG, WEBP formats supported (max 3MB)</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Paste Custom Image URL */}
+            <div className="field" style={{ marginTop: '-0.4rem' }}>
+              <span className="field-label" style={{ fontSize: '0.8rem' }}>Or Paste Image URL</span>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div className="input-icon-wrap" style={{ flex: 1 }}>
+                  <LinkIcon size={14} className="input-icon" />
+                  <input
+                    type="url"
+                    value={customUrl}
+                    onChange={(e) => setCustomUrl(e.target.value)}
+                    placeholder="https://example.com/my-photo.jpg"
+                    style={{ paddingLeft: '2.2rem', fontSize: '0.85rem' }}
+                  />
+                </div>
+                <button type="button" className="btn btn-secondary btn-sm" onClick={handleApplyCustomUrl}>
+                  Apply URL
+                </button>
+              </div>
+            </div>
+
+            {/* Emoji Presets fallback */}
+            <div className="field">
+              <span className="field-label" style={{ fontSize: '0.8rem' }}>Or Choose Preset Avatar Emoji</span>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.3rem' }}>
                 {PRESET_AVATARS.map((emoji) => (
                   <button
                     type="button"
                     key={emoji}
                     onClick={() => setAvatar(emoji)}
                     style={{
-                      width: '44px',
-                      height: '44px',
+                      width: '40px',
+                      height: '40px',
                       borderRadius: '50%',
                       border: avatar === emoji ? '2px solid var(--accent-primary)' : '1px solid var(--border)',
                       background: avatar === emoji ? 'var(--accent-grad-subtle)' : 'var(--surface-2)',
-                      fontSize: '1.3rem',
+                      fontSize: '1.2rem',
                       cursor: 'pointer',
                     }}
                   >

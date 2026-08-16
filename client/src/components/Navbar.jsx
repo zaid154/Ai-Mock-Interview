@@ -144,9 +144,15 @@ export default function Navbar() {
                   fontSize: '0.82rem',
                   fontWeight: '700',
                   color: '#ffffff',
+                  overflow: 'hidden',
+                  flexShrink: 0,
                 }}
               >
-                {user.avatar || firstName.charAt(0).toUpperCase()}
+                {user.avatar && (user.avatar.startsWith('http') || user.avatar.startsWith('data:image')) ? (
+                  <img src={user.avatar} alt={firstName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  user.avatar || firstName.charAt(0).toUpperCase()
+                )}
               </div>
               <span style={{ fontWeight: 600, fontSize: '0.88rem' }}>{firstName}</span>
               <ChevronDown
