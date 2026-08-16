@@ -75,7 +75,8 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 }))
 
-app.use(express.json({ limit: '10kb' })) // Limit body size to prevent payload flood attacks
+app.use(express.json({ limit: '10mb' }))
+app.use(express.urlencoded({ limit: '10mb', extended: true }))
 app.use(cookieParser())
 app.use(morgan('dev'))
 

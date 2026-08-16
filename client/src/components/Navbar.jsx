@@ -80,16 +80,30 @@ export default function Navbar() {
   const isActive = (path) => location.pathname === path
 
   function scrollToSection(id) {
+    if (id === 'overview') {
+      if (location.pathname !== '/') {
+        navigate('/')
+        setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100)
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+      return
+    }
+
     if (location.pathname !== '/') {
       navigate('/')
       setTimeout(() => {
         const el = document.getElementById(id)
-        if (el) el.scrollIntoView({ behavior: 'smooth' })
+        if (el) {
+          const y = el.getBoundingClientRect().top + window.pageYOffset - 80
+          window.scrollTo({ top: y, behavior: 'smooth' })
+        }
       }, 100)
     } else {
       const el = document.getElementById(id)
       if (el) {
-        el.scrollIntoView({ behavior: 'smooth' })
+        const y = el.getBoundingClientRect().top + window.pageYOffset - 80
+        window.scrollTo({ top: y, behavior: 'smooth' })
       }
     }
   }

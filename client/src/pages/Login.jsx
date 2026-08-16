@@ -176,15 +176,6 @@ export default function Login() {
               {busy ? 'Signing in…' : <>Sign in to Account <ArrowRight size={16} /></>}
             </button>
 
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              onClick={fillDemoAdmin}
-              style={{ width: '100%', fontSize: '0.78rem', color: 'var(--accent-primary)', borderColor: 'var(--border)' }}
-            >
-              ⚡ Quick Fill Admin Credentials
-            </button>
-
             <div style={{ borderTop: '1px solid var(--border-soft)', marginTop: '0.3rem', paddingTop: '0.75rem', textAlign: 'center' }}>
               <p className="muted small" style={{ margin: 0, fontSize: '0.82rem' }}>
                 Don't have an account?{' '}

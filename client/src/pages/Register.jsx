@@ -3,7 +3,7 @@ import { Link, useNavigate, Navigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { useAuth } from '../context/AuthContext'
 import { apiError } from '../lib/api'
-import { Eye, EyeOff, User, Mail, Lock, Zap, ArrowRight, CheckCircle2 } from 'lucide-react'
+import { Eye, EyeOff, User, Mail, Lock, Zap, ArrowRight, CheckCircle2, ShieldCheck } from 'lucide-react'
 
 export default function Register() {
   const { user, register } = useAuth()
@@ -23,10 +23,10 @@ export default function Register() {
     setBusy(true)
     try {
       const data = await register(name, email, password)
-      toast.success(data.otpSent ? 'Account created — verification code sent' : 'Account created')
+      toast.success(data.otpSent ? 'Account created — security verification code sent' : 'Account created successfully')
       navigate('/verify', { state: { email, otpSent: data.otpSent, registrationToken: data.registrationToken } })
     } catch (err) {
-      toast.error(apiError(err, 'Could not create account'))
+      toast.error(apiError(err, 'Could not create candidate account'))
     } finally {
       setBusy(false)
     }
@@ -44,14 +44,14 @@ export default function Register() {
           gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
           boxShadow: 'var(--shadow-lg)',
           border: '1px solid var(--border)',
-          borderRadius: '14px',
+          borderRadius: '16px',
         }}
       >
         {/* Left Pane: Brand Showcase */}
         <div
           style={{
             background: 'var(--surface-2)',
-            padding: '1.6rem 1.8rem',
+            padding: '1.8rem 2rem',
             display: 'flex',
             flexDirection: 'column',
             justify: 'space-between',
@@ -59,51 +59,52 @@ export default function Register() {
           }}
         >
           <div>
-            <Link to="/" className="brand" style={{ fontSize: '1.2rem', marginBottom: '1rem', display: 'inline-flex' }}>
+            <Link to="/" className="brand" style={{ fontSize: '1.2rem', marginBottom: '1.2rem', display: 'inline-flex' }}>
               <div className="brand-icon-box" style={{ width: '30px', height: '30px' }}>
                 <Zap size={16} />
               </div>
               <span>MockMate</span>
             </Link>
 
-            <h2 style={{ fontSize: '1.4rem', lineHeight: '1.25', marginBottom: '0.6rem', fontWeight: 800 }}>
+            <h2 style={{ fontSize: '1.45rem', lineHeight: '1.25', marginBottom: '0.6rem', fontWeight: 800 }}>
               Start practicing mock interviews today.
             </h2>
-            <p className="muted" style={{ fontSize: '0.85rem', lineHeight: '1.5', marginBottom: '1.1rem' }}>
-              Create your free candidate profile and access AI technical interview simulations.
+            <p className="muted" style={{ fontSize: '0.85rem', lineHeight: '1.5', marginBottom: '1.4rem' }}>
+              Create your free candidate profile and access AI-powered technical interview simulations.
             </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', fontSize: '0.82rem' }}>
-                <CheckCircle2 size={15} style={{ color: 'var(--good)', flexShrink: 0 }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.82rem' }}>
+                <CheckCircle2 size={16} style={{ color: 'var(--good)', flexShrink: 0 }} />
                 <span>Unlimited mock practice sessions</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', fontSize: '0.82rem' }}>
-                <CheckCircle2 size={15} style={{ color: 'var(--good)', flexShrink: 0 }} />
-                <span>Revision bookmarks bank &amp; notes</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.82rem' }}>
+                <CheckCircle2 size={16} style={{ color: 'var(--good)', flexShrink: 0 }} />
+                <span>Revision bookmarks bank &amp; study notes</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', fontSize: '0.82rem' }}>
-                <CheckCircle2 size={15} style={{ color: 'var(--good)', flexShrink: 0 }} />
-                <span>Verified milestone credentials</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.82rem' }}>
+                <CheckCircle2 size={16} style={{ color: 'var(--good)', flexShrink: 0 }} />
+                <span>Verified ISO milestone credentials</span>
               </div>
             </div>
           </div>
 
-          <div className="muted small" style={{ fontSize: '0.78rem', marginTop: '1.2rem' }}>
-            By signing up, you agree to our Terms &amp; Privacy Policy.
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1.5rem', color: 'var(--text-muted)', fontSize: '0.78rem' }}>
+            <ShieldCheck size={16} style={{ color: 'var(--accent-primary)' }} />
+            <span>256-bit Secure Candidate Encryption</span>
           </div>
         </div>
 
         {/* Right Pane: Registration Form */}
-        <div style={{ padding: '1.6rem 1.8rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-          <div style={{ marginBottom: '0.9rem' }}>
-            <h1 style={{ fontSize: '1.45rem', marginBottom: '0.2rem', fontWeight: 800 }}>Create Account</h1>
+        <div style={{ padding: '1.8rem 2rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div style={{ marginBottom: '1rem' }}>
+            <h1 style={{ fontSize: '1.5rem', marginBottom: '0.2rem', fontWeight: 800 }}>Create Account</h1>
             <p className="muted small" style={{ margin: 0, fontSize: '0.84rem' }}>
-              Join MockMate and start practicing free.
+              Join MockMate and start practicing for free.
             </p>
           </div>
 
-          <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+          <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
             <div className="field" style={{ marginBottom: 0 }}>
               <span className="field-label" style={{ fontSize: '0.8rem' }}>Full Name</span>
               <div className="input-icon-wrap">
@@ -172,11 +173,11 @@ export default function Register() {
               </div>
             </div>
 
-            <button type="submit" className="btn btn-primary btn-block" disabled={busy} style={{ marginTop: '0.3rem', padding: '0.65rem 1rem' }}>
+            <button type="submit" className="btn btn-primary btn-block" disabled={busy} style={{ marginTop: '0.4rem', padding: '0.65rem 1rem' }}>
               {busy ? 'Creating Account…' : <>Get Started Free <ArrowRight size={16} /></>}
             </button>
 
-            <div style={{ borderTop: '1px solid var(--border-soft)', marginTop: '0.3rem', paddingTop: '0.75rem', textAlign: 'center' }}>
+            <div style={{ borderTop: '1px solid var(--border-soft)', marginTop: '0.4rem', paddingTop: '0.8rem', textAlign: 'center' }}>
               <p className="muted small" style={{ margin: 0, fontSize: '0.82rem' }}>
                 Already have an account?{' '}
                 <Link to="/login" style={{ fontWeight: 700, color: 'var(--accent-primary)' }}>

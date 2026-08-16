@@ -49,15 +49,36 @@ async function sendEmail(to, subject, text, html) {
 
   const tx = getTransporter()
   if (!tx) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`\n========================================`)
+      console.log(`🔑 [DEV EMAIL fallback] To: ${to}`)
+      console.log(`📌 Subject: ${subject}`)
+      console.log(`💬 Body: ${text}`)
+      console.log(`========================================\n`)
+      return
+    }
     const err = new Error('Email delivery is not configured. Please add BREVO_API_KEY or SMTP credentials in .env.')
     err.status = 503
     throw err
   }
   const from = process.env.SMTP_FROM || process.env.SMTP_USER
-  await tx.sendMail({ from, to, subject, text, html })
+  try {
+    await tx.sendMail({ from, to, subject, text, html })
+  } catch (err) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`\n========================================`)
+      console.log(`🔑 [DEV EMAIL fallback after SMTP error] To: ${to}`)
+      console.log(`📌 Subject: ${subject}`)
+      console.log(`💬 Body: ${text}`)
+      console.log(`========================================\n`)
+      return
+    }
+    throw err
+  }
 }
 
 async function sendOtpEmail(to, code, purpose) {
+  console.log(`\n🔑 [MOCKMATE OTP CODE for ${to} (${purpose})]: >>> ${code} <<<\n`)
   const isReset = purpose === 'reset'
   const action = isReset ? 'reset your password' : 'verify your email address'
   const title = isReset ? 'Reset your password' : 'Verify your email'
