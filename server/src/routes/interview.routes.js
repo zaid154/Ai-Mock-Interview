@@ -7,7 +7,11 @@ const { wrap } = require('../utils/asyncHandler')
 const interview = require('../controllers/interview.controller')
 
 const router = Router()
-router.use(requireAuth) // all interview routes need a signed-in user
+
+// Public route for global leaderboard
+router.get('/leaderboard', wrap(interview.getLeaderboard))
+
+router.use(requireAuth) // remaining interview routes need a signed-in user
 
 // Resume upload: keep the PDF in memory (no disk) and cap it at 5 MB.
 const upload = multer({

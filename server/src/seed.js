@@ -36,19 +36,81 @@ const questions = [
   { role: 'Behavioral', difficulty: 'medium', prompt: 'Describe a time you shipped something under a tight deadline. What did you trade off?' },
 ]
 
-async function seed({ reset = false } = {}) {
+const SAMPLE_CANDIDATES = [
+  {
+    name: 'Mohd Zaid',
+    email: 'zaidm1323@gmail.com',
+    role: 'admin',
+    avatar: '👨‍💻',
+    bio: 'Lead Fullstack & AI Systems Architect',
+    password: 'ChangeMe123!',
+    interviews: [
+      { role: 'Frontend Developer', difficulty: 'hard', mode: 'questions', overallScore: 94, summary: 'Outstanding technical depth in React fiber reconciliation and DOM optimization.' },
+      { role: 'Backend Architect', difficulty: 'hard', mode: 'questions', overallScore: 96, summary: 'Exceptional knowledge of Node.js event loop lag and Redis rate limiting.' },
+      { role: 'System Design', difficulty: 'hard', mode: 'questions', overallScore: 92, summary: 'Strong design breakdown for globally distributed URL shortener.' },
+      { role: 'DevOps & Cloud', difficulty: 'hard', mode: 'questions', overallScore: 95, summary: 'Excellent explanation of Istio canary deployments and Prometheus alerts.' },
+      { role: 'Full Stack Developer', difficulty: 'medium', mode: 'quiz', overallScore: 98, summary: 'Perfect score on end-to-end full stack security & JWT token validation quiz.' },
+    ],
+  },
+  {
+    name: 'Aarav Sharma',
+    email: 'aarav.sharma@gmail.com',
+    role: 'user',
+    avatar: '🚀',
+    bio: 'Senior Distributed Systems & Backend Engineer',
+    password: 'Password123!',
+    interviews: [
+      { role: 'Backend Architect', difficulty: 'hard', mode: 'questions', overallScore: 94, summary: 'Deep expertise in database sharding and distributed consensus protocols.' },
+      { role: 'System Design', difficulty: 'medium', mode: 'questions', overallScore: 92, summary: 'Well-structured microservices decomposition with clear fault tolerance.' },
+      { role: 'SQL Database Engineer', difficulty: 'medium', mode: 'quiz', overallScore: 89, summary: 'High accuracy in query optimization and index design.' },
+      { role: 'Full Stack Developer', difficulty: 'hard', mode: 'questions', overallScore: 90, summary: 'Solid understanding of REST API idempotency and GraphQL resolvers.' },
+    ],
+  },
+  {
+    name: 'Priya Patel',
+    email: 'priya.patel@gmail.com',
+    role: 'user',
+    avatar: '⚡',
+    bio: 'Frontend UI/UX Specialist & React Guru',
+    password: 'Password123!',
+    interviews: [
+      { role: 'Frontend Developer', difficulty: 'hard', mode: 'questions', overallScore: 91, summary: 'Great understanding of web performance metrics and virtualized lists.' },
+      { role: 'React Specialist', difficulty: 'medium', mode: 'questions', overallScore: 88, summary: 'Clean state management breakdown with custom hooks.' },
+      { role: 'UI Engineer', difficulty: 'easy', mode: 'quiz', overallScore: 92, summary: 'Perfect grasp of CSS Grid, Flexbox layout math, and accessibility.' },
+      { role: 'Full Stack Developer', difficulty: 'medium', mode: 'questions', overallScore: 84, summary: 'Good client-server integration awareness.' },
+    ],
+  },
+  {
+    name: 'Rohan Verma',
+    email: 'rohan.verma@gmail.com',
+    role: 'user',
+    avatar: '🛡️',
+    bio: 'MERN Stack Developer & Cloud Enthusiast',
+    password: 'Password123!',
+    interviews: [
+      { role: 'Full Stack Developer', difficulty: 'medium', mode: 'questions', overallScore: 84, summary: 'Clear communication of Node.js async operations and Express middleware.' },
+      { role: 'Backend Developer', difficulty: 'medium', mode: 'quiz', overallScore: 82, summary: 'Good knowledge of MongoDB aggregation pipelines.' },
+      { role: 'Frontend Developer', difficulty: 'easy', mode: 'questions', overallScore: 80, summary: 'Solid JavaScript closure and prototype chain understanding.' },
+    ],
+  },
+  {
+    name: 'Ananya Gupta',
+    email: 'ananya.gupta@gmail.com',
+    role: 'user',
+    avatar: '☁️',
+    bio: 'DevOps & Kubernetes Cloud Specialist',
+    password: 'Password123!',
+    interviews: [
+      { role: 'DevOps & Cloud', difficulty: 'medium', mode: 'questions', overallScore: 82, summary: 'Strong grasp of Docker containerization and CI/CD pipelines.' },
+      { role: 'System Reliability', difficulty: 'medium', mode: 'quiz', overallScore: 78, summary: 'Good understanding of monitoring and alert thresholds.' },
+      { role: 'Backend Developer', difficulty: 'easy', mode: 'questions', overallScore: 75, summary: 'Decent foundational REST API design skills.' },
+    ],
+  },
+]
+
+async function seed({ reset = true } = {}) {
   await mongoose.connect(MONGODB_URI)
   console.log(`Connected: ${MONGODB_URI}`)
-
-  if (reset) {
-    await Promise.all([
-      Interview.deleteMany({}),
-      Question.deleteMany({}),
-      User.deleteMany({}),
-      Setting.deleteMany({}),
-    ])
-    console.log('Reset complete: users, interviews, questions, and settings deleted.')
-  }
 
   // 1) Offline fallback question bank
   const result = await Question.bulkWrite(
@@ -62,29 +124,7 @@ async function seed({ reset = false } = {}) {
   )
   console.log(`Fallback questions ready (${result.upsertedCount || 0} added).`)
 
-  // 2) Default admin user (credentials from .env)
-  const adminEmail = (process.env.ADMIN_EMAIL || 'zaidm1323@gmail.com').toLowerCase()
-  const adminPassword = process.env.ADMIN_PASSWORD || 'ChangeMe123!'
-  const adminName = process.env.ADMIN_NAME || 'Mohd Zaid'
-  const passwordHash = await bcrypt.hash(adminPassword, 10)
-  
-  const adminUser = await User.findOneAndUpdate(
-    { email: adminEmail },
-    {
-      name: adminName,
-      email: adminEmail,
-      passwordHash,
-      role: 'admin',
-      isVerified: true,
-      isEmailVerified: true,
-      verifiedAt: new Date(),
-      registrationCompleted: true,
-    },
-    { upsert: true, new: true, setDefaultsOnInsert: true },
-  )
-  console.log(`Admin ready: ${adminEmail}`)
-
-  // 2b) Secondary Admin User (admin@shop.com / Admin@123)
+  // 2) Secondary Admin (admin@shop.com)
   const secondaryHash = await bcrypt.hash('Admin@123', 10)
   await User.findOneAndUpdate(
     { email: 'admin@shop.com' },
@@ -100,68 +140,59 @@ async function seed({ reset = false } = {}) {
     },
     { upsert: true, new: true, setDefaultsOnInsert: true },
   )
-  console.log('Secondary Admin ready: admin@shop.com')
 
-  // 3) Seed completed sample interviews for Admin user so all milestone certificates are 100% unlocked
-  if (adminUser) {
-    const existingCount = await Interview.countDocuments({ user: adminUser._id, status: 'completed' })
-    if (existingCount < 5) {
-      await Interview.deleteMany({ user: adminUser._id })
-      const sampleInterviews = [
+  // 3) Seed Candidates and Completed Interview Sessions
+  for (let i = 0; i < SAMPLE_CANDIDATES.length; i++) {
+    const cand = SAMPLE_CANDIDATES[i]
+    const hash = await bcrypt.hash(cand.password, 10)
+
+    const userDoc = await User.findOneAndUpdate(
+      { email: cand.email.toLowerCase() },
+      {
+        name: cand.name,
+        email: cand.email.toLowerCase(),
+        passwordHash: hash,
+        role: cand.role,
+        bio: cand.bio,
+        avatar: cand.avatar,
+        isVerified: true,
+        isEmailVerified: true,
+        verifiedAt: new Date(Date.now() - 86400000 * (10 - i)),
+        registrationCompleted: true,
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true },
+    )
+
+    // Clear old interviews for this sample user and re-seed clean completed sessions
+    await Interview.deleteMany({ user: userDoc._id })
+
+    const interviewDocs = cand.interviews.map((item, idx) => ({
+      user: userDoc._id,
+      role: item.role,
+      difficulty: item.difficulty,
+      mode: item.mode,
+      status: 'completed',
+      overallScore: item.overallScore,
+      summary: item.summary,
+      questions: [
         {
-          user: adminUser._id,
-          role: 'Frontend Developer',
-          difficulty: 'hard',
-          mode: 'questions',
-          status: 'completed',
-          overallScore: 94,
-          summary: 'Outstanding technical depth and clear architectural explanation of React Virtual DOM fiber reconciliation.',
-          createdAt: new Date(Date.now() - 86400000 * 5),
+          prompt: `Explain the core architecture and key trade-offs in ${item.role}.`,
+          answer: `I design high-performance systems by prioritizing clean separation of concerns, defensive validation, and modular component architecture.`,
+          feedback: `Strong candidate response with clear technical depth and structured reasoning.`,
+          score: Math.min(10, Math.round(item.overallScore / 10)),
         },
         {
-          user: adminUser._id,
-          role: 'Backend Architect',
-          difficulty: 'hard',
-          mode: 'questions',
-          status: 'completed',
-          overallScore: 96,
-          summary: 'Exceptional knowledge of Node.js event loop lag and Redis token bucket rate limiting.',
-          createdAt: new Date(Date.now() - 86400000 * 3),
+          prompt: `How do you diagnose and resolve performance bottlenecks under heavy load?`,
+          answer: `I analyze system metrics using profiling tools, identify slow database queries or un-indexed fields, and implement caching layers like Redis.`,
+          feedback: `Excellent analytical approach and systematic troubleshooting workflow.`,
+          score: Math.min(10, Math.round(item.overallScore / 10)),
         },
-        {
-          user: adminUser._id,
-          role: 'System Design',
-          difficulty: 'hard',
-          mode: 'questions',
-          status: 'completed',
-          overallScore: 92,
-          summary: 'Strong design breakdown for globally distributed URL shortener with sub-10ms latency.',
-          createdAt: new Date(Date.now() - 86400000 * 2),
-        },
-        {
-          user: adminUser._id,
-          role: 'DevOps & Cloud',
-          difficulty: 'hard',
-          mode: 'questions',
-          status: 'completed',
-          overallScore: 95,
-          summary: 'Excellent explanation of Istio canary deployments and automated Prometheus rollback thresholds.',
-          createdAt: new Date(Date.now() - 86400000 * 1),
-        },
-        {
-          user: adminUser._id,
-          role: 'Full Stack Developer',
-          difficulty: 'medium',
-          mode: 'quiz',
-          status: 'completed',
-          overallScore: 98,
-          summary: 'Perfect score on end-to-end full stack security & JWT token validation quiz.',
-          createdAt: new Date(),
-        },
-      ]
-      await Interview.insertMany(sampleInterviews)
-      console.log('Seeded 5 completed sample interviews for Admin user.')
-    }
+      ],
+      createdAt: new Date(Date.now() - 86400000 * (i * 2 + idx + 1)),
+    }))
+
+    await Interview.insertMany(interviewDocs)
+    console.log(`Candidate #${i + 1} ready: ${cand.name} (${cand.email}) - ${cand.interviews.length} sessions`)
   }
 
   // 4) Default settings
@@ -178,7 +209,7 @@ async function seed({ reset = false } = {}) {
   console.log('Default settings ready.')
 
   await mongoose.disconnect()
-  console.log('Done.')
+  console.log('Seed complete!')
 }
 
 if (require.main === module) {
