@@ -275,30 +275,30 @@ export default function Profile() {
         </div>
 
         {/* Tab Switcher */}
-        <div style={{ display: 'flex', borderTop: '1px solid var(--border-soft)', background: 'var(--surface-2)', padding: '0 1.5rem' }}>
+        <div style={{ display: 'flex', gap: '0.6rem', borderTop: '1px solid var(--border-soft)', background: 'var(--surface-2)', padding: '0.6rem 1.5rem', flexWrap: 'wrap' }}>
           <button
             type="button"
-            className={`nav-link ${activeTab === 'overview' ? 'active' : ''}`}
+            className={`btn ${activeTab === 'overview' ? 'btn-primary' : 'btn-ghost'} btn-sm`}
             onClick={() => setActiveTab('overview')}
-            style={{ borderRadius: 0, padding: '0.85rem 1rem' }}
+            style={{ borderRadius: '8px', padding: '0.55rem 1rem' }}
           >
-            <Briefcase size={16} /> Candidate Stats &amp; Bio
+            <Briefcase size={15} /> Candidate Stats &amp; Bio
           </button>
           <button
             type="button"
-            className={`nav-link ${activeTab === 'edit' ? 'active' : ''}`}
+            className={`btn ${activeTab === 'edit' ? 'btn-primary' : 'btn-ghost'} btn-sm`}
             onClick={() => setActiveTab('edit')}
-            style={{ borderRadius: 0, padding: '0.85rem 1rem' }}
+            style={{ borderRadius: '8px', padding: '0.55rem 1rem' }}
           >
-            <UserIcon size={16} /> Edit Profile &amp; Photo
+            <UserIcon size={15} /> Edit Profile &amp; Photo
           </button>
           <button
             type="button"
-            className={`nav-link ${activeTab === 'security' ? 'active' : ''}`}
+            className={`btn ${activeTab === 'security' ? 'btn-primary' : 'btn-ghost'} btn-sm`}
             onClick={() => setActiveTab('security')}
-            style={{ borderRadius: 0, padding: '0.85rem 1rem' }}
+            style={{ borderRadius: '8px', padding: '0.55rem 1rem' }}
           >
-            <KeyRound size={16} /> Security &amp; Password
+            <KeyRound size={15} /> Security &amp; Password
           </button>
         </div>
       </div>
