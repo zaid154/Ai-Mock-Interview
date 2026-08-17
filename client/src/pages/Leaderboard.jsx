@@ -1,36 +1,13 @@
 import { useState, useEffect } from 'react'
 import { Trophy, Award, Crown, CheckCircle2, User, Medal, Star } from 'lucide-react'
 import api, { apiError } from '../lib/api'
+import Avatar from '../components/Avatar'
 import toast from 'react-hot-toast'
 
+// Thin adapter over the shared component so the leaderboard keeps its own
+// prop name while rendering identically to the navbar and the profile page.
 function CandidateAvatar({ avatar, name, size = 42 }) {
-  const isImg = Boolean(avatar && (avatar.startsWith('http') || avatar.startsWith('data:image')))
-
-  return (
-    <div
-      style={{
-        width: `${size}px`,
-        height: `${size}px`,
-        borderRadius: '50%',
-        background: 'var(--accent-grad)',
-        border: '1.5px solid var(--border)',
-        display: 'grid',
-        placeItems: 'center',
-        fontWeight: '700',
-        fontSize: `${size * 0.42}px`,
-        color: '#ffffff',
-        overflow: 'hidden',
-        flexShrink: 0,
-        boxShadow: 'var(--shadow-sm)',
-      }}
-    >
-      {isImg ? (
-        <img src={avatar} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-      ) : (
-        avatar || name?.charAt(0).toUpperCase() || 'C'
-      )}
-    </div>
-  )
+  return <Avatar src={avatar} name={name} size={size} />
 }
 
 const SAMPLE_LEADERBOARD = [

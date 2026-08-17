@@ -1,190 +1,192 @@
 import { useState, useEffect } from 'react'
-import { Award, CheckCircle2, Download, Lock, Zap, ShieldCheck, ExternalLink, Loader2, Play } from 'lucide-react'
+import { CheckCircle2, Download, Lock, Loader2, Play, Award } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 import toast from 'react-hot-toast'
 import { useAuth } from '../context/AuthContext'
 import api from '../lib/api'
+import CertificateCard from '../components/CertificateCard'
 
-const MILESTONES = [
-  { id: 'm1', title: 'Interview Pioneer Certificate', reqCount: 1, reqMinScore: 60, desc: 'Complete 1st interview session with score ≥ 60%.' },
-  { id: 'm3', title: 'Interview Specialist Certificate', reqCount: 3, reqMinScore: 70, desc: 'Complete 3 interview sessions with score ≥ 70%.' },
-  { id: 'm5', title: 'MockMate AI Master Certificate', reqCount: 5, reqMinScore: 75, desc: 'Complete 5 interview sessions with score ≥ 75%.' },
-  { id: 'm_score', title: 'High Performance Honors Certificate', reqCount: 1, reqScore: 85, desc: 'Achieve a score of 85% or higher on any session.' },
+// Used only when the API cannot be reached, so the page still renders something
+// sensible offline. The real list is admin-managed and comes from the server.
+const FALLBACK_TEMPLATES = [
+  { key: 'm1', title: 'Interview Pioneer Certificate', description: 'Complete your first interview session with a score of 60% or higher.', reqCount: 1, reqMinScore: 60, reqScore: null, design: 'classic', accent: '#4f46e5' },
+  { key: 'm3', title: 'Interview Specialist Certificate', description: 'Complete 3 interview sessions with a score of 70% or higher.', reqCount: 3, reqMinScore: 70, reqScore: null, design: 'modern', accent: '#0f766e' },
+  { key: 'm5', title: 'MockMate AI Master Certificate', description: 'Complete 5 interview sessions with a score of 75% or higher.', reqCount: 5, reqMinScore: 75, reqScore: null, design: 'elegant', accent: '#7c3aed' },
+  { key: 'm_score', title: 'High Performance Honours Certificate', description: 'Achieve a score of 85% or higher in any single session.', reqCount: 1, reqMinScore: 60, reqScore: 85, design: 'elegant', accent: '#b45309' },
 ]
 
 export default function Certificates() {
   const { user } = useAuth()
+  const [templates, setTemplates] = useState([])
   const [completedInterviews, setCompletedInterviews] = useState([])
   const [loading, setLoading] = useState(true)
   const [downloading, setDownloading] = useState(false)
-  const [selectedCert, setSelectedCert] = useState(MILESTONES[0])
+  const [selectedKey, setSelectedKey] = useState(null)
 
   const [signatoryName, setSignatoryName] = useState('Mohd Zaid')
   const [signatoryTitle, setSignatoryTitle] = useState('Global Director of Candidate Assessments, MockMate AI')
   const [signatureImage, setSignatureImage] = useState('')
 
   useEffect(() => {
+    let alive = true
     async function loadData() {
       try {
         setLoading(true)
-        const [res, setRes] = await Promise.all([
+        const [res, setRes, tplRes] = await Promise.all([
           api.get('/interviews'),
           api.get('/auth/verification-settings'),
+          api.get('/certificates/templates').catch(() => null),
         ])
-        const list = (res.data?.interviews || []).filter((i) => i.status === 'completed')
-        setCompletedInterviews(list)
+        if (!alive) return
+
+        setCompletedInterviews((res.data?.interviews || []).filter((i) => i.status === 'completed'))
 
         if (setRes.data?.certSignatoryName) setSignatoryName(setRes.data.certSignatoryName)
         if (setRes.data?.certSignatoryTitle) setSignatoryTitle(setRes.data.certSignatoryTitle)
         if (setRes.data?.certSignatureImage) setSignatureImage(setRes.data.certSignatureImage)
+
+        const list = tplRes?.data?.templates?.length ? tplRes.data.templates : FALLBACK_TEMPLATES
+        setTemplates(list)
+        setSelectedKey((k) => k || list[0]?.key || null)
       } catch (err) {
+        if (!alive) return
+        setTemplates(FALLBACK_TEMPLATES)
+        setSelectedKey((k) => k || FALLBACK_TEMPLATES[0].key)
         console.warn('Error loading certificates data:', err)
       } finally {
-        setLoading(false)
+        if (alive) setLoading(false)
       }
     }
     loadData()
+    return () => {
+      alive = false
+    }
   }, [])
 
-  function getQualifyingSession(cert) {
-    if (cert.reqScore) {
-      return completedInterviews.find((i) => (i.overallScore || 0) >= cert.reqScore)
+  const selected = templates.find((t) => t.key === selectedKey) || templates[0] || null
+
+  // A template with reqScore set awards on a single high score; otherwise it
+  // awards on reaching reqCount sessions that each cleared reqMinScore.
+  function getQualifyingSession(t) {
+    if (!t) return null
+    if (t.reqScore != null) {
+      return completedInterviews.find((i) => (i.overallScore || 0) >= t.reqScore) || null
     }
-    const minScore = cert.reqMinScore || 60
-    const qualifiedList = completedInterviews.filter((i) => (i.overallScore || 0) >= minScore)
-    if (qualifiedList.length >= cert.reqCount) {
-      return qualifiedList[cert.reqCount - 1]
-    }
-    return null
+    const min = t.reqMinScore ?? 60
+    const qualified = completedInterviews.filter((i) => (i.overallScore || 0) >= min)
+    return qualified.length >= (t.reqCount ?? 1) ? qualified[(t.reqCount ?? 1) - 1] : null
   }
 
-  function isUnlocked(cert) {
-    return Boolean(getQualifyingSession(cert))
+  const isUnlocked = (t) => Boolean(getQualifyingSession(t))
+
+  function getProgressText(t) {
+    if (t.reqScore != null) {
+      const best = completedInterviews.reduce((m, i) => Math.max(m, i.overallScore || 0), 0)
+      return `${best}% / ${t.reqScore}% score`
+    }
+    const min = t.reqMinScore ?? 60
+    const n = completedInterviews.filter((i) => (i.overallScore || 0) >= min).length
+    return `${Math.min(n, t.reqCount ?? 1)} / ${t.reqCount ?? 1} sessions`
   }
 
-  function getProgressText(cert) {
-    if (cert.reqScore) {
-      const highestScore = completedInterviews.reduce((max, i) => Math.max(max, i.overallScore || 0), 0)
-      return `${highestScore}% / ${cert.reqScore}% Score`
+  function progressPercent(t) {
+    if (t.reqScore != null) {
+      const best = completedInterviews.reduce((m, i) => Math.max(m, i.overallScore || 0), 0)
+      return Math.min(100, Math.round((best / t.reqScore) * 100))
     }
-    const minScore = cert.reqMinScore || 60
-    const qualifiedCount = completedInterviews.filter((i) => (i.overallScore || 0) >= minScore).length
-    return `${Math.min(qualifiedCount, cert.reqCount)} / ${cert.reqCount} Sessions`
+    const min = t.reqMinScore ?? 60
+    const n = completedInterviews.filter((i) => (i.overallScore || 0) >= min).length
+    return Math.min(100, Math.round((n / (t.reqCount ?? 1)) * 100))
   }
+
+  const qualSession = getQualifyingSession(selected)
+  const unlocked = Boolean(qualSession)
+
+  const dateStr = new Date(qualSession?.createdAt || Date.now()).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+  const certId = qualSession
+    ? `MM-CERT-${String(qualSession._id).slice(-8).toUpperCase()}`
+    : `MM-CERT-${String(user?.id || '8F3E92B1').slice(-8).toUpperCase()}`
+  const verifyUrl =
+    typeof window !== 'undefined'
+      ? `${window.location.origin}/verify-certificate/${certId}`
+      : `/verify-certificate/${certId}`
 
   async function handleDownloadPDF() {
-    if (!isUnlocked(selectedCert)) {
-      toast.error('This milestone credential is locked! Complete the qualification criteria to unlock.')
+    if (!unlocked) {
+      toast.error('This credential is locked. Meet the criteria to unlock it.')
       return
     }
-
-    const certElement = document.querySelector('.official-cert-card')
-    if (!certElement) return
+    const el = document.querySelector('.official-cert-card')
+    if (!el) return
 
     setDownloading(true)
-    const toastId = toast.loading('Generating high-resolution official PDF certificate...')
-
+    const id = toast.loading('Generating your certificate PDF…')
     try {
-      const canvas = await html2canvas(certElement, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-      })
-
-      const imgData = canvas.toDataURL('image/jpeg', 1.0)
-      const pdf = new jsPDF({
-        orientation: 'landscape',
-        unit: 'mm',
-        format: 'a4',
-      })
-
-      const pdfWidth = pdf.internal.pageSize.getWidth()
-      const pdfHeight = pdf.internal.pageSize.getHeight()
-
-      const imgWidth = canvas.width
-      const imgHeight = canvas.height
-      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight)
-
-      const canvasWidth = imgWidth * ratio
-      const canvasHeight = imgHeight * ratio
-
-      const marginX = (pdfWidth - canvasWidth) / 2
-      const marginY = (pdfHeight - canvasHeight) / 2
-
-      pdf.addImage(imgData, 'JPEG', marginX, marginY, canvasWidth, canvasHeight)
-
-      const candidateFullName = (user?.name || 'MOCKMATE-CANDIDATE').replace(/[^a-zA-Z0-9]/g, '-')
-      const fileName = `MockMate-Official-Certificate-${candidateFullName}.pdf`
-
-      pdf.save(fileName)
-      toast.success('Official Credential PDF downloaded successfully!', { id: toastId })
+      const canvas = await html2canvas(el, { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' })
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' })
+      const pw = pdf.internal.pageSize.getWidth()
+      const ph = pdf.internal.pageSize.getHeight()
+      const ratio = Math.min(pw / canvas.width, ph / canvas.height)
+      const w = canvas.width * ratio
+      const h = canvas.height * ratio
+      pdf.addImage(canvas.toDataURL('image/jpeg', 1.0), 'JPEG', (pw - w) / 2, (ph - h) / 2, w, h)
+      pdf.save(`MockMate-Certificate-${(user?.name || 'Candidate').replace(/[^a-zA-Z0-9]/g, '-')}.pdf`)
+      toast.success('Certificate downloaded', { id })
     } catch (err) {
-      console.error('Error generating PDF file download:', err)
-      toast.error('Could not generate PDF file. Opening browser print fallback.', { id: toastId })
+      console.error('PDF generation failed:', err)
+      toast.error('Could not generate the PDF. Opening print instead.', { id })
       window.print()
     } finally {
       setDownloading(false)
     }
   }
 
-  // Exact Candidate Name (no placeholder!)
-  const candidateName = (user?.name || 'Candidate Name').toUpperCase()
-  const qualSession = getQualifyingSession(selectedCert)
-  const isCurrentUnlocked = Boolean(qualSession)
-
-  const dateStr = qualSession
-    ? new Date(qualSession.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-    : new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-
-  const certId = qualSession
-    ? `MM-CERT-${qualSession._id.toString().slice(-8).toUpperCase()}`
-    : `MM-CERT-${(user?.id || '8F3E92B1').slice(-8).toUpperCase()}`
-
   return (
     <main className="container">
-      {/* Section Head */}
       <div className="section-head">
         <h2>Official Milestone Credentials</h2>
-        <p>Earn verified, ISO-standard milestone certificates as you complete technical mock interview sessions.</p>
+        <p>Earn verified certificates as you complete technical mock interview sessions.</p>
       </div>
 
       {loading ? (
-        <div className="panel page-center muted" style={{ minHeight: '250px' }}>
-          Loading credentials...
+        <div className="panel page-center muted" style={{ minHeight: '250px' }}>Loading credentials…</div>
+      ) : !selected ? (
+        <div className="panel page-center" style={{ minHeight: '250px' }}>
+          <Award size={34} className="muted" />
+          <h3 style={{ marginTop: '0.8rem' }}>No milestones configured</h3>
+          <p className="muted small" style={{ margin: 0 }}>An admin has not published any credentials yet.</p>
         </div>
       ) : (
         <div className="cert-page-grid">
-          {/* Milestone Selection Sidebar */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-            <h3 style={{ fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', fontWeight: 700, marginBottom: '0.2rem' }}>
-              Select Milestone
-            </h3>
-            {MILESTONES.map((m) => {
-              const mUnlocked = isUnlocked(m)
-              const selected = selectedCert?.id === m.id
+          <div className="milestone-list">
+            <h3 className="milestone-list-head">Select milestone</h3>
+
+            {templates.map((t) => {
+              const open = isUnlocked(t)
               return (
                 <button
-                  key={m.id}
-                  className={`milestone-btn ${selected ? 'selected' : ''}`}
-                  onClick={() => setSelectedCert(m)}
+                  key={t.key}
+                  className={`milestone-btn ${selectedKey === t.key ? 'selected' : ''}`}
+                  onClick={() => setSelectedKey(t.key)}
+                  style={{ '--cert-accent': t.accent || '#4f46e5' }}
                 >
-                  <div style={{ flex: 1, textAlign: 'left' }}>
-                    <div style={{ fontWeight: 700, fontSize: '0.86rem', marginBottom: '0.1rem' }}>{m.title}</div>
-                    <div className="muted" style={{ fontSize: '0.76rem', lineHeight: '1.3' }}>{m.desc}</div>
-                    <div style={{ fontSize: '0.74rem', fontWeight: 700, color: mUnlocked ? 'var(--good)' : 'var(--warn)', marginTop: '0.35rem' }}>
-                      {mUnlocked ? '✓ Unlocked' : getProgressText(m)}
-                    </div>
-                  </div>
-                  <div style={{ marginLeft: '0.5rem', flexShrink: 0 }}>
-                    {mUnlocked ? (
-                      <CheckCircle2 size={18} style={{ color: 'var(--good)' }} />
-                    ) : (
-                      <Lock size={15} style={{ color: 'var(--warn)', opacity: 0.8 }} />
-                    )}
-                  </div>
+                  <span className="milestone-swatch" />
+                  <span className="milestone-body">
+                    <strong>{t.title}</strong>
+                    <span className="muted">{t.description}</span>
+                    <span className={`milestone-state ${open ? 'is-open' : ''}`}>
+                      {open ? '✓ Unlocked' : getProgressText(t)}
+                    </span>
+                  </span>
+                  <span className="milestone-icon">
+                    {open ? <CheckCircle2 size={18} /> : <Lock size={15} />}
+                  </span>
                 </button>
               )
             })}
@@ -192,245 +194,53 @@ export default function Certificates() {
             <button
               className="btn btn-primary btn-block btn-lg"
               onClick={handleDownloadPDF}
-              disabled={downloading || !isCurrentUnlocked}
-              style={{
-                marginTop: '1rem',
-                opacity: isCurrentUnlocked ? 1 : 0.6,
-                cursor: isCurrentUnlocked ? 'pointer' : 'not-allowed',
-              }}
+              disabled={downloading || !unlocked}
+              style={{ marginTop: '1rem' }}
             >
               {downloading ? (
-                <>
-                  <Loader2 size={18} className="spin" /> Generating PDF...
-                </>
-              ) : isCurrentUnlocked ? (
-                <>
-                  <Download size={18} /> Download Credential (PDF)
-                </>
+                <><Loader2 size={18} className="spin" /> Generating…</>
+              ) : unlocked ? (
+                <><Download size={18} /> Download certificate</>
               ) : (
-                <>
-                  <Lock size={18} /> Credential Locked
-                </>
+                <><Lock size={18} /> Credential locked</>
               )}
             </button>
           </div>
 
-          {/* Unlocked vs Locked Certificate Preview Pane */}
-          {isCurrentUnlocked ? (
-            /* Official Unlocked Certificate Card */
-            <div className="official-cert-card">
-              <div className="official-cert-frame">
-                <div className="official-cert-grid">
-                  {/* Left Main Body (75%) */}
-                  <div className="official-cert-main">
-                    {/* Brand Header */}
-                    <div>
-                      <div className="official-cert-header">
-                        <div className="official-cert-logo-box">
-                          <div
-                            style={{
-                              width: '32px',
-                              height: '32px',
-                              borderRadius: '8px',
-                              background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
-                              display: 'grid',
-                              placeItems: 'center',
-                              color: '#ffffff',
-                            }}
-                          >
-                            <Zap size={18} />
-                          </div>
-                          <span className="official-cert-brand-title">MockMate</span>
-                        </div>
-                        <div className="official-cert-date">{dateStr}</div>
-                      </div>
-
-                      {/* Candidate Name (Accurate logged-in user name!) */}
-                      <div className="official-cert-recipient">
-                        <h1 className="official-cert-recipient-name">{candidateName}</h1>
-                        <p className="official-cert-subtext">has successfully completed technical qualification for</p>
-                      </div>
-
-                      {/* Milestone Title & Role */}
-                      <div className="official-cert-title-block">
-                        <h2 className="official-cert-course-title">{selectedCert.title}</h2>
-                        <p className="official-cert-course-desc">
-                          evaluated through Google Gemini AI in <strong>{qualSession?.role || 'Technical Architecture'}</strong> ({qualSession?.overallScore}% Score).
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Signature Block Bottom Left */}
-                    <div className="official-cert-signature-wrap">
-                      {signatureImage ? (
-                        <img src={signatureImage} alt="Official Admin Signature" style={{ maxHeight: '42px', objectFit: 'contain', marginBottom: '0.2rem', maxWidth: '180px' }} />
-                      ) : (
-                        <svg className="official-cert-signature-svg" viewBox="0 0 200 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path
-                            d="M10 35C25 15 45 40 60 20C75 5 90 45 110 25C130 10 145 35 160 15C170 5 185 30 195 20"
-                            stroke="#0f172a"
-                            strokeWidth="2.2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M20 40C50 38 120 42 180 39"
-                            stroke="#0f172a"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                          />
-                        </svg>
-                      )}
-                      <div className="official-cert-sig-line" />
-                      <div className="official-cert-sig-name">{signatoryName}</div>
-                      <div className="official-cert-sig-title">{signatoryTitle}</div>
-                    </div>
-                  </div>
-
-                  {/* Right Ribbon Sidebar (25%) */}
-                  <div className="official-cert-sidebar">
-                    <div className="official-cert-banner-tag">
-                      COURSE<br />CERTIFICATE
-                    </div>
-
-                    {/* Circular Stamp Badge Seal */}
-                    <div className="official-cert-stamp-badge">
-                      <div className="official-cert-stamp-inner">
-                        <ShieldCheck size={28} style={{ color: '#4f46e5', marginBottom: '0.2rem' }} />
-                        <div className="official-cert-stamp-text">
-                          MOCKMATE<br />VERIFIED
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Verification QR Code */}
-                    <a
-                      href={`/verify-certificate/${certId}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      style={{ margin: '0.4rem 0 0.2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textDecoration: 'none' }}
-                      title="Scan or click to verify credential"
-                    >
-                      <img
-                        src={`https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
-                          typeof window !== 'undefined' ? `${window.location.origin}/verify-certificate/${certId}` : `https://ai-mock-interview-three-pi.vercel.app/verify-certificate/${certId}`
-                        )}&size=200x200&margin=2`}
-                        alt="Real Scannable Verification QR Code"
-                        crossOrigin="anonymous"
-                        style={{
-                          width: '60px',
-                          height: '60px',
-                          border: '1px solid #cbd5e1',
-                          padding: '2px',
-                          background: '#ffffff',
-                          borderRadius: '4px',
-                          boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-                          objectFit: 'contain',
-                        }}
-                      />
-                      <span style={{ fontSize: '0.55rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '3px', fontWeight: 800 }}>
-                        SCAN TO VERIFY
-                      </span>
-                    </a>
-
-                    {/* Minimalist Verified Credential Box */}
-                    <div style={{ marginTop: '0.6rem', textAlign: 'center', background: '#f8fafc', padding: '0.45rem 0.5rem', borderRadius: '8px', border: '1px dashed #cbd5e1' }}>
-                      <div style={{ fontSize: '0.56rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700 }}>
-                        Credential Verification
-                      </div>
-                      <a
-                        href={`/verify-certificate/${certId}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        style={{
-                          fontSize: '0.65rem',
-                          fontFamily: 'monospace',
-                          fontWeight: 800,
-                          color: '#4f46e5',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '0.25rem',
-                          marginTop: '0.2rem',
-                          textDecoration: 'none',
-                        }}
-                        className="hover-lift"
-                        title="Click to verify credential"
-                      >
-                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22c55e', display: 'inline-block', flexShrink: 0 }} />
-                        {certId} <ExternalLink size={10} />
-                      </a>
-                    </div>
-
-                    <div style={{ fontSize: '0.56rem', color: '#64748b', marginTop: '0.4rem', textAlign: 'center', lineHeight: 1.25 }}>
-                      Verified credential issued by <strong style={{ color: '#334155' }}>MockMate AI</strong>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          {unlocked ? (
+            <CertificateCard
+              design={selected.design}
+              accent={selected.accent}
+              title={selected.title}
+              subtitle={selected.subtitle}
+              candidateName={user?.name}
+              role={qualSession?.role || 'Technical Architecture'}
+              score={qualSession?.overallScore}
+              dateStr={dateStr}
+              certId={certId}
+              verifyUrl={verifyUrl}
+              signatoryName={signatoryName}
+              signatoryTitle={signatoryTitle}
+              signatureImage={signatureImage}
+            />
           ) : (
-            /* Strict Locked Credential Card */
-            <div
-              className="panel"
-              style={{
-                borderRadius: '24px',
-                padding: '4rem 2rem',
-                textAlign: 'center',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justify: 'center',
-                background: 'var(--surface-elevated)',
-                border: '1px dashed var(--border-strong)',
-                minHeight: '460px',
-              }}
-            >
-              <div
-                style={{
-                  width: '64px',
-                  height: '64px',
-                  borderRadius: '50%',
-                  background: 'rgba(245, 158, 11, 0.12)',
-                  border: '1px solid rgba(245, 158, 11, 0.3)',
-                  display: 'grid',
-                  placeItems: 'center',
-                  color: 'var(--warn)',
-                  marginBottom: '1.25rem',
-                }}
-              >
-                <Lock size={30} />
-              </div>
+            <div className="panel cert-locked">
+              <span className="cert-locked-icon"><Lock size={28} /></span>
+              <h3>{selected.title} locked</h3>
+              <p className="muted">{selected.description}</p>
 
-              <h3 style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: '0.5rem' }}>
-                {selectedCert.title} Locked
-              </h3>
-              <p className="muted" style={{ maxWidth: '44ch', fontSize: '0.98rem', lineHeight: '1.6', marginBottom: '1.8rem' }}>
-                {selectedCert.desc}
-              </p>
-
-              {/* Progress Indicator with Perfect Spacing */}
-              <div style={{ background: 'var(--surface-2)', padding: '1.1rem 1.6rem', borderRadius: '14px', border: '1px solid var(--border-soft)', marginBottom: '2rem', minWidth: '320px', maxWidth: '420px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1.5rem', fontSize: '0.86rem', fontWeight: 700, marginBottom: '0.65rem' }}>
-                  <span style={{ color: 'var(--text)' }}>Qualification Progress</span>
-                  <span style={{ color: 'var(--warn)', fontFamily: 'var(--font-mono)', fontWeight: 800 }}>{getProgressText(selectedCert)}</span>
+              <div className="cert-locked-progress">
+                <div className="cert-locked-progress-head">
+                  <span>Qualification progress</span>
+                  <span className="mono">{getProgressText(selected)}</span>
                 </div>
-                <div style={{ width: '100%', height: '8px', background: 'var(--border-soft)', borderRadius: '999px', overflow: 'hidden' }}>
-                  <div
-                    style={{
-                      height: '100%',
-                      width: selectedCert.reqScore
-                        ? `${Math.min(100, Math.round(((completedInterviews.reduce((m, i) => Math.max(m, i.overallScore || 0), 0)) / selectedCert.reqScore) * 100))}%`
-                        : `${Math.min(100, Math.round((completedInterviews.filter((i) => (i.overallScore || 0) >= (selectedCert.reqMinScore || 60)).length / selectedCert.reqCount) * 100))}%`,
-                      background: 'linear-gradient(90deg, #f59e0b 0%, #eab308 100%)',
-                      borderRadius: '999px',
-                      transition: 'width 0.3s ease',
-                    }}
-                  />
+                <div className="progress-track" style={{ margin: 0 }}>
+                  <div className="progress-fill" style={{ width: `${progressPercent(selected)}%` }} />
                 </div>
               </div>
 
-              <Link to="/dashboard" className="btn btn-primary btn-lg" style={{ borderRadius: '999px', padding: '0.85rem 2.4rem' }}>
-                <Play size={17} /> Start Mock Session to Qualify
+              <Link to="/dashboard" className="btn btn-primary btn-lg">
+                <Play size={17} /> Start a session to qualify
               </Link>
             </div>
           )}

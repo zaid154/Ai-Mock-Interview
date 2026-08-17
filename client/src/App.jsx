@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
+import ScrollToTop from './components/ScrollToTop'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
 import Landing from './pages/Landing'
@@ -23,6 +24,7 @@ import VerifyCertificate from './pages/VerifyCertificate'
 export default function App() {
   return (
     <div className="app-shell">
+      <ScrollToTop />
       <Navbar />
       <div className="app-main">
         <Routes>

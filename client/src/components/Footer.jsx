@@ -1,6 +1,7 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Zap, Github, Globe, Linkedin, Sparkles, ArrowUpRight, Mail } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { goToSection } from '../lib/scrollToSection'
 
 export default function Footer() {
   const year = new Date().getFullYear()
@@ -9,37 +10,12 @@ export default function Footer() {
   const location = useLocation()
 
   function scrollToSection(id) {
-    if (id === 'overview') {
-      if (location.pathname !== '/') {
-        navigate('/')
-        setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100)
-      } else {
-        window.scrollTo({ top: 0, behavior: 'smooth' })
-      }
-      return
-    }
-
-    if (location.pathname !== '/') {
-      navigate('/')
-      setTimeout(() => {
-        const el = document.getElementById(id)
-        if (el) {
-          const y = el.getBoundingClientRect().top + window.pageYOffset - 80
-          window.scrollTo({ top: y, behavior: 'smooth' })
-        }
-      }, 100)
-    } else {
-      const el = document.getElementById(id)
-      if (el) {
-        const y = el.getBoundingClientRect().top + window.pageYOffset - 80
-        window.scrollTo({ top: y, behavior: 'smooth' })
-      }
-    }
+    goToSection(id, { pathname: location.pathname, navigate })
   }
 
   return (
     <footer className="footer">
-      <div className="container" style={{ padding: '0 1rem' }}>
+      <div className="container" style={{ paddingTop: 0, paddingBottom: 0 }}>
         <div className="footer-grid">
           {/* Brand & Creator Bio */}
           <div className="footer-brand-col">
@@ -143,7 +119,7 @@ export default function Footer() {
       </div>
 
       <div className="footer-bottom-bar">
-        <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.8rem', padding: '0 1rem' }}>
+        <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.8rem', paddingTop: 0, paddingBottom: 0 }}>
           <p className="muted small" style={{ margin: 0, fontSize: '0.8rem' }}>
             © {year} MockMate AI. Built by <a href="https://portfolio-zeta-drab-97.vercel.app/" target="_blank" rel="noreferrer" style={{ fontWeight: 700, color: 'var(--text)' }}>Mohd Zaid</a> (<a href="mailto:zaidm1323@gmail.com" style={{ color: 'var(--accent-primary)', textDecoration: 'none' }}>zaidm1323@gmail.com</a>).
           </p>

@@ -43,7 +43,7 @@ export default function Register() {
             padding: '1.8rem 2rem',
             display: 'flex',
             flexDirection: 'column',
-            justify: 'space-between',
+            justifyContent: 'space-between',
             borderRight: '1px solid var(--border-soft)',
           }}
         >

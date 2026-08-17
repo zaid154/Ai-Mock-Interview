@@ -188,7 +188,7 @@ export default function Interview() {
           border: '1px solid var(--border)',
         }}
       >
-        <span className="muted small" style={{ fontSize: '0.76rem', fontWeight: 700, uppercase: 'true', letterSpacing: '0.05em', marginRight: '0.2rem' }}>
+        <span className="muted small" style={{ fontSize: '0.76rem', fontWeight: 700, letterSpacing: '0.05em', marginRight: '0.2rem' }}>
           Questions:
         </span>
         {interview.questions.map((q, idx) => {
@@ -258,7 +258,7 @@ export default function Interview() {
             QUESTION {current + 1} OF {total}
           </span>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
             <button className="btn btn-ghost btn-sm" onClick={() => copyQuestionPrompt(question.prompt)} title="Copy question prompt">
               {copiedPrompt ? <Check size={14} style={{ color: 'var(--good)' }} /> : <Copy size={14} />}
               <span>{copiedPrompt ? 'Copied' : 'Copy Question'}</span>
@@ -299,7 +299,7 @@ export default function Interview() {
             style={{
               display: 'flex',
               alignItems: 'center',
-              justify: 'space-between',
+              justifyContent: 'space-between',
               marginTop: '0.5rem',
               padding: '0.4rem 0.2rem',
               fontSize: '0.8rem',

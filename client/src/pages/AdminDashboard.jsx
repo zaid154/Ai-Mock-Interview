@@ -5,6 +5,8 @@ import api, { apiError } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 
 import { useConfirm } from '../components/ConfirmDialog'
+import Avatar from '../components/Avatar'
+import CertificateManager from '../components/CertificateManager'
 
 function valueToText(value) {
   if (typeof value === 'string') return value
@@ -296,26 +298,27 @@ export default function AdminDashboard() {
           <ShieldCheck size={18} style={{ color: 'var(--accent-primary)' }} /> Platform &amp; Interface Controls
         </h3>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.8rem', cursor: 'pointer' }}>
+        <label className="switch-row">
+          <span className="switch">
             <input
               type="checkbox"
               checked={verifyRequired}
               onChange={(e) => onToggleVerifyRequired(e.target.checked)}
               disabled={savingVerification}
-              style={{ width: 'auto', marginTop: '0.25rem' }}
             />
-            <div>
-              <strong style={{ fontSize: '0.98rem' }}>Require Email Verification Before Login</strong>
-              <p className="muted small" style={{ margin: '0.2rem 0 0' }}>
-                When enabled, new candidates must verify their email via OTP before accessing dashboard features.
-              </p>
-            </div>
-          </label>
-
-
-        </div>
+            <span className="switch-track" />
+          </span>
+          <span className="switch-copy">
+            <strong>Require email verification before login</strong>
+            <span className="muted small">
+              New candidates must confirm their email with an OTP before they can reach the dashboard.
+            </span>
+          </span>
+        </label>
       </section>
+
+      {/* Milestone credentials: create, edit, retire, and choose each layout. */}
+      <CertificateManager />
 
       {/* Certificate Signature Control */}
       <section className="panel" style={{ marginBottom: '1.75rem' }}>
@@ -348,7 +351,7 @@ export default function AdminDashboard() {
 
           <div className="field" style={{ marginBottom: 0 }}>
             <span className="field-label" style={{ fontSize: '0.8rem' }}>Signature Image (PNG / SVG Data URL or Image Link)</span>
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
               <input
                 value={certSignatureImage}
                 onChange={(e) => setCertSignatureImage(e.target.value)}
@@ -397,35 +400,25 @@ export default function AdminDashboard() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginBottom: '1.2rem' }}>
             {geminiKeys.map((k, i) => (
-              <div
-                key={i}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  background: 'var(--surface-2)',
-                  border: '1px solid var(--border)',
-                  borderRadius: '12px',
-                  padding: '0.65rem 1rem',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+              <div key={i} className="admin-row key-row">
+                <div className="admin-row-main">
                   <span className="tag-soft mono">#{i + 1}</span>
                   <code className="mono" style={{ color: 'var(--text)', fontSize: '0.9rem' }}>{maskKey(k)}</code>
                 </div>
                 <button
-                  className="history-del"
+                  className="icon-btn icon-btn-danger"
                   onClick={() => removeGeminiKey(i)}
                   title="Delete key"
+                  aria-label={`Delete key ${i + 1}`}
                 >
-                  <Trash2 size={16} />
+                  <Trash2 size={15} />
                 </button>
               </div>
             ))}
           </div>
         )}
 
-        <form onSubmit={addGeminiKey} style={{ display: 'flex', gap: '0.75rem' }}>
+        <form onSubmit={addGeminiKey} style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
           <input
             value={newGeminiKey}
             onChange={(e) => setNewGeminiKey(e.target.value)}
@@ -443,81 +436,56 @@ export default function AdminDashboard() {
         <h3 style={{ fontSize: '1.15rem', marginBottom: '1.2rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
           <Users size={18} style={{ color: 'var(--accent-primary)' }} /> Registered Candidates ({users.length})
         </h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          {users.map((u) => (
-            <div
-              key={u._id}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                background: 'var(--surface-2)',
-                border: '1px solid var(--border)',
-                borderRadius: '14px',
-                padding: '0.9rem 1.2rem',
-                flexWrap: 'wrap',
-                gap: '0.8rem',
-              }}
-            >
-              <div>
-                <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{u.name}</div>
-                <div className="muted mono small">{u.email}</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+          {users.map((u) => {
+            const isMe = u._id === me?.id
+            return (
+              <div key={u._id} className="admin-row">
+                <div className="admin-row-main">
+                  <Avatar src={u.avatar} name={u.name} size={38} />
+                  <div className="admin-row-name">
+                    <strong>
+                      {u.name}
+                      {isMe && <span className="pill">You</span>}
+                    </strong>
+                    <span className="mono admin-row-email">{u.email}</span>
+                  </div>
+                </div>
+
+                <div className="admin-row-actions">
+                  <span className={`pill ${u.role === 'admin' ? 'pill-admin' : ''}`}>{u.role}</span>
+                  <span className={`pill ${u.isVerified ? 'pill-good' : 'pill-bad'}`}>
+                    {u.isVerified ? 'Verified' : 'Unverified'}
+                  </span>
+
+                  <button className="btn btn-secondary btn-sm" onClick={() => toggleVerified(u)}>
+                    {u.isVerified ? 'Unverify' : 'Verify'}
+                  </button>
+
+                  {!isMe && (
+                    <>
+                      <button
+                        className="icon-btn"
+                        onClick={() => toggleRole(u)}
+                        title={u.role === 'admin' ? 'Demote to user' : 'Promote to admin'}
+                        aria-label={u.role === 'admin' ? 'Demote to user' : 'Promote to admin'}
+                      >
+                        {u.role === 'admin' ? <ShieldMinus size={15} /> : <ShieldPlus size={15} />}
+                      </button>
+                      <button
+                        className="icon-btn icon-btn-danger"
+                        onClick={() => deleteUser(u)}
+                        title="Delete user"
+                        aria-label={`Delete ${u.name}`}
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <span
-                  style={{
-                    padding: '0.2rem 0.65rem',
-                    borderRadius: '6px',
-                    fontSize: '0.72rem',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                    background: u.role === 'admin' ? 'rgba(99, 102, 241, 0.15)' : 'var(--surface)',
-                    color: u.role === 'admin' ? 'var(--accent-primary)' : 'var(--text-muted)',
-                    border: `1px solid ${u.role === 'admin' ? 'rgba(99, 102, 241, 0.3)' : 'var(--border)'}`,
-                  }}
-                >
-                  {u.role}
-                </span>
-
-                <span
-                  style={{
-                    padding: '0.2rem 0.65rem',
-                    borderRadius: '6px',
-                    fontSize: '0.72rem',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                    background: u.isVerified ? 'var(--good-soft)' : 'var(--bad-soft)',
-                    color: u.isVerified ? 'var(--good)' : 'var(--bad)',
-                    border: `1px solid ${u.isVerified ? 'rgba(4, 120, 87, 0.25)' : 'rgba(190, 18, 60, 0.25)'}`,
-                  }}
-                >
-                  {u.isVerified ? 'Verified' : 'Unverified'}
-                </span>
-
-                <button className="btn btn-secondary btn-sm" onClick={() => toggleVerified(u)}>
-                  {u.isVerified ? 'Unverify' : 'Verify'}
-                </button>
-
-                {u._id !== me?.id && (
-                  <>
-                    <button
-                      className="btn btn-ghost btn-sm"
-                      onClick={() => toggleRole(u)}
-                      title={u.role === 'admin' ? 'Demote to user' : 'Promote to admin'}
-                    >
-                      {u.role === 'admin' ? <ShieldMinus size={15} /> : <ShieldPlus size={15} />}
-                    </button>
-                    <button className="history-del" onClick={() => deleteUser(u)} title="Delete user">
-                      <Trash2 size={16} />
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </section>
 
@@ -567,29 +535,25 @@ function SettingRow({ setting, onSave, onRename, onDelete }) {
   const [text, setText] = useState(valueToText(setting.value))
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.75rem',
-        background: 'var(--surface-2)',
-        border: '1px solid var(--border)',
-        borderRadius: '12px',
-        padding: '0.6rem 0.9rem',
-        flexWrap: 'wrap',
-      }}
-    >
-      <span className="mono" style={{ fontWeight: 700, fontSize: '0.9rem', minWidth: '120px' }}>{setting.key}</span>
-      <input value={text} onChange={(e) => setText(e.target.value)} style={{ flex: 1, minWidth: '140px' }} />
-      <button className="btn btn-secondary btn-sm" onClick={() => onSave(setting, text)}>
-        <Save size={14} /> Save
-      </button>
-      <button className="btn btn-ghost btn-sm" onClick={() => onRename(setting)}>
-        Rename
-      </button>
-      <button className="history-del" onClick={() => onDelete(setting.key)} title="Delete setting">
-        <Trash2 size={16} />
-      </button>
+    <div className="admin-row">
+      <span className="mono" style={{ fontWeight: 700, fontSize: '0.88rem', minWidth: '120px' }}>{setting.key}</span>
+      <input value={text} onChange={(e) => setText(e.target.value)} style={{ flex: 1, minWidth: '160px' }} />
+      <div className="admin-row-actions">
+        <button className="btn btn-secondary btn-sm" onClick={() => onSave(setting, text)}>
+          <Save size={14} /> Save
+        </button>
+        <button className="btn btn-ghost btn-sm" onClick={() => onRename(setting)}>
+          Rename
+        </button>
+        <button
+          className="icon-btn icon-btn-danger"
+          onClick={() => onDelete(setting.key)}
+          title="Delete setting"
+          aria-label={`Delete ${setting.key}`}
+        >
+          <Trash2 size={15} />
+        </button>
+      </div>
     </div>
   )
 }

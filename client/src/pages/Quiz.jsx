@@ -107,7 +107,7 @@ export default function Quiz() {
       {/* Quiz HUD Header */}
       <div className="interview-hud-head">
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.2rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.6rem', marginBottom: '0.2rem' }}>
             <span className="badge-glow" style={{ fontSize: '0.72rem' }}>
               <HelpCircle size={13} /> Technical MCQ Quiz
             </span>
@@ -186,7 +186,7 @@ export default function Quiz() {
       </div>
 
       {/* Navigation Controls */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginTop: '2rem' }}>
         <button
           className="btn btn-secondary"
           onClick={() => setCurrent((c) => c - 1)}

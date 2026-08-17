@@ -6,6 +6,8 @@ const Question = require('./models/Question.model')
 const Interview = require('./models/Interview.model')
 const Setting = require('./models/Setting.model')
 const Certificate = require('./models/Certificate.model')
+const CertificateTemplate = require('./models/CertificateTemplate.model')
+const { DEFAULT_TEMPLATES } = require('./controllers/certificateTemplate.controller')
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mockmate'
 
@@ -140,26 +142,55 @@ async function seed({ reset = true } = {}) {
   )
   console.log(`Fallback questions ready (${result.upsertedCount || 0} added).`)
 
-  // 2) Secondary Admin (admin@shop.com)
-  const secondaryHash = await bcrypt.hash('Admin@123', 10)
-  const secAdminDoc = await User.findOneAndUpdate(
-    { email: 'admin@shop.com' },
+  // 2) Staff admins.
+  //
+  // .env.example documents ADMIN_EMAIL / ADMIN_PASSWORD / ADMIN_NAME as the
+  // "default admin (created/updated by npm run seed)", but this seed used to
+  // ignore them completely and hardcode admin@shop.com — so anyone who filled
+  // in those variables got an account that did not exist and a login that
+  // failed. Honour the documented contract, and keep admin@shop.com as a
+  // fixture so existing setups do not lose their account.
+  const ADMINS = [
     {
-      name: 'Admin Support',
-      email: 'admin@shop.com',
-      passwordHash: secondaryHash,
-      role: 'admin',
-      avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80',
-      isVerified: true,
-      isEmailVerified: true,
-      verifiedAt: new Date(),
-      registrationCompleted: true,
+      email: (process.env.ADMIN_EMAIL || 'admin@mockmate.com').trim().toLowerCase(),
+      password: process.env.ADMIN_PASSWORD || 'Admin@123',
+      name: process.env.ADMIN_NAME || 'Admin',
+      avatar: '',
     },
-    { upsert: true, new: true, setDefaultsOnInsert: true },
-  )
-  if (secAdminDoc) {
-    await Interview.deleteMany({ user: secAdminDoc._id })
-    await Certificate.deleteMany({ user: secAdminDoc._id })
+    {
+      email: 'admin@shop.com',
+      password: 'Admin@123',
+      name: 'Admin Support',
+      avatar:
+        'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80',
+    },
+  ]
+
+  const seenAdminEmails = new Set()
+  for (const a of ADMINS) {
+    if (!a.email || seenAdminEmails.has(a.email)) continue
+    seenAdminEmails.add(a.email)
+
+    const doc = await User.findOneAndUpdate(
+      { email: a.email },
+      {
+        name: a.name,
+        email: a.email,
+        passwordHash: await bcrypt.hash(a.password, 10),
+        role: 'admin',
+        avatar: a.avatar,
+        isVerified: true,
+        isEmailVerified: true,
+        verifiedAt: new Date(),
+        registrationCompleted: true,
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true },
+    )
+    if (doc) {
+      await Interview.deleteMany({ user: doc._id })
+      await Certificate.deleteMany({ user: doc._id })
+    }
+    console.log(`Admin ready: ${a.name} (${a.email}) / ${a.password}`)
   }
 
   // 3) Seed Candidates, Completed Interview Sessions, and Persistent Certificates
@@ -255,7 +286,36 @@ async function seed({ reset = true } = {}) {
     { $setOnInsert: { key: 'gemini_api_keys', value: [] } },
     { upsert: true },
   )
+  await Setting.findOneAndUpdate(
+    { key: 'cert_signatory_name' },
+    { $setOnInsert: { key: 'cert_signatory_name', value: 'Mohd Zaid' } },
+    { upsert: true },
+  )
+  await Setting.findOneAndUpdate(
+    { key: 'cert_signatory_title' },
+    {
+      $setOnInsert: {
+        key: 'cert_signatory_title',
+        value: 'Global Director of Candidate Assessments, MockMate AI',
+      },
+    },
+    { upsert: true },
+  )
   console.log('Default settings ready.')
+
+  // 5) Certificate milestones.
+  // Upsert by key rather than wipe-and-insert: re-seeding must not discard a
+  // milestone an admin has since retitled, recoloured or switched design on.
+  // Only the identity fields are forced; everything else is $setOnInsert.
+  for (const t of DEFAULT_TEMPLATES) {
+    await CertificateTemplate.findOneAndUpdate(
+      { key: t.key },
+      { $setOnInsert: t },
+      { upsert: true, setDefaultsOnInsert: true },
+    )
+  }
+  const templateCount = await CertificateTemplate.countDocuments()
+  console.log(`Certificate milestones ready: ${templateCount} template(s).`)
 
   await mongoose.disconnect()
   console.log('Seed complete!')

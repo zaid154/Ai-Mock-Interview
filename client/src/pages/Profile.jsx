@@ -5,27 +5,37 @@ import {
   Save,
   Award,
   Bookmark,
-  MessagesSquare,
-  CheckCircle2,
   ShieldCheck,
-  Briefcase,
   Sparkles,
   KeyRound,
-  TrendingUp,
-  ExternalLink,
   Mail,
-  ShieldAlert,
   Camera,
   Upload,
   Link as LinkIcon,
   Trash2,
+  BarChart3,
+  Layers,
+  Target,
+  TrendingUp,
+  Eye,
+  Image as ImageIcon,
+  Check,
+  Circle,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import api, { apiError } from '../lib/api'
+import { fileToSquareDataUrl, approxDataUrlKb } from '../lib/image'
+import Avatar, { isImageAvatar } from '../components/Avatar'
 import toast from 'react-hot-toast'
 import { Link } from 'react-router-dom'
 
 const PRESET_AVATARS = ['🎯', '💻', '⚡', '🚀', '🧠', '💼', '🎓', '🤖', '🔥', '🛡️', '🌟', '👨‍💻']
+
+const TABS = [
+  { id: 'overview', label: 'Overview', icon: BarChart3 },
+  { id: 'edit', label: 'Edit profile', icon: UserIcon },
+  { id: 'security', label: 'Security', icon: KeyRound },
+]
 
 export default function Profile() {
   const { user, refreshUser } = useAuth()
@@ -34,10 +44,11 @@ export default function Profile() {
 
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
-  const [bio, setBio] = useState(user?.bio || '')
-  const [avatar, setAvatar] = useState(user?.avatar || PRESET_AVATARS[0])
+  const [bio, setBio] = useState('')
+  const [avatar, setAvatar] = useState('')
   const [customUrl, setCustomUrl] = useState('')
   const [savingProfile, setSavingProfile] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef(null)
 
   const [currentPassword, setCurrentPassword] = useState('')
@@ -45,6 +56,7 @@ export default function Profile() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [savingPassword, setSavingPassword] = useState(false)
 
+  const [userRank, setUserRank] = useState(null)
   const [stats, setStats] = useState({
     totalInterviews: 0,
     totalQuizzes: 0,
@@ -54,106 +66,107 @@ export default function Profile() {
   })
 
   useEffect(() => {
-    if (user) {
-      const parts = (user.name || '').trim().split(/\s+/)
-      setFirstName(parts[0] || '')
-      setLastName(parts.slice(1).join(' ') || '')
-      setBio(user.bio || '')
-      setAvatar(user.avatar || PRESET_AVATARS[0])
-    }
+    if (!user) return
+    const parts = (user.name || '').trim().split(/\s+/)
+    setFirstName(parts[0] || '')
+    setLastName(parts.slice(1).join(' ') || '')
+    setBio(user.bio || '')
+    // Mirror the stored value exactly. Defaulting to a preset emoji here is what
+    // made the profile show a target glyph while the navbar showed an initial.
+    setAvatar(user.avatar || '')
   }, [user])
 
   useEffect(() => {
     let mounted = true
     async function loadStats() {
       try {
-        const [intRes, bmRes] = await Promise.all([
+        const [intRes, bmRes, lbRes] = await Promise.all([
           api.get('/interviews'),
           api.get('/bookmarks'),
+          api.get('/interviews/leaderboard').catch(() => ({ data: { leaderboard: [] } })),
         ])
         if (!mounted) return
         const list = intRes.data?.interviews || []
         const completed = list.filter((i) => i.status === 'completed')
-        const totalInt = completed.filter((i) => i.mode !== 'quiz').length
-        const totalQuiz = completed.filter((i) => i.mode === 'quiz').length
         const scores = completed.map((i) => i.overallScore || 0)
-        const avg = scores.length
-          ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
-          : 0
-        const top = scores.length ? Math.max(...scores) : 0
-
         setStats({
-          totalInterviews: totalInt,
-          totalQuizzes: totalQuiz,
-          avgScore: avg,
-          highestScore: top,
+          totalInterviews: completed.filter((i) => i.mode !== 'quiz').length,
+          totalQuizzes: completed.filter((i) => i.mode === 'quiz').length,
+          avgScore: scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0,
+          highestScore: scores.length ? Math.max(...scores) : 0,
           bookmarksCount: bmRes.data?.bookmarks?.length || 0,
         })
-      } catch (err) {
-        console.warn('Error loading stats:', err)
+
+        const lbList = lbRes.data?.leaderboard || []
+        const myEntry = lbList.find(
+          (item) =>
+            (user?._id && String(item.userId) === String(user._id)) ||
+            (user?.name && item.name?.trim().toLowerCase() === user.name.trim().toLowerCase())
+        )
+        if (myEntry) {
+          setUserRank(myEntry.rank)
+        } else {
+          const sampleMatch = [
+            { name: 'Mohd Zaid', rank: 1 },
+            { name: 'Aarav Sharma', rank: 2 },
+            { name: 'Priya Patel', rank: 3 },
+            { name: 'Rohan Verma', rank: 4 },
+            { name: 'Ananya Gupta', rank: 5 },
+          ].find((item) => user?.name && item.name?.trim().toLowerCase() === item.name.toLowerCase())
+          setUserRank(sampleMatch ? sampleMatch.rank : null)
+        }
+      } catch {
+        // stats are decorative; a failure here must not blank the page
       }
     }
     loadStats()
-    return () => { mounted = false }
-  }, [])
+    return () => {
+      mounted = false
+    }
+  }, [user])
+
+  // Every avatar change goes through here, so there is exactly one place that
+  // writes the field and one place that reports the result.
+  async function commitAvatar(next, message) {
+    const previous = avatar
+    setAvatar(next)
+    try {
+      await api.patch('/auth/profile', { avatar: next })
+      toast.success(message)
+      if (refreshUser) await refreshUser()
+    } catch (err) {
+      setAvatar(previous)
+      toast.error(apiError(err, 'Could not update your picture'))
+    }
+  }
 
   async function handlePhotoFileUpload(e) {
     const file = e.target.files?.[0]
+    e.target.value = '' // let the same file be picked again after a failure
     if (!file) return
-    if (file.size > 3 * 1024 * 1024) {
-      toast.error('Please choose an image file under 3 MB')
-      return
+
+    setUploading(true)
+    const id = toast.loading('Processing image…')
+    try {
+      const dataUrl = await fileToSquareDataUrl(file)
+      toast.dismiss(id)
+      await commitAvatar(dataUrl, `Picture updated (${approxDataUrlKb(dataUrl)} KB)`)
+    } catch (err) {
+      toast.error(err.message || 'Could not read that image', { id })
+    } finally {
+      setUploading(false)
     }
-    const reader = new FileReader()
-    reader.onload = async (event) => {
-      const newAvatar = event.target.result
-      setAvatar(newAvatar)
-      try {
-        await api.patch('/auth/profile', { avatar: newAvatar })
-        toast.success('Profile picture updated & saved!')
-        if (refreshUser) await refreshUser()
-      } catch (err) {
-        toast.error(apiError(err, 'Could not save photo'))
-      }
-    }
-    reader.readAsDataURL(file)
   }
 
   async function handleApplyCustomUrl() {
-    if (!customUrl.trim()) return
-    const newAvatar = customUrl.trim()
-    setAvatar(newAvatar)
+    const url = customUrl.trim()
+    if (!url) return
+    if (!/^https?:\/\//i.test(url)) {
+      toast.error('Enter a full image URL starting with http:// or https://')
+      return
+    }
     setCustomUrl('')
-    try {
-      await api.patch('/auth/profile', { avatar: newAvatar })
-      toast.success('Photo URL updated & saved!')
-      if (refreshUser) await refreshUser()
-    } catch (err) {
-      toast.error(apiError(err, 'Could not save photo URL'))
-    }
-  }
-
-  async function handleRemovePhoto() {
-    const defaultAvatar = PRESET_AVATARS[0]
-    setAvatar(defaultAvatar)
-    try {
-      await api.patch('/auth/profile', { avatar: defaultAvatar })
-      toast.success('Profile photo removed!')
-      if (refreshUser) await refreshUser()
-    } catch (err) {
-      toast.error(apiError(err, 'Could not remove photo'))
-    }
-  }
-
-  async function handleSelectEmojiAvatar(emoji) {
-    setAvatar(emoji)
-    try {
-      await api.patch('/auth/profile', { avatar: emoji })
-      toast.success('Avatar updated & saved!')
-      if (refreshUser) await refreshUser()
-    } catch (err) {
-      toast.error(apiError(err))
-    }
+    await commitAvatar(url, 'Picture updated from URL')
   }
 
   async function handleSaveProfile(e) {
@@ -163,7 +176,7 @@ export default function Profile() {
     setSavingProfile(true)
     try {
       await api.patch('/auth/profile', { name: fullName, bio, avatar })
-      toast.success('Profile updated successfully!')
+      toast.success('Profile saved')
       if (refreshUser) await refreshUser()
     } catch (err) {
       toast.error(apiError(err))
@@ -181,7 +194,7 @@ export default function Profile() {
     setSavingPassword(true)
     try {
       await api.post('/auth/change-password', { currentPassword, newPassword })
-      toast.success('Password updated successfully!')
+      toast.success('Password updated')
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
@@ -192,155 +205,75 @@ export default function Profile() {
     }
   }
 
-  const getPasswordStrength = (pwd) => {
-    if (!pwd) return { label: 'None', score: 0, color: 'var(--text-subtle)' }
-    if (pwd.length < 6) return { label: 'Weak', score: 33, color: 'var(--bad)' }
-    if (pwd.length >= 8 && /[A-Z]/.test(pwd) && /[0-9]/.test(pwd)) {
-      return { label: 'Strong', score: 100, color: 'var(--good)' }
-    }
-    return { label: 'Medium', score: 66, color: 'var(--warn)' }
-  }
-
-  const pwdStrength = getPasswordStrength(newPassword)
-  const isImageAvatar = Boolean(avatar && (avatar.startsWith('http') || avatar.startsWith('data:image')))
+  const strength = getPasswordStrength(newPassword)
+  const hasPhoto = isImageAvatar(avatar)
 
   return (
     <main className="container">
-      {/* Cover Banner Header */}
-      <div className="panel" style={{ padding: 0, overflow: 'hidden', marginBottom: '2rem' }}>
-        <div
-          style={{
-            height: '160px',
-            background: 'var(--accent-grad-subtle)',
-            borderBottom: '1px solid var(--border)',
-            position: 'relative',
-            display: 'flex',
-            alignItems: 'flex-end',
-            padding: '1.5rem 2rem',
-          }}
-        >
-          <div style={{ position: 'absolute', right: '1.5rem', top: '1.5rem' }}>
-            <span className="badge-glow">
-              <Sparkles size={14} /> MockMate Verified Candidate
-            </span>
-          </div>
+      {/* ---------------------------------------------------------------- header */}
+      <section className="profile-header">
+        <div className="profile-cover">
+          <span className="badge-glow profile-cover-badge">
+            <Sparkles size={13} /> Verified candidate
+          </span>
         </div>
 
-        <div
-          style={{
-            padding: '0 2rem 2rem',
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'flex-end',
-            justify: 'space-between',
-            gap: '1.5rem',
-            marginTop: '-45px',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '1.25rem', flexWrap: 'wrap' }}>
-            {/* Profile Picture Avatar Box */}
-            <div style={{ position: 'relative' }}>
-              <div
-                style={{
-                  width: '94px',
-                  height: '94px',
-                  borderRadius: '50%',
-                  background: 'var(--accent-grad)',
-                  display: 'grid',
-                  placeItems: 'center',
-                  fontSize: '2.5rem',
-                  boxShadow: 'var(--shadow-md)',
-                  color: '#ffffff',
-                  border: '4px solid var(--surface)',
-                  overflow: 'hidden',
-                }}
-              >
-                {isImageAvatar ? (
-                  <img src={avatar} alt={user?.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                  avatar || user?.name?.charAt(0).toUpperCase() || 'C'
-                )}
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveTab('edit')
-                  fileInputRef.current?.click()
-                }}
-                style={{
-                  position: 'absolute',
-                  bottom: '2px',
-                  right: '2px',
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '50%',
-                  background: 'var(--accent-primary)',
-                  color: '#ffffff',
-                  border: '2px solid var(--surface)',
-                  display: 'grid',
-                  placeItems: 'center',
-                  cursor: 'pointer',
-                  boxShadow: 'var(--shadow-sm)',
-                }}
-                title="Upload Profile Picture"
-              >
-                <Camera size={14} />
-              </button>
-            </div>
-
-            <div>
-              <h1 style={{ fontSize: '1.8rem', margin: 0, display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                {user?.name}
-                {user?.isEmailVerified && (
-                  <ShieldCheck size={22} style={{ color: 'var(--good)' }} title="Verified Candidate" />
-                )}
-              </h1>
-              <p className="muted small mono" style={{ margin: '0.2rem 0 0', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <Mail size={14} /> {user?.email}
-              </p>
-            </div>
+        <div className="profile-identity">
+          <div className="profile-avatar-slot">
+            {/* no `ring` here — the slot draws the gradient mount around it */}
+            <Avatar src={avatar} name={user?.name} size={104} />
+            <button
+              type="button"
+              className="profile-avatar-edit"
+              onClick={() => {
+                setActiveTab('edit')
+                fileInputRef.current?.click()
+              }}
+              title="Change picture"
+              aria-label="Change profile picture"
+            >
+              <Camera size={15} />
+            </button>
           </div>
 
-          <div style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap' }}>
+          <div className="profile-identity-text">
+            <h1>
+              {user?.name}
+              {user?.isEmailVerified && (
+                <ShieldCheck size={20} className="profile-verified" aria-label="Email verified" />
+              )}
+            </h1>
+            <p className="mono">
+              <Mail size={14} /> {user?.email}
+            </p>
+          </div>
+
+          <div className="profile-identity-actions">
             <Link to="/certificates" className="btn btn-secondary btn-sm">
-              <Award size={16} /> Certificates
+              <Award size={15} /> Certificates
             </Link>
             <Link to="/bookmarks" className="btn btn-secondary btn-sm">
-              <Bookmark size={16} /> Bookmarks ({stats.bookmarksCount})
+              <Bookmark size={15} /> Bookmarks ({stats.bookmarksCount})
             </Link>
           </div>
         </div>
 
-        {/* Tab Switcher */}
-        <div style={{ display: 'flex', gap: '0.6rem', borderTop: '1px solid var(--border-soft)', background: 'var(--surface-2)', padding: '0.6rem 1.5rem', flexWrap: 'wrap' }}>
-          <button
-            type="button"
-            className={`btn ${activeTab === 'overview' ? 'btn-primary' : 'btn-ghost'} btn-sm`}
-            onClick={() => setActiveTab('overview')}
-            style={{ borderRadius: '8px', padding: '0.55rem 1rem' }}
-          >
-            <Briefcase size={15} /> Candidate Stats &amp; Bio
-          </button>
-          <button
-            type="button"
-            className={`btn ${activeTab === 'edit' ? 'btn-primary' : 'btn-ghost'} btn-sm`}
-            onClick={() => setActiveTab('edit')}
-            style={{ borderRadius: '8px', padding: '0.55rem 1rem' }}
-          >
-            <UserIcon size={15} /> Edit Profile &amp; Photo
-          </button>
-          <button
-            type="button"
-            className={`btn ${activeTab === 'security' ? 'btn-primary' : 'btn-ghost'} btn-sm`}
-            onClick={() => setActiveTab('security')}
-            style={{ borderRadius: '8px', padding: '0.55rem 1rem' }}
-          >
-            <KeyRound size={15} /> Security &amp; Password
-          </button>
+        <div className="profile-tabs">
+          <div className="segmented-control">
+            {TABS.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                className={`segmented-btn ${activeTab === t.id ? 'active' : ''}`}
+                onClick={() => setActiveTab(t.id)}
+              >
+                <t.icon size={15} /> {t.label}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      </section>
 
-      {/* Hidden File Input for Custom Photo Upload */}
       <input
         ref={fileInputRef}
         type="file"
@@ -349,210 +282,298 @@ export default function Profile() {
         style={{ display: 'none' }}
       />
 
-      {/* Tab Contents */}
+      {/* -------------------------------------------------------------- overview */}
       {activeTab === 'overview' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
-          <div className="glass-card">
-            <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>Practice Performance</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span className="muted">Total Q&amp;A Sessions</span>
-                <strong style={{ fontSize: '1.1rem' }}>{stats.totalInterviews}</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span className="muted">Total MCQ Quizzes</span>
-                <strong style={{ fontSize: '1.1rem' }}>{stats.totalQuizzes}</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span className="muted">Average Performance</span>
-                <span className="score-chip">{stats.avgScore}%</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span className="muted">Highest Score Achieved</span>
-                <strong style={{ fontSize: '1.1rem', color: 'var(--accent-primary)' }}>{stats.highestScore}%</strong>
-              </div>
-            </div>
+        <>
+          <div className="stat-row">
+            <StatTile icon={BarChart3} label="Q&A sessions" value={stats.totalInterviews} />
+            <StatTile icon={Layers} label="MCQ quizzes" value={stats.totalQuizzes} />
+            <StatTile icon={Target} label="Average score" value={`${stats.avgScore}%`} tone="good" />
+            <StatTile icon={TrendingUp} label="Highest score" value={`${stats.highestScore}%`} tone="accent" />
           </div>
 
-          <div className="glass-card">
-            <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>Candidate Bio</h3>
-            <p className="muted" style={{ margin: 0, lineHeight: '1.65' }}>
-              {user?.bio || 'No bio specified. Update your candidate bio in the Edit Profile tab.'}
-            </p>
+          <div className="panel">
+            <h3 className="panel-title">About</h3>
+            {user?.bio ? (
+              <p className="muted profile-bio">{user.bio}</p>
+            ) : (
+              <p className="subtle profile-bio">
+                No bio yet.{' '}
+                <button type="button" className="link-btn" onClick={() => setActiveTab('edit')}>
+                  Add one
+                </button>{' '}
+                so recruiters know what you are targeting.
+              </p>
+            )}
           </div>
-        </div>
+        </>
       )}
 
+      {/* ------------------------------------------------------------------ edit */}
       {activeTab === 'edit' && (
-        <div className="panel" style={{ maxWidth: '640px' }}>
-          <h3 style={{ fontSize: '1.25rem', marginBottom: '1.5rem' }}>Edit Candidate Profile &amp; Photo</h3>
-          <form onSubmit={handleSaveProfile} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-            {/* Custom Profile Photo Upload Section */}
-            <div className="field">
-              <span className="field-label">Profile Picture</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', marginTop: '0.4rem', flexWrap: 'wrap' }}>
-                <div
-                  style={{
-                    width: '64px',
-                    height: '64px',
-                    borderRadius: '50%',
-                    background: 'var(--accent-grad)',
-                    display: 'grid',
-                    placeItems: 'center',
-                    fontSize: '1.8rem',
-                    color: '#ffffff',
-                    border: '2px solid var(--border)',
-                    overflow: 'hidden',
-                    flexShrink: 0,
-                  }}
+        <div className="profile-panes">
+        <div className="panel">
+          <h3 className="panel-title">Profile picture</h3>
+          <p className="muted small panel-hint">
+            Uploads are cropped square and resized to 256px, so a new picture replaces the old one
+            immediately and stays small enough to load everywhere it appears.
+          </p>
+
+          <div className="photo-editor">
+            <Avatar src={avatar} name={user?.name} size={84} ring />
+
+            <div className="photo-editor-controls">
+              <div className="photo-editor-buttons">
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
                 >
-                  {isImageAvatar ? (
-                    <img src={avatar} alt="Profile preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    avatar || 'C'
-                  )}
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    <button
-                      type="button"
-                      className="btn btn-secondary btn-sm"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <Upload size={14} /> Upload Custom Photo
-                    </button>
-
-                    {isImageAvatar && (
-                      <button
-                        type="button"
-                        className="btn btn-ghost btn-sm"
-                        onClick={handleRemovePhoto}
-                        style={{ color: 'var(--bad)' }}
-                      >
-                        <Trash2 size={14} /> Remove Photo
-                      </button>
-                    )}
-                  </div>
-                  <span className="muted small" style={{ fontSize: '0.78rem' }}>PNG, JPG, WEBP formats supported (max 3MB)</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Paste Custom Image URL */}
-            <div className="field" style={{ marginTop: '-0.4rem' }}>
-              <span className="field-label" style={{ fontSize: '0.8rem' }}>Or Paste Image URL</span>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <div className="input-icon-wrap" style={{ flex: 1 }}>
-                  <LinkIcon size={14} className="input-icon" />
-                  <input
-                    type="url"
-                    value={customUrl}
-                    onChange={(e) => setCustomUrl(e.target.value)}
-                    placeholder="https://example.com/my-photo.jpg"
-                    style={{ paddingLeft: '2.2rem', fontSize: '0.85rem' }}
-                  />
-                </div>
-                <button type="button" className="btn btn-secondary btn-sm" onClick={handleApplyCustomUrl}>
-                  Apply URL
+                  <Upload size={14} /> {uploading ? 'Processing…' : 'Upload photo'}
                 </button>
-              </div>
-            </div>
-
-            {/* Emoji Presets fallback */}
-            <div className="field">
-              <span className="field-label" style={{ fontSize: '0.8rem' }}>Or Choose Preset Avatar Emoji</span>
-              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.3rem' }}>
-                {PRESET_AVATARS.map((emoji) => (
+                {hasPhoto && (
                   <button
                     type="button"
-                    key={emoji}
-                    onClick={() => handleSelectEmojiAvatar(emoji)}
-                    style={{
-                      width: '40px',
-                      height: '40px',
-                      borderRadius: '50%',
-                      border: avatar === emoji ? '2px solid var(--accent-primary)' : '1px solid var(--border)',
-                      background: avatar === emoji ? 'var(--accent-grad-subtle)' : 'var(--surface-2)',
-                      fontSize: '1.2rem',
-                      cursor: 'pointer',
-                    }}
+                    className="btn btn-ghost btn-sm profile-remove"
+                    onClick={() => commitAvatar('', 'Picture removed')}
                   >
-                    {emoji}
+                    <Trash2 size={14} /> Remove
                   </button>
-                ))}
+                )}
               </div>
+              <span className="subtle small">JPG, PNG or WEBP</span>
             </div>
+          </div>
 
-            {/* First & Last Name Inputs */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
-              <div className="field">
-                <span className="field-label">First Name</span>
+          <div className="field">
+            <span className="field-label">Or paste an image URL</span>
+            <div className="input-with-action">
+              <div className="input-icon-wrap">
+                <LinkIcon size={14} className="input-icon" />
                 <input
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  placeholder="Mohd"
-                  required
+                  type="url"
+                  value={customUrl}
+                  onChange={(e) => setCustomUrl(e.target.value)}
+                  placeholder="https://example.com/photo.jpg"
                 />
               </div>
+              <button type="button" className="btn btn-secondary" onClick={handleApplyCustomUrl}>
+                Apply
+              </button>
+            </div>
+          </div>
 
+          <div className="field">
+            <span className="field-label">Or pick an avatar</span>
+            <div className="emoji-picker">
+              {PRESET_AVATARS.map((emoji) => (
+                <button
+                  type="button"
+                  key={emoji}
+                  className={`emoji-option ${avatar === emoji ? 'selected' : ''}`}
+                  onClick={() => commitAvatar(emoji, 'Avatar updated')}
+                  aria-label={`Use ${emoji} as avatar`}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <hr className="panel-rule" />
+
+          <h3 className="panel-title">Details</h3>
+          <form onSubmit={handleSaveProfile}>
+            <div className="field-row">
               <div className="field">
-                <span className="field-label">Last Name</span>
-                <input
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  placeholder="Zaid"
-                />
+                <span className="field-label">First name</span>
+                <input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Mohd" required />
+              </div>
+              <div className="field">
+                <span className="field-label">Last name</span>
+                <input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Zaid" />
               </div>
             </div>
 
             <div className="field">
-              <span className="field-label">Candidate Bio / Background</span>
-              <textarea rows={4} value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Short summary of your target roles and experience..." />
+              <span className="field-label">Bio</span>
+              <textarea
+                rows={4}
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Target roles, stack, and what you are preparing for."
+              />
             </div>
 
             <button type="submit" className="btn btn-primary" disabled={savingProfile}>
-              <Save size={16} /> {savingProfile ? 'Saving Changes...' : 'Save Profile'}
+              <Save size={16} /> {savingProfile ? 'Saving…' : 'Save changes'}
             </button>
           </form>
         </div>
+
+        {/* The right rail was dead space before. It now shows the picture in the
+            three places it actually appears, which is the only way to judge a
+            crop without leaving the page. */}
+        <aside className="panel profile-aside">
+          <h3 className="panel-title">
+            <Eye size={16} /> Live preview
+          </h3>
+          <p className="muted small panel-hint">How your picture appears across the app.</p>
+
+          <div className="preview-stack">
+            <div className="preview-row">
+              <span className="preview-label">Navigation</span>
+              <span className="preview-chip">
+                <Avatar src={avatar} name={firstName || user?.name} size={28} />
+                <span>{firstName || user?.name?.split(' ')[0] || 'User'}</span>
+              </span>
+            </div>
+
+            <div className="preview-row">
+              <span className="preview-label">Leaderboard</span>
+              <span className="preview-lb">
+                <span className="preview-rank mono">
+                  {userRank ? `#${userRank}` : stats.avgScore > 0 ? '#—' : '—'}
+                </span>
+                <Avatar src={avatar} name={`${firstName} ${lastName}`.trim() || user?.name} size={38} />
+                <span className="preview-lb-text">
+                  <strong>{`${firstName} ${lastName}`.trim() || user?.name}</strong>
+                  <span className="subtle small">{stats.avgScore}% average</span>
+                </span>
+              </span>
+            </div>
+
+            <div className="preview-row">
+              <span className="preview-label">Profile</span>
+              <Avatar src={avatar} name={user?.name} size={64} />
+            </div>
+          </div>
+
+          <div className="preview-note">
+            <ImageIcon size={14} />
+            <span className="small">
+              {hasPhoto
+                ? `Stored as a 256px square, about ${approxDataUrlKb(avatar) || '—'} KB.`
+                : 'No photo set — your initial is shown instead.'}
+            </span>
+          </div>
+        </aside>
+        </div>
       )}
 
+      {/* -------------------------------------------------------------- security */}
       {activeTab === 'security' && (
-        <div className="panel" style={{ maxWidth: '600px' }}>
-          <h3 style={{ fontSize: '1.25rem', marginBottom: '1.5rem' }}>Change Security Password</h3>
-          <form onSubmit={handleChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        <div className="profile-panes">
+        <div className="panel">
+          <h3 className="panel-title">Change password</h3>
+          <p className="muted small panel-hint">
+            Use at least 8 characters with a capital letter and a number for a strong password.
+          </p>
+
+          <form onSubmit={handleChangePassword}>
             <div className="field">
-              <span className="field-label">Current Password</span>
-              <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required />
+              <span className="field-label">Current password</span>
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                autoComplete="current-password"
+                required
+              />
             </div>
 
             <div className="field">
-              <span className="field-label">New Password</span>
-              <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
+              <span className="field-label">New password</span>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                autoComplete="new-password"
+                required
+              />
               {newPassword && (
-                <div style={{ marginTop: '0.4rem' }}>
-                  <div style={{ height: '4px', background: 'var(--surface-3)', borderRadius: '999px', overflow: 'hidden', marginBottom: '0.3rem' }}>
-                    <div style={{ width: `${pwdStrength.score}%`, height: '100%', background: pwdStrength.color }} />
+                <div className="pw-strength">
+                  <div className="pw-strength-track">
+                    <div
+                      className="pw-strength-fill"
+                      style={{ width: `${strength.score}%`, background: strength.color }}
+                    />
                   </div>
-                  <span className="small muted" style={{ fontSize: '0.8rem' }}>Strength: <strong style={{ color: pwdStrength.color }}>{pwdStrength.label}</strong></span>
+                  <span className="small" style={{ color: strength.color }}>
+                    {strength.label}
+                  </span>
                 </div>
               )}
             </div>
 
             <div className="field">
-              <span className="field-label">Confirm New Password</span>
-              <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+              <span className="field-label">Confirm new password</span>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                autoComplete="new-password"
+                required
+              />
             </div>
 
             <button type="submit" className="btn btn-primary" disabled={savingPassword}>
-              <Lock size={16} /> {savingPassword ? 'Updating Password...' : 'Update Password'}
+              <Lock size={16} /> {savingPassword ? 'Updating…' : 'Update password'}
             </button>
           </form>
+        </div>
+
+        <aside className="panel profile-aside">
+          <h3 className="panel-title">
+            <ShieldCheck size={16} /> Account status
+          </h3>
+          <p className="muted small panel-hint">Where this account stands right now.</p>
+
+          <ul className="check-list">
+            <CheckItem done={Boolean(user?.isEmailVerified)}>
+              Email {user?.isEmailVerified ? 'verified' : 'not verified yet'}
+            </CheckItem>
+            <CheckItem done={newPassword.length >= 8}>At least 8 characters</CheckItem>
+            <CheckItem done={/[A-Z]/.test(newPassword)}>One capital letter</CheckItem>
+            <CheckItem done={/[0-9]/.test(newPassword)}>One number</CheckItem>
+            <CheckItem done={Boolean(newPassword) && newPassword === confirmPassword}>
+              Both new entries match
+            </CheckItem>
+          </ul>
+        </aside>
         </div>
       )}
     </main>
   )
+}
+
+function CheckItem({ done, children }) {
+  return (
+    <li className={done ? 'done' : ''}>
+      <span className="check-mark">{done ? <Check size={12} /> : <Circle size={7} />}</span>
+      <span>{children}</span>
+    </li>
+  )
+}
+
+function StatTile({ icon: Icon, label, value, tone }) {
+  return (
+    <div className={`stat-tile${tone ? ` stat-tile-${tone}` : ''}`}>
+      <span className="stat-tile-icon">
+        <Icon size={16} />
+      </span>
+      <span className="stat-tile-value mono">{value}</span>
+      <span className="stat-tile-label">{label}</span>
+    </div>
+  )
+}
+
+function getPasswordStrength(pwd) {
+  if (!pwd) return { label: 'None', score: 0, color: 'var(--text-subtle)' }
+  if (pwd.length < 6) return { label: 'Weak', score: 33, color: 'var(--bad)' }
+  if (pwd.length >= 8 && /[A-Z]/.test(pwd) && /[0-9]/.test(pwd)) {
+    return { label: 'Strong', score: 100, color: 'var(--good)' }
+  }
+  return { label: 'Medium', score: 66, color: 'var(--warn)' }
 }

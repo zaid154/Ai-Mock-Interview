@@ -3,10 +3,14 @@ import { createContext, useContext, useEffect, useState } from 'react'
 const ThemeContext = createContext()
 
 export function ThemeProvider({ children }) {
+  // Light is the shipped design: the theme switcher was deliberately removed from
+  // both the navbar and the admin panel, so a visitor has no way to change this.
+  // Following prefers-color-scheme here handed dark-mode users a dark UI they
+  // could not switch out of. A stored preference is still honoured.
   const [theme, setTheme] = useState(() => {
     const saved = localStorage.getItem('mockmate_theme')
     if (saved === 'light' || saved === 'dark') return saved
-    return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+    return 'light'
   })
 
   useEffect(() => {

@@ -179,7 +179,7 @@ export default function Bookmarks() {
               <div className="panel" key={b._id} style={{ padding: '1.8rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px' }}>
                 {/* Question Header & Role Tags */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', marginBottom: '1.1rem', flexWrap: 'wrap' }}>
-                  <div>
+                  <div style={{ flex: 1, minWidth: '240px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
                       <span className="tag">{b.role || 'Question'}</span>
                       {b.category && <span className="tag-soft">{b.category}</span>}
@@ -211,7 +211,7 @@ export default function Bookmarks() {
                 </div>
 
                 {/* Interactive Flashcard Toggle Bar */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.8rem', background: 'var(--surface-2)', padding: '0.5rem 0.8rem', borderRadius: '8px', border: '1px solid var(--border-soft)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.8rem', background: 'var(--surface-2)', padding: '0.5rem 0.8rem', borderRadius: '8px', border: '1px solid var(--border-soft)' }}>
                   <span className="muted small" style={{ fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                     <Lightbulb size={14} style={{ color: 'var(--warn)' }} /> Self-Assessment Flashcard Practice
                   </span>

@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { goToSection } from '../lib/scrollToSection'
+import Avatar from './Avatar'
 import {
   Zap,
   User,
@@ -20,9 +22,6 @@ export default function Navbar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
 
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', 'light')
-  }, [])
 
   function handleLogout() {
     setUserMenuOpen(false)
@@ -44,30 +43,7 @@ export default function Navbar() {
     location.pathname.startsWith('/verify-certificate')
 
   function scrollToSection(id) {
-    if (id === 'overview') {
-      if (location.pathname !== '/') {
-        navigate('/')
-        setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50)
-      } else {
-        window.scrollTo({ top: 0, behavior: 'smooth' })
-      }
-      return
-    }
-
-    if (location.pathname !== '/') {
-      navigate('/')
-      setTimeout(() => {
-        const el = document.getElementById(id)
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth' })
-        }
-      }, 100)
-    } else {
-      const el = document.getElementById(id)
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth' })
-      }
-    }
+    goToSection(id, { pathname: location.pathname, navigate })
   }
 
   return (
@@ -142,7 +118,7 @@ export default function Navbar() {
         </nav>
 
         {/* Right Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div className="nav-actions">
 
 
           {user ? (
@@ -163,27 +139,8 @@ export default function Navbar() {
                   fontSize: '0.85rem',
                 }}
               >
-                <div
-                  style={{
-                    width: '28px',
-                    height: '28px',
-                    borderRadius: '50%',
-                    background: 'var(--accent-grad)',
-                    color: '#ffffff',
-                    display: 'grid',
-                    placeItems: 'center',
-                    fontWeight: 700,
-                    fontSize: '0.78rem',
-                    overflow: 'hidden',
-                  }}
-                >
-                  {user.avatar ? (
-                    <img src={user.avatar} alt={user.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    user.name?.charAt(0).toUpperCase() || 'U'
-                  )}
-                </div>
-                <span style={{ fontWeight: 600, maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <Avatar src={user.avatar} name={user.name} size={28} />
+                <span className="user-menu-name">
                   {user.name?.split(' ')[0]}
                 </span>
                 <ChevronDown size={14} className="muted" />
@@ -239,7 +196,7 @@ export default function Navbar() {
                       className="nav-link"
                       style={{
                         width: '100%',
-                        justify: 'flex-start',
+                        justifyContent: 'flex-start',
                         color: 'var(--bad)',
                         background: 'transparent',
                         border: 'none',

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import {
   Zap,
   Sparkles,
@@ -18,23 +18,46 @@ import {
   Activity,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { scrollToSectionId } from '../lib/scrollToSection'
 
 export default function Landing() {
   const { user } = useAuth()
+  const { hash } = useLocation()
   const [activeFeature, setActiveFeature] = useState(1)
 
+  // Deep link like /#benefits — same offset rule as the navbar and footer.
+  // A single pass lands short: on a cold load the hero art and the web fonts are
+  // still settling, so the geometry measured on mount is stale by the time the
+  // page has painted. Correct once more after fonts resolve, but bail out if the
+  // reader has already scrolled themselves.
   useEffect(() => {
-    if (window.location.hash) {
-      const id = window.location.hash.replace('#', '')
-      const el = document.getElementById(id)
-      if (el) {
-        setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 50)
-      }
+    if (!hash) return
+    const id = hash.replace('#', '')
+
+    // Detect a real gesture rather than inferring one from scrollY: the layout
+    // settling under us moves the page too, and treating that as "the reader
+    // took over" was exactly what left the deep link short of its section.
+    let takenOver = false
+    const yield_ = () => { takenOver = true }
+    const EVENTS = ['wheel', 'touchstart', 'keydown', 'pointerdown']
+    EVENTS.forEach((e) => window.addEventListener(e, yield_, { passive: true, once: true }))
+
+    const run = () => { if (!takenOver) scrollToSectionId(id, { smooth: false }) }
+
+    const timers = [setTimeout(run, 60), setTimeout(run, 400), setTimeout(run, 900)]
+    if (document.fonts?.ready) document.fonts.ready.then(run).catch(() => {})
+
+    return () => {
+      timers.forEach(clearTimeout)
+      EVENTS.forEach((e) => window.removeEventListener(e, yield_))
     }
-  }, [])
+    // Keyed on the hash, not just on mount: arriving at /#benefits while already
+    // on / is a same-document navigation, so the component never remounts and a
+    // mount-only effect would leave the browser's raw fragment jump in place.
+  }, [hash])
 
   return (
-    <div style={{ background: 'var(--bg)', color: 'var(--text)', minHeight: '100vh', overflowX: 'hidden' }}>
+    <div style={{ background: 'var(--bg)', color: 'var(--text)', minHeight: '100dvh', overflowX: 'hidden' }}>
       {/* Nature Landscape Panoramic Hero Visual Canvas */}
       <section className="container" id="overview" style={{ paddingTop: '2.5rem', paddingBottom: '3.5rem' }}>
         <div
@@ -103,7 +126,7 @@ export default function Landing() {
       </section>
 
       {/* 4-Column Feature Cards Section */}
-      <section className="container" id="benefits" style={{ padding: '4.5rem 0 3rem' }}>
+      <section className="container" id="benefits" style={{ paddingTop: '4.5rem', paddingBottom: '3rem' }}>
         <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
           <div className="tag" style={{ marginBottom: '0.8rem', padding: '0.35rem 0.9rem' }}>
             Core Advantages
@@ -160,7 +183,7 @@ export default function Landing() {
       </section>
 
       {/* Split Section: "See the Big Picture" */}
-      <section className="container" id="specifications" style={{ padding: '4.5rem 0 3.5rem' }}>
+      <section className="container" id="specifications" style={{ paddingTop: '4.5rem', paddingBottom: '3.5rem' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '3.5rem', alignItems: 'center' }}>
           {/* Left Column Text & Numbered List */}
           <div>
@@ -324,7 +347,7 @@ export default function Landing() {
       </section>
 
       {/* Middle Panoramic Mountain Canvas Image Banner */}
-      <section className="container" style={{ padding: '2rem 0' }}>
+      <section className="container" style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>
         <div
           style={{
             borderRadius: '28px',
@@ -341,7 +364,7 @@ export default function Landing() {
       </section>
 
       {/* 3-Step How-To Section */}
-      <section className="container" id="how-it-works" style={{ padding: '4rem 0 5rem' }}>
+      <section className="container" id="how-it-works" style={{ paddingTop: '4rem', paddingBottom: '5rem' }}>
         <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
           <span className="tag" style={{ marginBottom: '0.5rem' }}>Simple Workflow</span>
           <h2 style={{ fontSize: '2.4rem', fontWeight: 800 }}>How MockMate Works</h2>

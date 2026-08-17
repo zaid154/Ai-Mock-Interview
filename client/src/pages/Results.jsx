@@ -75,8 +75,8 @@ export default function Results() {
     <main className="container">
       {/* Results Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.3rem' }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.6rem', marginBottom: '0.3rem' }}>
             <span className="badge-glow" style={{ fontSize: '0.75rem' }}>
               <Sparkles size={13} /> Performance Audit Complete
             </span>
@@ -97,7 +97,7 @@ export default function Results() {
       </div>
 
       {/* Top 2-Column Analytics Overview */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, 300px) 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
+      <div className="results-overview-grid" style={{ marginBottom: '2rem' }}>
         {/* Overall Score Gauge Donut */}
         <div className="panel score-ring">
           <div className="score-donut" style={{ '--pct': interview.overallScore }}>

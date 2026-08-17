@@ -58,7 +58,7 @@ export default function Login() {
             padding: '1.6rem 1.8rem',
             display: 'flex',
             flexDirection: 'column',
-            justify: 'space-between',
+            justifyContent: 'space-between',
             borderRight: '1px solid var(--border-soft)',
           }}
         >

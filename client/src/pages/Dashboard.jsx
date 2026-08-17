@@ -171,7 +171,7 @@ export default function Dashboard() {
           borderBottom: '1px solid var(--border-soft)',
           display: 'flex',
           alignItems: 'center',
-          justify: 'space-between',
+          justifyContent: 'space-between',
           flexWrap: 'wrap',
           gap: '1.25rem',
         }}
@@ -189,7 +189,7 @@ export default function Dashboard() {
         </div>
 
         {/* Clean Minimal Inline Stats */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '1.5rem' }}>
           <div>
             <div className="subtle small" style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Completed</div>
             <div className="mono" style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text)' }}>{completedSessions.length} Sessions</div>
@@ -379,7 +379,7 @@ export default function Dashboard() {
                     }
                   }}
                 >
-                  <div style={{ flex: 1 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
                       <span className="tag" style={{ fontSize: '0.65rem' }}>
                         {session.mode === 'quiz' ? 'MCQ Quiz' : 'Q&A'}
@@ -392,7 +392,7 @@ export default function Dashboard() {
                     <div className="muted small" style={{ fontSize: '0.8rem' }}>{session.category || session.topic}</div>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexShrink: 0 }}>
                     {session.status === 'completed' ? (
                       <span className="score-chip">
                         {session.overallScore !== undefined ? `${session.overallScore} / 100` : 'Evaluated'}
