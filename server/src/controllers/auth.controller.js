@@ -62,9 +62,7 @@ async function issueOtp(user, purpose) {
   }
 
   const code = generateOtp()
-  // Send before saving state so a delivery failure never leaves an unusable OTP
-  // in the database. The plaintext code is only held in memory for this call.
-  await sendOtpEmail(user.email, code, purpose)
+  // Save OTP in database first so that OTP is active
   user.otpCode = null
   user.otpHash = hashOtp(code)
   user.otpExpires = otpExpiry()
@@ -72,6 +70,9 @@ async function issueOtp(user, purpose) {
   user.otpLastSentAt = new Date()
   user.otpAttempts = 0
   await user.save()
+
+  // Deliver email
+  await sendOtpEmail(user.email, code, purpose)
 }
 
 async function registrationVerificationState(user) {
@@ -125,10 +126,18 @@ async function login(req, res) {
     })
   }
   if (mustVerify && !emailVerified(user)) {
+    let otpSent = false
+    try {
+      await issueOtp(user, 'verify')
+      otpSent = true
+    } catch (err) {
+      console.warn('Login auto-OTP issuance note:', err.message)
+    }
     return res.status(403).json({
-      error: 'Please verify your email before logging in.',
+      error: 'Please verify your email before logging in. A new verification code has been sent.',
       needsVerification: true,
       email: user.email,
+      otpSent,
     })
   }
 

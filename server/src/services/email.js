@@ -6,15 +6,34 @@ let transporter = null
 
 function getTransporter() {
   if (transporter) return transporter
-  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env
-  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) return null
+  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_SERVICE } = process.env
+  if (!SMTP_USER || !SMTP_PASS) return null
 
-  transporter = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: Number(SMTP_PORT) || 587,
-    secure: Number(SMTP_PORT) === 465,
-    auth: { user: SMTP_USER, pass: SMTP_PASS },
-  })
+  const isGmail =
+    SMTP_SERVICE === 'gmail' ||
+    SMTP_HOST === 'smtp.gmail.com' ||
+    (SMTP_USER && SMTP_USER.endsWith('@gmail.com'))
+
+  if (isGmail) {
+    transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user: SMTP_USER, pass: SMTP_PASS },
+      connectionTimeout: 8000,
+      greetingTimeout: 8000,
+      socketTimeout: 12000,
+    })
+  } else if (SMTP_HOST) {
+    const port = Number(SMTP_PORT) || 587
+    transporter = nodemailer.createTransport({
+      host: SMTP_HOST,
+      port,
+      secure: port === 465,
+      auth: { user: SMTP_USER, pass: SMTP_PASS },
+      connectionTimeout: 8000,
+      greetingTimeout: 8000,
+      socketTimeout: 12000,
+    })
+  }
   return transporter
 }
 

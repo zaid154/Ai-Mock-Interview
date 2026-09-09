@@ -26,8 +26,8 @@ export default function Login() {
       navigate('/dashboard')
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.data?.needsVerification) {
-        toast('Please verify your email to continue.')
-        navigate('/verify', { state: { email } })
+        toast('Please verify your email to continue. Verification code sent.')
+        navigate('/verify', { state: { email, otpSent: Boolean(err.response.data.otpSent) } })
         return
       }
       if (axios.isAxiosError(err) && err.response?.data?.needsRegistrationCompletion) {
