@@ -37,8 +37,61 @@ function getTransporter() {
   return transporter
 }
 
+function parseSender() {
+  const raw =
+    process.env.BREVO_SENDER_EMAIL ||
+    process.env.SMTP_FROM ||
+    process.env.SMTP_USER ||
+    'noreply@mockmate.com'
+  const match = raw.match(/^(.*?)\s*<(.+?)>$/)
+  if (match) {
+    return {
+      name: match[1].trim().replace(/^["']|["']$/g, '') || 'MockMate AI',
+      email: match[2].trim(),
+    }
+  }
+  return {
+    name: process.env.BREVO_SENDER_NAME || 'MockMate AI',
+    email: raw.trim(),
+  }
+}
+
 async function sendEmail(to, subject, text, html) {
-  // 1. Resend API (HTTPS REST - works on Render.com with zero SMTP block issues)
+  // 1. Brevo API (HTTPS REST on port 443 - 100% reliable on Render.com)
+  const brevoKey = process.env.BREVO_API_KEY
+  if (brevoKey) {
+    const sender = parseSender()
+    try {
+      const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          accept: 'application/json',
+          'api-key': brevoKey.trim(),
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          sender: { name: sender.name, email: sender.email },
+          to: [{ email: to.trim() }],
+          subject,
+          textContent: text,
+          htmlContent: html,
+        }),
+      })
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
+        console.error('❌ Brevo API error:', errData)
+        throw new Error(errData.message || `Brevo API error: ${res.status}`)
+      }
+      console.log(`✅ Email successfully sent to ${to} via Brevo API`)
+      return
+    } catch (err) {
+      console.error('❌ Brevo delivery error:', err.message)
+      throw err
+    }
+  }
+
+  // 2. Resend API (HTTPS REST)
   const resendKey = process.env.RESEND_API_KEY
   if (resendKey) {
     const fromEmail = process.env.RESEND_FROM || process.env.SMTP_FROM || 'MockMate AI <onboarding@resend.dev>'
@@ -46,12 +99,12 @@ async function sendEmail(to, subject, text, html) {
       const res = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${resendKey}`,
+          Authorization: `Bearer ${resendKey.trim()}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           from: fromEmail,
-          to: [to],
+          to: [to.trim()],
           subject,
           text,
           html,
@@ -66,40 +119,6 @@ async function sendEmail(to, subject, text, html) {
       return
     } catch (err) {
       console.error('Resend email error:', err.message)
-      throw err
-    }
-  }
-
-  // 2. Brevo API (HTTPS REST - works on Render.com)
-  const brevoKey = process.env.BREVO_API_KEY
-  if (brevoKey) {
-    const fromEmail = process.env.SMTP_FROM || process.env.SMTP_USER || 'noreply@mockmate.com'
-    try {
-      const res = await fetch('https://api.brevo.com/v3/smtp/email', {
-        method: 'POST',
-        headers: {
-          accept: 'application/json',
-          'api-key': brevoKey,
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({
-          sender: { name: 'MockMate AI', email: fromEmail },
-          to: [{ email: to }],
-          subject,
-          textContent: text,
-          htmlContent: html,
-        }),
-      })
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}))
-        console.error('Brevo API error:', errData)
-        throw new Error(errData.message || `Brevo API error: ${res.status}`)
-      }
-      console.log(`Email successfully sent to ${to} via Brevo API`)
-      return
-    } catch (err) {
-      console.error('Brevo email error:', err.message)
       throw err
     }
   }
