@@ -34,7 +34,7 @@ export default function OtpVerify() {
     setBusy(true)
     try {
       const { data } = await api.post('/auth/verify-otp', { email, otp })
-      if (!data.token) {
+      if (!data.token && !data.user) {
         toast.success('Your email is already verified. Please sign in.')
         navigate('/login')
         return

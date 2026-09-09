@@ -94,10 +94,14 @@ async function register(req, res) {
   const user = await User.create({ name, email, passwordHash })
   const verification = await registrationVerificationState(user)
 
+  const token = signToken(user.id, user.tokenVersion)
+  res.cookie('token', token, cookieOptions())
+
   // A user record is needed to deliver/validate an OTP, but a real session is
   // withheld until they verify or explicitly choose to skip verification.
   return res.status(201).json({
     user: publicUser(user),
+    token,
     registrationToken: signRegistrationToken(user.id),
     ...verification,
   })
@@ -152,7 +156,11 @@ async function verifyOtp(req, res) {
   const { email, otp } = req.body
   const user = await User.findOne({ email }).select('+otpHash +otpCode')
   if (!user) return res.status(400).json({ error: 'Invalid OTP.' })
-  if (emailVerified(user)) return res.json({ user: publicUser(user), alreadyVerified: true })
+  if (emailVerified(user)) {
+    const token = signToken(user.id, user.tokenVersion)
+    res.cookie('token', token, cookieOptions())
+    return res.json({ user: publicUser(user), token, alreadyVerified: true })
+  }
 
   if (user.otpPurpose !== 'verify' || !user.otpExpires || user.otpExpires.getTime() <= Date.now()) {
     clearOtp(user)
@@ -182,7 +190,7 @@ async function verifyOtp(req, res) {
   await user.save()
   const token = signToken(user.id, user.tokenVersion)
   res.cookie('token', token, cookieOptions())
-  return res.json({ user: publicUser(user), message: 'Email verified successfully.' })
+  return res.json({ user: publicUser(user), token, message: 'Email verified successfully.' })
 }
 
 async function completeRegistration(req, res) {
@@ -205,7 +213,7 @@ async function completeRegistration(req, res) {
   await user.save()
   const token = signToken(user.id, user.tokenVersion)
   res.cookie('token', token, cookieOptions())
-  return res.json({ user: publicUser(user) })
+  return res.json({ user: publicUser(user), token })
 }
 
 async function resendOtp(req, res) {
@@ -240,7 +248,9 @@ async function resetPassword(req, res) {
   user.tokenVersion = (user.tokenVersion || 0) + 1
   clearOtp(user)
   await user.save()
-  return res.json({ ok: true })
+  const token = signToken(user.id, user.tokenVersion)
+  res.cookie('token', token, cookieOptions())
+  return res.json({ ok: true, user: publicUser(user), token })
 }
 
 async function updateProfile(req, res) {
