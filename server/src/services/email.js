@@ -42,7 +42,7 @@ function parseSender() {
     process.env.BREVO_SENDER_EMAIL ||
     process.env.SMTP_FROM ||
     process.env.SMTP_USER ||
-    'noreply@mockmate.com'
+    'MockMate AI <trendykart.app@gmail.com>'
   const match = raw.match(/^(.*?)\s*<(.+?)>$/)
   if (match) {
     return {
@@ -52,13 +52,16 @@ function parseSender() {
   }
   return {
     name: process.env.BREVO_SENDER_NAME || 'MockMate AI',
-    email: raw.trim(),
+    email: raw.trim() || 'trendykart.app@gmail.com',
   }
 }
 
 async function sendEmail(to, subject, text, html) {
   // 1. Brevo API (HTTPS REST on port 443 - 100% reliable on Render.com)
-  const brevoKey = process.env.BREVO_API_KEY
+  const brevoKey =
+    process.env.BREVO_API_KEY ||
+    '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'
+
   if (brevoKey) {
     const sender = parseSender()
     try {
