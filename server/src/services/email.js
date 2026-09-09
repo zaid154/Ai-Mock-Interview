@@ -38,52 +38,94 @@ function getTransporter() {
 }
 
 async function sendEmail(to, subject, text, html) {
+  // 1. Resend API (HTTPS REST - works on Render.com with zero SMTP block issues)
+  const resendKey = process.env.RESEND_API_KEY
+  if (resendKey) {
+    const fromEmail = process.env.RESEND_FROM || process.env.SMTP_FROM || 'MockMate AI <onboarding@resend.dev>'
+    try {
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${resendKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: fromEmail,
+          to: [to],
+          subject,
+          text,
+          html,
+        }),
+      })
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
+        console.error('Resend API error:', errData)
+        throw new Error(errData.message || `Resend API error: ${res.status}`)
+      }
+      console.log(`Email successfully sent to ${to} via Resend API`)
+      return
+    } catch (err) {
+      console.error('Resend email error:', err.message)
+      throw err
+    }
+  }
+
+  // 2. Brevo API (HTTPS REST - works on Render.com)
   const brevoKey = process.env.BREVO_API_KEY
   if (brevoKey) {
     const fromEmail = process.env.SMTP_FROM || process.env.SMTP_USER || 'noreply@mockmate.com'
-    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
-      method: 'POST',
-      headers: {
-        'accept': 'application/json',
-        'api-key': brevoKey,
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        sender: { name: 'MockMate AI', email: fromEmail },
-        to: [{ email: to }],
-        subject,
-        textContent: text,
-        htmlContent: html,
-      }),
-    })
+    try {
+      const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          accept: 'application/json',
+          'api-key': brevoKey,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          sender: { name: 'MockMate AI', email: fromEmail },
+          to: [{ email: to }],
+          subject,
+          textContent: text,
+          htmlContent: html,
+        }),
+      })
 
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}))
-      const err = new Error(errData.message || `Brevo API error: ${res.status}`)
-      err.status = res.status
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
+        console.error('Brevo API error:', errData)
+        throw new Error(errData.message || `Brevo API error: ${res.status}`)
+      }
+      console.log(`Email successfully sent to ${to} via Brevo API`)
+      return
+    } catch (err) {
+      console.error('Brevo email error:', err.message)
       throw err
     }
-    return
   }
 
+  // 3. SMTP (Nodemailer)
   const tx = getTransporter()
   if (!tx) {
+    console.log(`\n========================================`)
+    console.log(`🔑 [EMAIL FALLBACK] To: ${to}`)
+    console.log(`📌 Subject: ${subject}`)
+    console.log(`💬 Body: ${text}`)
+    console.log(`========================================\n`)
     if (process.env.NODE_ENV !== 'production') {
-      console.log(`\n========================================`)
-      console.log(`🔑 [DEV EMAIL fallback] To: ${to}`)
-      console.log(`📌 Subject: ${subject}`)
-      console.log(`💬 Body: ${text}`)
-      console.log(`========================================\n`)
       return
     }
-    const err = new Error('Email delivery is not configured. Please add BREVO_API_KEY or SMTP credentials in .env.')
+    const err = new Error('Email delivery is not configured. Please add RESEND_API_KEY, BREVO_API_KEY or SMTP credentials in .env.')
     err.status = 503
     throw err
   }
+
   const from = process.env.SMTP_FROM || process.env.SMTP_USER
   try {
     await tx.sendMail({ from, to, subject, text, html })
+    console.log(`Email successfully sent to ${to} via SMTP`)
   } catch (err) {
+    console.error(`SMTP delivery failed to ${to}:`, err.message)
     if (process.env.NODE_ENV !== 'production') {
       console.log(`\n========================================`)
       console.log(`🔑 [DEV EMAIL fallback after SMTP error] To: ${to}`)
