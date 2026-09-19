@@ -1,13 +1,8 @@
-const Interview = require('../models/Interview.model')
-const User = require('../models/User.model')
-const { generateQuestions, generateQuiz, evaluateInterview } = require('../services/gemini')
+const Interview = require('../models/interviewModel')
+const User = require('../models/userModel')
+const { generateQuestions, generateQuiz, evaluateInterview } = require('../services/aiService')
 
-/**
- * Data Sanitization Helper:
- * Hides the answer key (`correctIndex`) while a quiz is still in progress so
- * candidates cannot inspect network payloads via browser DevTools to cheat.
- * We reveal `correctIndex` once the session status transitions to 'completed'.
- */
+// Hides correctIndex while a quiz is ongoing to prevent cheating via browser inspection
 function publicInterview(interview) {
   const obj = interview.toObject ? interview.toObject() : interview
   if (obj.mode === 'quiz' && obj.status !== 'completed') {
@@ -16,42 +11,22 @@ function publicInterview(interview) {
   return obj
 }
 
-/**
- * POST /api/interviews
- * Initializes a new interview practice session.
- * 
- * Logic Flow:
- * 1. Checks if candidate has an uploaded resume saved in User.resumeText.
- * 2. If mode === 'quiz': Generates multiple-choice options with Gemini AI.
- * 3. If mode === 'questions': Generates open-ended questions tailored to role or resume.
- * 4. Fallback: If Gemini quota is exhausted, falls back to the Question.model seed bank.
- * 5. Saves new session in MongoDB with status 'in_progress'.
- */
+// POST /api/interviews — Generates and initiates an interview or quiz session
 async function startInterview(req, res) {
   const { role, difficulty, count, experience, mode, category = 'General', timerMinutes = 0 } = req.body
-
   const user = await User.findById(req.userId).select('resumeText')
   const resumeText = user?.resumeText || ''
   const hasResume = Boolean(resumeText.trim())
-  if (!hasResume && !role) {
-    return res.status(400).json({ error: 'Tell us the role you want to practise for' })
-  }
+  if (!hasResume && !role) return res.status(400).json({ error: 'Tell us the role you want to practise for' })
 
   let questions
   if (mode === 'quiz') {
     try {
       const quiz = await generateQuiz(role, difficulty, count, experience, resumeText, category)
-      questions = quiz.map((q) => ({
-        prompt: q.prompt,
-        options: q.options,
-        correctIndex: q.correctIndex,
-        selectedIndex: null,
-      }))
+      questions = quiz.map((q) => ({ prompt: q.prompt, options: q.options, correctIndex: q.correctIndex, selectedIndex: null }))
     } catch (err) {
       console.warn('Quiz generation failed:', err.message)
-      return res.status(503).json({
-        error: 'Quiz mode needs a working Gemini API key. Add one in admin settings, or use Questions mode.',
-      })
+      return res.status(503).json({ error: 'Quiz mode needs a working Gemini API key. Add one in admin settings, or use Questions mode.' })
     }
   } else {
     try {
@@ -60,9 +35,7 @@ async function startInterview(req, res) {
     } catch (err) {
       if (hasResume) {
         console.warn('Resume question generation failed:', err.message)
-        return res.status(503).json({
-          error: 'Your resume is saved, but resume-based questions need a working Gemini API key.',
-        })
+        return res.status(503).json({ error: 'Your resume is saved, but resume-based questions need a working Gemini API key.' })
       }
       throw err
     }
@@ -80,15 +53,10 @@ async function startInterview(req, res) {
     status: 'in_progress',
     questions,
   })
-
   res.status(201).json({ interview: publicInterview(interview) })
 }
 
-/**
- * GET /api/interviews
- * Fetches lightweight session history for the logged-in candidate.
- * Uses .lean() for minimal memory footprint.
- */
+// GET /api/interviews — Retrieves historical interview list for logged-in user
 async function listInterviews(req, res) {
   const interviews = await Interview.find({ user: req.userId })
     .sort({ createdAt: -1 })
@@ -96,39 +64,25 @@ async function listInterviews(req, res) {
     .lean()
 
   res.json({
-    interviews: interviews.map(({ questions, ...interview }) => ({
-      ...interview,
+    interviews: interviews.map(({ questions, ...item }) => ({
+      ...item,
       questionCount: questions?.length || 0,
     })),
   })
 }
 
-/**
- * GET /api/interviews/:id
- * Fetches a single full interview session by ID.
- * Scoped to req.userId so users cannot inspect another candidate's session.
- */
+// GET /api/interviews/:id — Retrieves single interview session details
 async function getInterview(req, res) {
   const interview = await Interview.findOne({ _id: req.params.id, user: req.userId })
   if (!interview) return res.status(404).json({ error: 'Interview not found' })
   res.json({ interview: publicInterview(interview) })
 }
 
-/**
- * POST /api/interviews/:id/submit
- * Evaluates candidate responses and finalizes the session.
- * 
- * Logic Flow:
- * - Quiz Mode: Evaluates deterministically in memory (10 points per match with correctIndex).
- * - Questions Mode: Sends answers to Gemini AI (or heuristic fallback) for scoring (0-100) & feedback.
- * - Transitions status to 'completed' and calculates overallScore.
- */
+// POST /api/interviews/:id/submit — Finalizes responses with AI grading or quiz scoring
 async function submitInterview(req, res) {
   const interview = await Interview.findOne({ _id: req.params.id, user: req.userId })
   if (!interview) return res.status(404).json({ error: 'Interview not found' })
-  if (interview.status === 'completed') {
-    return res.status(400).json({ error: 'This interview has already been submitted' })
-  }
+  if (interview.status === 'completed') return res.status(400).json({ error: 'This interview has already been submitted' })
 
   const answers = Array.isArray(req.body.answers) ? req.body.answers : []
 
@@ -136,27 +90,18 @@ async function submitInterview(req, res) {
     let correct = 0
     interview.questions.forEach((q, i) => {
       const n = Number(answers[i])
-      const picked = answers[i] !== '' && answers[i] !== null && Number.isInteger(n) && n >= 0 && n < q.options.length
-        ? n
-        : null
+      const picked = answers[i] !== '' && answers[i] !== null && Number.isInteger(n) && n >= 0 && n < q.options.length ? n : null
       q.selectedIndex = picked
       const right = picked === q.correctIndex
       if (right) correct += 1
       q.score = right ? 10 : 0
-      q.feedback = right
-        ? 'Correct.'
-        : `Incorrect — the right answer was option ${String.fromCharCode(65 + q.correctIndex)}.`
+      q.feedback = right ? 'Correct.' : `Incorrect — the right answer was option ${String.fromCharCode(65 + q.correctIndex)}.`
     })
     interview.overallScore = Math.round((correct / (interview.questions.length || 1)) * 100)
     interview.summary = `You scored ${correct} out of ${interview.questions.length} on this quiz.`
   } else {
-    interview.questions.forEach((q, i) => {
-      q.answer = String(answers[i] ?? '').trim()
-    })
-    const result = await evaluateInterview(
-      interview.role,
-      interview.questions.map((q) => ({ prompt: q.prompt, answer: q.answer })),
-    )
+    interview.questions.forEach((q, i) => { q.answer = String(answers[i] ?? '').trim() })
+    const result = await evaluateInterview(interview.role, interview.questions.map((q) => ({ prompt: q.prompt, answer: q.answer })))
     interview.questions.forEach((q, i) => {
       q.score = result.perQuestion[i]?.score ?? 0
       q.feedback = result.perQuestion[i]?.feedback ?? ''
@@ -170,10 +115,7 @@ async function submitInterview(req, res) {
   res.json({ interview: publicInterview(interview) })
 }
 
-/**
- * PATCH /api/interviews/:id/notes
- * Updates personal study notes on either the entire session or a specific question.
- */
+// PATCH /api/interviews/:id/notes — Persists candidate notes on interview or specific question
 async function updateNotes(req, res) {
   const { notes, questionIndex } = req.body
   const interview = await Interview.findOne({ _id: req.params.id, user: req.userId })
@@ -189,16 +131,8 @@ async function updateNotes(req, res) {
   res.json({ ok: true, interview: publicInterview(interview) })
 }
 
-/**
- * GET /api/interviews/leaderboard
- * Computes global candidate rankings using MongoDB Aggregation Pipeline:
- * 1. $match completed sessions
- * 2. $group by user and calculate $avg and $max score
- * 3. $sort by score descending
- * 4. $limit to top 20
- * 5. Populates candidate names and avatars from User collection
- */
-async function getLeaderboard(req, res) {
+// GET /api/interviews/leaderboard — Aggregates top 20 candidates across platform
+async function getLeaderboard(_req, res) {
   const stats = await Interview.aggregate([
     { $match: { status: 'completed' } },
     {
@@ -218,37 +152,29 @@ async function getLeaderboard(req, res) {
   const userMap = new Map(users.map((u) => [String(u._id), u]))
 
   const leaderboard = stats.map((stat, idx) => {
-    const userInfo = userMap.get(String(stat._id)) || { name: 'Anonymous User', avatar: '', bio: '' }
+    const info = userMap.get(String(stat._id)) || { name: 'Anonymous User', avatar: '', bio: '' }
     return {
       rank: idx + 1,
       userId: stat._id,
-      name: userInfo.name,
-      avatar: userInfo.avatar,
-      bio: userInfo.bio,
+      name: info.name,
+      avatar: info.avatar,
+      bio: info.bio,
       totalCompleted: stat.totalCompleted,
       avgScore: Math.round(stat.avgScore || 0),
       highestScore: stat.highestScore || 0,
     }
   })
-
   res.json({ leaderboard })
 }
 
-/**
- * DELETE /api/interviews/:id
- * Permanently removes a session and its evaluation transcript from history.
- */
+// DELETE /api/interviews/:id — Removes completed or in-progress session
 async function deleteInterview(req, res) {
   const result = await Interview.deleteOne({ _id: req.params.id, user: req.userId })
   if (result.deletedCount === 0) return res.status(404).json({ error: 'Interview not found' })
   res.json({ ok: true })
 }
 
-/**
- * POST /api/interviews/resume
- * Extracts plain text from an uploaded PDF file in-memory using `unpdf`.
- * The parsed text is saved to User.resumeText for personalized interview generation.
- */
+// POST /api/interviews/resume — Parses uploaded PDF resume text for interview context
 async function uploadResume(req, res) {
   if (!req.file) return res.status(400).json({ error: 'Please attach a PDF file' })
 

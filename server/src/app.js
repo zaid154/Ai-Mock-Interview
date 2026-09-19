@@ -6,12 +6,12 @@ const helmet = require('helmet') // 🛡️ security headers
 const rateLimit = require('express-rate-limit') // 🛡️ brute‑force/DDoS protection
 const mongoSanitize = require('express-mongo-sanitize') // 🛡️ NoSQL injection guard
 
-const authRoutes = require('./routes/auth.routes')
-const adminRoutes = require('./routes/admin.routes')
-const interviewRoutes = require('./routes/interview.routes')
-const bookmarkRoutes = require('./routes/bookmark.routes')
-const certificateRoutes = require('./routes/certificate.routes')
-const { notFound, errorHandler } = require('./middleware/error')
+const authRoutes = require('./routes/authRoutes')
+const adminRoutes = require('./routes/adminRoutes')
+const interviewRoutes = require('./routes/interviewRoutes')
+const bookmarkRoutes = require('./routes/bookmarkRoutes')
+const certificateRoutes = require('./routes/certificateRoutes')
+const { notFound, errorHandler } = require('./middleware/errorMiddleware')
 
 const app = express()
 

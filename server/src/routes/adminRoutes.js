@@ -1,10 +1,10 @@
 const { Router } = require('express')
 const { z } = require('zod')
-const { validate } = require('../middleware/validate')
-const { requireAuth, requireAdmin } = require('../middleware/auth')
+const { validate } = require('../middleware/validateMiddleware')
+const { requireAuth, requireAdmin } = require('../middleware/authMiddleware')
 const { wrap } = require('../utils/asyncHandler')
-const admin = require('../controllers/admin.controller')
-const certTemplates = require('../controllers/certificateTemplate.controller')
+const admin = require('../controllers/adminController')
+const certTemplates = require('../controllers/certificateTemplateController')
 
 const router = Router()
 

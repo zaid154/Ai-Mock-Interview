@@ -1,7 +1,7 @@
-const User = require('../models/User.model')
-const Setting = require('../models/Setting.model')
+const User = require('../models/userModel')
+const Setting = require('../models/settingModel')
 
-// All handlers here run behind requireAuth + requireAdmin (see admin.routes.js).
+// All handlers here run behind requireAuth + requireAdmin (see adminRoutes.js).
 
 // GET /api/admin/users — list users with their verification status.
 async function listUsers(_req, res) {

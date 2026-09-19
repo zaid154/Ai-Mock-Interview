@@ -1,10 +1,10 @@
 const { Router } = require('express')
 const multer = require('multer')
 const { z } = require('zod')
-const { validate } = require('../middleware/validate')
-const { requireAuth } = require('../middleware/auth')
+const { validate } = require('../middleware/validateMiddleware')
+const { requireAuth } = require('../middleware/authMiddleware')
 const { wrap } = require('../utils/asyncHandler')
-const interview = require('../controllers/interview.controller')
+const interview = require('../controllers/interviewController')
 
 const router = Router()
 

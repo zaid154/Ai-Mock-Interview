@@ -1,4 +1,4 @@
-const Bookmark = require('../models/Bookmark.model')
+const Bookmark = require('../models/bookmarkModel')
 
 // GET /api/bookmarks — get user's bookmarks
 async function listBookmarks(req, res) {

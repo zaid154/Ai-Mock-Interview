@@ -1,4 +1,4 @@
-const Setting = require('../models/Setting.model')
+const Setting = require('../models/settingModel')
 
 // Read a single setting's value, returning `fallback` if it's missing.
 async function getSetting(key, fallback = null) {

@@ -1,54 +1,15 @@
-const CertificateTemplate = require('../models/CertificateTemplate.model')
-const Interview = require('../models/Interview.model')
+const CertificateTemplate = require('../models/certificateTemplateModel')
+const Interview = require('../models/interviewModel')
 
 // The four credentials the app shipped with. Used to seed an empty collection so
 // a fresh install still shows the milestones it always did, and as the reset
 // target for the admin panel.
+// Built-in milestones seeded automatically when database is empty
 const DEFAULT_TEMPLATES = [
-  {
-    key: 'm1',
-    title: 'Interview Pioneer Certificate',
-    description: 'Complete your first interview session with a score of 60% or higher.',
-    reqCount: 1,
-    reqMinScore: 60,
-    reqScore: null,
-    design: 'classic',
-    accent: '#4f46e5',
-    order: 1,
-  },
-  {
-    key: 'm3',
-    title: 'Interview Specialist Certificate',
-    description: 'Complete 3 interview sessions with a score of 70% or higher.',
-    reqCount: 3,
-    reqMinScore: 70,
-    reqScore: null,
-    design: 'modern',
-    accent: '#0f766e',
-    order: 2,
-  },
-  {
-    key: 'm5',
-    title: 'MockMate AI Master Certificate',
-    description: 'Complete 5 interview sessions with a score of 75% or higher.',
-    reqCount: 5,
-    reqMinScore: 75,
-    reqScore: null,
-    design: 'elegant',
-    accent: '#7c3aed',
-    order: 3,
-  },
-  {
-    key: 'm_score',
-    title: 'High Performance Honours Certificate',
-    description: 'Achieve a score of 85% or higher in any single session.',
-    reqCount: 1,
-    reqMinScore: 60,
-    reqScore: 85,
-    design: 'elegant',
-    accent: '#b45309',
-    order: 4,
-  },
+  { key: 'm1', title: 'Interview Pioneer Certificate', description: 'Complete your first interview session with a score of 60% or higher.', reqCount: 1, reqMinScore: 60, reqScore: null, design: 'classic', accent: '#4f46e5', order: 1 },
+  { key: 'm3', title: 'Interview Specialist Certificate', description: 'Complete 3 interview sessions with a score of 70% or higher.', reqCount: 3, reqMinScore: 70, reqScore: null, design: 'modern', accent: '#0f766e', order: 2 },
+  { key: 'm5', title: 'MockMate AI Master Certificate', description: 'Complete 5 interview sessions with a score of 75% or higher.', reqCount: 5, reqMinScore: 75, reqScore: null, design: 'elegant', accent: '#7c3aed', order: 3 },
+  { key: 'm_score', title: 'High Performance Honours Certificate', description: 'Achieve a score of 85% or higher in any single session.', reqCount: 1, reqMinScore: 60, reqScore: 85, design: 'elegant', accent: '#b45309', order: 4 },
 ]
 
 // Creates the defaults only when the collection is completely empty, so an admin

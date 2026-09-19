@@ -1,7 +1,7 @@
 const { Router } = require('express')
-const { requireAuth } = require('../middleware/auth')
+const { requireAuth } = require('../middleware/authMiddleware')
 const { wrap } = require('../utils/asyncHandler')
-const bookmark = require('../controllers/bookmark.controller')
+const bookmark = require('../controllers/bookmarkController')
 
 const router = Router()
 router.use(requireAuth)

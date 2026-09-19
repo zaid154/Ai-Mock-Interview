@@ -1,6 +1,6 @@
-const { verifyToken } = require('../utils/token')
-const User = require('../models/User.model')
-const { getSetting } = require('../utils/settings')
+const { verifyToken } = require('../utils/tokenUtils')
+const User = require('../models/userModel')
+const { getSetting } = require('../utils/settingsUtils')
 
 // Reads the JWT from the Bearer header or the `token` cookie, verifies it,
 // confirms the user still exists and the token hasn't been revoked by a password

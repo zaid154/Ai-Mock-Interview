@@ -1,7 +1,7 @@
 const { Router } = require('express')
-const { requireAuth } = require('../middleware/auth')
+const { requireAuth } = require('../middleware/authMiddleware')
 const { wrap } = require('../utils/asyncHandler')
-const templates = require('../controllers/certificateTemplate.controller')
+const templates = require('../controllers/certificateTemplateController')
 
 const router = Router()
 
