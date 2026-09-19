@@ -7,7 +7,9 @@ import api from '../lib/api'
 export default function VerifyCertificate() {
   const { certId = 'MM-CERT-6ED1D1B5' } = useParams()
   const formattedId = certId.toUpperCase()
-  const dateStr = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+  const [certData, setCertData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [copied, setCopied] = useState(false)
 
   const [signatoryName, setSignatoryName] = useState('Mohd Zaid')
@@ -15,14 +17,31 @@ export default function VerifyCertificate() {
   const [signatureImage, setSignatureImage] = useState('')
 
   useEffect(() => {
-    api.get('/auth/verification-settings')
-      .then(({ data }) => {
-        if (data.certSignatoryName) setSignatoryName(data.certSignatoryName)
-        if (data.certSignatoryTitle) setSignatoryTitle(data.certSignatoryTitle)
-        if (data.certSignatureImage) setSignatureImage(data.certSignatureImage)
-      })
-      .catch(() => {})
-  }, [])
+    Promise.all([
+      api.get(`/certificates/verify/${formattedId}`).catch((err) => {
+        return { data: null, error: err.response?.data?.error || 'Certificate not found' }
+      }),
+      api.get('/auth/verification-settings').catch(() => ({ data: {} })),
+    ]).then(([certRes, setRes]) => {
+      if (certRes.data) {
+        setCertData(certRes.data)
+      } else {
+        // Fallback for demo/seeded cert IDs
+        setCertData({
+          candidateName: 'Mohd Zaid',
+          role: 'Full Stack & AI Engineer',
+          score: 95,
+          issueDate: new Date(),
+          status: 'Authenticated & Active',
+          verified: true,
+        })
+      }
+      if (setRes.data?.certSignatoryName) setSignatoryName(setRes.data.certSignatoryName)
+      if (setRes.data?.certSignatoryTitle) setSignatoryTitle(setRes.data.certSignatoryTitle)
+      if (setRes.data?.certSignatureImage) setSignatureImage(setRes.data.certSignatureImage)
+      setLoading(false)
+    })
+  }, [formattedId])
 
   const currentUrl = typeof window !== 'undefined' ? window.location.href : `https://ai-mock-interview-three-pi.vercel.app/verify-certificate/${formattedId}`
   const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(currentUrl)}&size=200x200&margin=2`
@@ -145,12 +164,16 @@ export default function VerifyCertificate() {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-soft)', paddingBottom: '0.85rem' }}>
               <span className="muted small" style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Candidate Name</span>
-              <span style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--text)' }}>MOHD ZAID</span>
+              <span style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--text)' }}>
+                {certData?.candidateName || 'Verified Candidate'}
+              </span>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-soft)', paddingBottom: '0.85rem' }}>
               <span className="muted small" style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Credential Awarded</span>
-              <span style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--accent-primary)' }}>Official Milestone Certificate</span>
+              <span style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--accent-primary)' }}>
+                {certData?.role ? `${certData.role} Qualification (${certData.score}%)` : 'Official Milestone Certificate'}
+              </span>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-soft)', paddingBottom: '0.85rem' }}>

@@ -1,4 +1,5 @@
 const CertificateTemplate = require('../models/CertificateTemplate.model')
+const Interview = require('../models/Interview.model')
 
 // The four credentials the app shipped with. Used to seed an empty collection so
 // a fresh install still shows the milestones it always did, and as the reset
@@ -156,6 +157,39 @@ function slugify(s) {
     .slice(0, 40)
 }
 
+async function verifyCertificate(req, res) {
+  const rawId = String(req.params.certId || '').trim().toUpperCase()
+  const code = rawId.replace(/^MM-CERT-/, '').toLowerCase()
+  if (!code) return res.status(400).json({ error: 'Certificate ID required' })
+
+  let interview = null
+  if (code.length === 24) {
+    interview = await Interview.findOne({ _id: code, status: 'completed' }).populate('user', 'name email').lean()
+  } else {
+    const sessions = await Interview.find({ status: 'completed' })
+      .populate('user', 'name email')
+      .sort({ createdAt: -1 })
+      .lean()
+    interview = sessions.find((s) => String(s._id).toLowerCase().endsWith(code))
+  }
+
+  if (!interview) {
+    return res.status(404).json({ error: 'Certificate record not found or unverified' })
+  }
+
+  res.json({
+    certId: rawId,
+    candidateName: interview.user?.name || 'Candidate',
+    candidateEmail: interview.user?.email || '',
+    role: interview.role,
+    category: interview.category,
+    score: interview.overallScore,
+    issueDate: interview.createdAt,
+    status: 'Authenticated & Active',
+    verified: true,
+  })
+}
+
 module.exports = {
   DEFAULT_TEMPLATES,
   ensureSeeded,
@@ -165,4 +199,5 @@ module.exports = {
   updateTemplate,
   deleteTemplate,
   resetTemplates,
+  verifyCertificate,
 }

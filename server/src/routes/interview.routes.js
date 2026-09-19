@@ -37,7 +37,6 @@ const submitSchema = z.object({
 
 router.post('/', validate(startSchema), wrap(interview.startInterview))
 router.get('/', wrap(interview.listInterviews))
-router.get('/leaderboard', wrap(interview.getLeaderboard))
 router.post('/resume', upload.single('resume'), wrap(interview.uploadResume))
 router.get('/:id', wrap(interview.getInterview))
 router.post('/:id/submit', validate(submitSchema), wrap(interview.submitInterview))

@@ -5,9 +5,10 @@ const templates = require('../controllers/certificateTemplate.controller')
 
 const router = Router()
 
-// Read-only for candidates. The Certificates page needs the milestone list to
-// render at all, so this sits outside the admin boundary — but still behind auth,
-// since only a signed-in candidate has certificates to earn.
+// Public verification endpoint for QR codes and shared credentials
+router.get('/verify/:certId', wrap(templates.verifyCertificate))
+
+// Read-only for candidates
 router.get('/templates', requireAuth, wrap(templates.listPublicTemplates))
 
 module.exports = router

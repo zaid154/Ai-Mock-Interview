@@ -73,11 +73,16 @@ export default function Bookmarks() {
   }
 
   async function handleSaveNotes(id) {
-    setBookmarks((prev) =>
-      prev.map((b) => (b._id === id ? { ...b, notes: noteText } : b))
-    )
-    setEditingNoteId(null)
-    toast.success('Personal note saved!')
+    try {
+      await api.patch(`/bookmarks/${id}/notes`, { notes: noteText })
+      setBookmarks((prev) =>
+        prev.map((b) => (b._id === id ? { ...b, notes: noteText } : b))
+      )
+      setEditingNoteId(null)
+      toast.success('Personal note saved!')
+    } catch (err) {
+      toast.error(apiError(err, 'Could not save note'))
+    }
   }
 
   function toggleAnswerVisibility(id) {

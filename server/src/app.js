@@ -89,7 +89,6 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/auth', authRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/interviews', interviewRoutes)
-app.use('/api/sessions', interviewRoutes)
 app.use('/api/bookmarks', bookmarkRoutes)
 app.use('/api/certificates', certificateRoutes)
 

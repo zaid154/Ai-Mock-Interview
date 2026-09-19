@@ -20,7 +20,7 @@ async function requireAuth(req, res, next) {
   }
 
   try {
-    const user = await User.findById(payload.sub).select('tokenVersion email isVerified isEmailVerified')
+    const user = await User.findById(payload.sub).select('tokenVersion email isVerified isEmailVerified role')
     // Reject if the account is gone or the token predates a password reset.
     if (!user || (user.tokenVersion || 0) !== (payload.tv || 0)) {
       return res.status(401).json({ error: 'Session expired, please sign in again' })
@@ -35,23 +35,19 @@ async function requireAuth(req, res, next) {
       })
     }
     req.userId = payload.sub
-    next()
-  } catch (err) {
-    next(err) // a DB error is not an auth failure
-  }
-}
-
-// Must run after requireAuth. Loads the user and checks the admin role.
-async function requireAdmin(req, res, next) {
-  try {
-    const user = await User.findById(req.userId).select('role')
-    if (!user || user.role !== 'admin') {
-      return res.status(403).json({ error: 'Admin access only' })
-    }
+    req.user = user
     next()
   } catch (err) {
     next(err)
   }
+}
+
+// Must run after requireAuth. Checks the user's admin role without an extra DB query.
+async function requireAdmin(req, res, next) {
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Admin access only' })
+  }
+  next()
 }
 
 module.exports = { requireAuth, requireAdmin }
