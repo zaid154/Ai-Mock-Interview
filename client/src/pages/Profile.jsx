@@ -1,15 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import {
-  User as UserIcon,
-  Award,
-  Bookmark,
-  ShieldCheck,
-  Sparkles,
-  KeyRound,
-  Mail,
-  Camera,
-  BarChart3,
-} from 'lucide-react'
+import { User as UserIcon, Award, Bookmark, ShieldCheck, Sparkles, KeyRound, Mail, Camera, BarChart3 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { useAuth } from '../context/AuthContext'
@@ -27,19 +17,12 @@ const TABS = [
 ]
 
 /**
- * Profile Page (Candidate Account Settings & Analytics)
- * 
- * Modular Architecture:
- * - Header: Avatar slot, verified status, target track links
- * - ProfileOverview: Performance metrics & bio display
- * - ProfileEdit: Photo upload, custom URL, emoji picker, personal details
- * - ProfileSecurity: Password updates & account strength checklist
+ * Profile Page: Candidate account settings, analytics overview, and security.
  */
 export default function Profile() {
   const { user, refreshUser } = useAuth()
   const [activeTab, setActiveTab] = useState('overview')
 
-  // Form State
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [bio, setBio] = useState('')
@@ -49,23 +32,13 @@ export default function Profile() {
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef(null)
 
-  // Password State
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [savingPassword, setSavingPassword] = useState(false)
 
-  // Analytics State
-  const [userRank, setUserRank] = useState(null)
-  const [stats, setStats] = useState({
-    totalInterviews: 0,
-    totalQuizzes: 0,
-    avgScore: 0,
-    bookmarksCount: 0,
-    highestScore: 0,
-  })
+  const [stats, setStats] = useState({ totalInterviews: 0, totalQuizzes: 0, avgScore: 0, highestScore: 0, bookmarksCount: 0 })
 
-  // Synchronize state when auth user changes
   useEffect(() => {
     if (!user) return
     const parts = (user.name || '').trim().split(/\s+/)
@@ -75,18 +48,12 @@ export default function Profile() {
     setAvatar(user.avatar || '')
   }, [user])
 
-  // Load candidate analytics & genuine leaderboard rank
   useEffect(() => {
     let mounted = true
     async function loadStats() {
       try {
-        const [intRes, bmRes, lbRes] = await Promise.all([
-          api.get('/interviews'),
-          api.get('/bookmarks'),
-          api.get('/interviews/leaderboard').catch(() => ({ data: { leaderboard: [] } })),
-        ])
+        const [intRes, bmRes] = await Promise.all([api.get('/interviews'), api.get('/bookmarks')])
         if (!mounted) return
-
         const list = intRes.data?.interviews || []
         const completed = list.filter((i) => i.status === 'completed')
         const scores = completed.map((i) => i.overallScore || 0)
@@ -98,23 +65,12 @@ export default function Profile() {
           highestScore: scores.length ? Math.max(...scores) : 0,
           bookmarksCount: bmRes.data?.bookmarks?.length || 0,
         })
-
-        const lbList = lbRes.data?.leaderboard || []
-        const myEntry = lbList.find(
-          (item) =>
-            (user?._id && String(item.userId) === String(user._id)) ||
-            (user?.name && item.name?.trim().toLowerCase() === user.name.trim().toLowerCase())
-        )
-        setUserRank(myEntry ? myEntry.rank : null)
       } catch {
-        // Analytics failures fail silently
+        // silent fail
       }
     }
-
     loadStats()
-    return () => {
-      mounted = false
-    }
+    return () => { mounted = false }
   }, [user])
 
   async function commitAvatar(next, message) {
@@ -126,7 +82,7 @@ export default function Profile() {
       if (refreshUser) await refreshUser()
     } catch (err) {
       setAvatar(previous)
-      toast.error(apiError(err, 'Could not update your picture'))
+      toast.error(apiError(err, 'Could not update picture'))
     }
   }
 
@@ -134,7 +90,6 @@ export default function Profile() {
     const file = e.target.files?.[0]
     e.target.value = ''
     if (!file) return
-
     setUploading(true)
     const id = toast.loading('Processing image…')
     try {
@@ -142,7 +97,7 @@ export default function Profile() {
       toast.dismiss(id)
       await commitAvatar(dataUrl, `Picture updated (${approxDataUrlKb(dataUrl)} KB)`)
     } catch (err) {
-      toast.error(err.message || 'Could not read that image', { id })
+      toast.error(err.message || 'Could not read image', { id })
     } finally {
       setUploading(false)
     }
@@ -150,10 +105,7 @@ export default function Profile() {
 
   async function handleApplyCustomUrl() {
     const url = customUrl.trim()
-    if (!url || !/^https?:\/\//i.test(url)) {
-      toast.error('Enter a full image URL starting with http:// or https://')
-      return
-    }
+    if (!url || !/^https?:\/\//i.test(url)) return toast.error('Enter a valid image URL')
     setCustomUrl('')
     await commitAvatar(url, 'Picture updated from URL')
   }
@@ -162,7 +114,6 @@ export default function Profile() {
     e.preventDefault()
     const fullName = `${firstName.trim()} ${lastName.trim()}`.trim()
     if (!fullName) return toast.error('First name is required')
-
     setSavingProfile(true)
     try {
       await api.patch('/auth/profile', { name: fullName, bio, avatar })
@@ -199,27 +150,16 @@ export default function Profile() {
 
   return (
     <main className="container">
-      {/* ── Candidate Profile Header ── */}
+      {/* Profile Header */}
       <section className="profile-header">
         <div className="profile-cover">
-          <span className="badge-glow profile-cover-badge">
-            <Sparkles size={13} /> Verified candidate
-          </span>
+          <span className="badge-glow profile-cover-badge"><Sparkles size={13} /> Verified candidate</span>
         </div>
 
         <div className="profile-identity">
           <div className="profile-avatar-slot">
             <Avatar src={avatar} name={user?.name} size={104} />
-            <button
-              type="button"
-              className="profile-avatar-edit"
-              onClick={() => {
-                setActiveTab('edit')
-                fileInputRef.current?.click()
-              }}
-              title="Change picture"
-              aria-label="Change profile picture"
-            >
+            <button type="button" className="profile-avatar-edit" onClick={() => { setActiveTab('edit'); fileInputRef.current?.click() }} title="Change picture">
               <Camera size={15} />
             </button>
           </div>
@@ -227,34 +167,21 @@ export default function Profile() {
           <div className="profile-identity-text">
             <h1>
               {user?.name}
-              {user?.isEmailVerified && (
-                <ShieldCheck size={20} className="profile-verified" aria-label="Email verified" />
-              )}
+              {user?.isEmailVerified && <ShieldCheck size={20} className="profile-verified" aria-label="Verified" />}
             </h1>
-            <p className="mono">
-              <Mail size={14} /> {user?.email}
-            </p>
+            <p className="mono"><Mail size={14} /> {user?.email}</p>
           </div>
 
           <div className="profile-identity-actions">
-            <Link to="/certificates" className="btn btn-secondary btn-sm">
-              <Award size={15} /> Certificates
-            </Link>
-            <Link to="/bookmarks" className="btn btn-secondary btn-sm">
-              <Bookmark size={15} /> Bookmarks ({stats.bookmarksCount})
-            </Link>
+            <Link to="/certificates" className="btn btn-secondary btn-sm"><Award size={15} /> Certificates</Link>
+            <Link to="/bookmarks" className="btn btn-secondary btn-sm"><Bookmark size={15} /> Bookmarks ({stats.bookmarksCount})</Link>
           </div>
         </div>
 
         <div className="profile-tabs">
           <div className="segmented-control">
             {TABS.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                className={`segmented-btn ${activeTab === t.id ? 'active' : ''}`}
-                onClick={() => setActiveTab(t.id)}
-              >
+              <button key={t.id} type="button" className={`segmented-btn ${activeTab === t.id ? 'active' : ''}`} onClick={() => setActiveTab(t.id)}>
                 <t.icon size={15} /> {t.label}
               </button>
             ))}
@@ -264,45 +191,19 @@ export default function Profile() {
 
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoFileUpload} style={{ display: 'none' }} />
 
-      {activeTab === 'overview' && (
-        <ProfileOverview stats={stats} bio={user?.bio} setActiveTab={setActiveTab} />
-      )}
-
+      {activeTab === 'overview' && <ProfileOverview stats={stats} bio={user?.bio} setActiveTab={setActiveTab} />}
       {activeTab === 'edit' && (
         <ProfileEdit
-          avatar={avatar}
-          user={user}
-          uploading={uploading}
-          fileInputRef={fileInputRef}
-          hasPhoto={hasPhoto}
-          commitAvatar={commitAvatar}
-          customUrl={customUrl}
-          setCustomUrl={setCustomUrl}
-          handleApplyCustomUrl={handleApplyCustomUrl}
-          firstName={firstName}
-          setFirstName={setFirstName}
-          lastName={lastName}
-          setLastName={setLastName}
-          bio={bio}
-          setBio={setBio}
-          handleSaveProfile={handleSaveProfile}
-          savingProfile={savingProfile}
-          userRank={userRank}
-          stats={stats}
+          avatar={avatar} user={user} uploading={uploading} fileInputRef={fileInputRef} hasPhoto={hasPhoto} commitAvatar={commitAvatar}
+          customUrl={customUrl} setCustomUrl={setCustomUrl} handleApplyCustomUrl={handleApplyCustomUrl}
+          firstName={firstName} setFirstName={setFirstName} lastName={lastName} setLastName={setLastName} bio={bio} setBio={setBio}
+          handleSaveProfile={handleSaveProfile} savingProfile={savingProfile}
         />
       )}
-
       {activeTab === 'security' && (
         <ProfileSecurity
-          currentPassword={currentPassword}
-          setCurrentPassword={setCurrentPassword}
-          newPassword={newPassword}
-          setNewPassword={setNewPassword}
-          confirmPassword={confirmPassword}
-          setConfirmPassword={setConfirmPassword}
-          handleChangePassword={handleChangePassword}
-          savingPassword={savingPassword}
-          user={user}
+          currentPassword={currentPassword} setCurrentPassword={setCurrentPassword} newPassword={newPassword} setNewPassword={setNewPassword}
+          confirmPassword={confirmPassword} setConfirmPassword={setConfirmPassword} handleChangePassword={handleChangePassword} savingPassword={savingPassword}
         />
       )}
     </main>

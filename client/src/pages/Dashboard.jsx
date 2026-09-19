@@ -9,27 +9,17 @@ import { ShieldCheck, Award, Briefcase } from 'lucide-react'
 import PracticeStudio from '../components/dashboard/PracticeStudio'
 import PerformanceHub from '../components/dashboard/PerformanceHub'
 
-// Maps frontend experience label to backend difficulty enum
-const DIFFICULTY_MAP = {
-  Junior: 'easy',
-  Intermediate: 'medium',
-  Senior: 'hard',
-}
+const DIFFICULTY_MAP = { Junior: 'easy', Intermediate: 'medium', Senior: 'hard' }
 
 /**
- * Dashboard Page (Candidate Command Center)
- * 
- * Modular Architecture:
- * - Executive status banner: Current track, readiness score, verified badge
- * - PracticeStudio: Configures format, role, domain, timer, and resume context
- * - PerformanceHub: Visualizes readiness metrics and session history feed
+ * Dashboard Page: Candidate hub coordinating PracticeStudio and PerformanceHub.
  */
 export default function Dashboard() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const { confirm } = useConfirm()
 
-  // --- Practice Studio Form States ---
+  // Setup Form States
   const [mode, setMode] = useState('questions')
   const [role, setRole] = useState(user?.targetRole || 'Fullstack Developer')
   const [topic, setTopic] = useState('React & Modern Web Architecture')
@@ -40,20 +30,16 @@ export default function Dashboard() {
   const [resumeText, setResumeText] = useState('')
   const [resumeFileName, setResumeFileName] = useState('')
 
-  // --- Sessions & History States ---
+  // Past Sessions States
   const [sessions, setSessions] = useState([])
   const [busy, setBusy] = useState(false)
   const [fetchingSessions, setFetchingSessions] = useState(true)
   const [searchFilter, setSearchFilter] = useState('')
 
-  // Load candidate's practice history on mount
   useEffect(() => {
     fetchSessions()
   }, [])
 
-  /**
-   * Fetches past interview sessions from GET /api/interviews.
-   */
   async function fetchSessions() {
     try {
       const { data } = await api.get('/interviews')
@@ -65,21 +51,14 @@ export default function Dashboard() {
     }
   }
 
-  /**
-   * Handles PDF resume upload: sends multipart form to /api/interviews/resume.
-   */
   async function handleFileUpload(e) {
     const file = e.target.files?.[0]
     if (!file) return
-    if (!file.name.toLowerCase().endsWith('.pdf')) {
-      toast.error('Please upload a PDF file')
-      return
-    }
+    if (!file.name.toLowerCase().endsWith('.pdf')) return toast.error('Please upload a PDF file')
 
     const formData = new FormData()
     formData.append('resume', file)
     const toastId = toast.loading('Parsing resume context…')
-
     try {
       const { data } = await api.post('/interviews/resume', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -100,13 +79,9 @@ export default function Dashboard() {
     toast.success('Resume context removed')
   }
 
-  /**
-   * Creates new session at POST /api/interviews and navigates to active interview.
-   */
   async function createSession(e) {
     e.preventDefault()
     setBusy(true)
-
     const finalTopic = topic === 'Custom Topic' ? customTopic.trim() : topic
     if (!finalTopic) {
       toast.error('Please specify a topic')
@@ -124,15 +99,9 @@ export default function Dashboard() {
         count: Number(numQuestions),
         timerMinutes: Number(timerMinutes),
       }
-
       const { data } = await api.post('/interviews', payload)
       const session = data.interview || data.session
-
-      if (session.mode === 'quiz') {
-        navigate(`/quiz/${session._id}`)
-      } else {
-        navigate(`/interview/${session._id}`)
-      }
+      navigate(session.mode === 'quiz' ? `/quiz/${session._id}` : `/interview/${session._id}`)
     } catch (err) {
       toast.error(apiError(err, 'Could not initialize practice session'))
     } finally {
@@ -140,9 +109,6 @@ export default function Dashboard() {
     }
   }
 
-  /**
-   * Deletes session with confirmation prompt.
-   */
   async function deleteSession(id, e) {
     e.stopPropagation()
     const ok = await confirm({
@@ -152,7 +118,6 @@ export default function Dashboard() {
       danger: true,
     })
     if (!ok) return
-
     try {
       await api.delete(`/interviews/${id}`)
       setSessions((prev) => prev.filter((s) => s._id !== id))
@@ -162,47 +127,33 @@ export default function Dashboard() {
     }
   }
 
-  // --- Aggregate Metrics ---
+  // Aggregate Metrics
   const completedSessions = sessions.filter((s) => s.status === 'completed')
   const avgScore = completedSessions.length
-    ? Math.round(
-        completedSessions.reduce((acc, s) => acc + (s.overallScore || s.totalScore || 0), 0) /
-          completedSessions.length
-      )
+    ? Math.round(completedSessions.reduce((acc, s) => acc + (s.overallScore || s.totalScore || 0), 0) / completedSessions.length)
     : 0
-
   const qualifiedCerts = completedSessions.filter((s) => (s.overallScore || 0) >= 70).length
 
   const filteredSessions = sessions.filter((s) => {
     if (!searchFilter.trim()) return true
     const term = searchFilter.toLowerCase()
-    return (
-      s.role?.toLowerCase().includes(term) ||
-      s.category?.toLowerCase().includes(term) ||
-      s.topic?.toLowerCase().includes(term)
-    )
+    return s.role?.toLowerCase().includes(term) || s.category?.toLowerCase().includes(term) || s.topic?.toLowerCase().includes(term)
   })
 
   return (
     <main className="container" style={{ paddingBottom: '4rem' }}>
-      {/* ── Executive Candidate Status Bar ── */}
+      {/* Candidate Status Banner */}
       <div className="candidate-hero-banner">
         <div className="candidate-profile-block">
           <Avatar src={user?.avatar} name={user?.name || 'Candidate'} size={46} />
           <div className="candidate-meta-cluster">
             <div className="candidate-name-row">
               <h1 className="candidate-name-title">{user?.name || 'Candidate'}</h1>
-              {user?.isEmailVerified && (
-                <span className="tag" style={{ fontSize: '0.72rem' }}>
-                  <ShieldCheck size={13} /> Verified
-                </span>
-              )}
+              {user?.isEmailVerified && <span className="tag" style={{ fontSize: '0.72rem' }}><ShieldCheck size={13} /> Verified</span>}
             </div>
             <div className="candidate-role-sub">
               <Briefcase size={14} className="muted" />
-              <span>
-                Target Track: <strong style={{ color: 'var(--text)' }}>{role || 'Fullstack Developer'}</strong>
-              </span>
+              <span>Target Track: <strong style={{ color: 'var(--text)' }}>{role || 'Fullstack Developer'}</strong></span>
             </div>
           </div>
         </div>
@@ -215,17 +166,7 @@ export default function Dashboard() {
           <div style={{ width: '1px', height: '28px', background: 'var(--border)' }} />
           <div className="dashboard-metric-item">
             <span className="dashboard-metric-label">Readiness Index</span>
-            <span
-              className="dashboard-metric-val"
-              style={{
-                color:
-                  avgScore >= 80
-                    ? 'var(--good)'
-                    : avgScore >= 60
-                    ? 'var(--accent-primary)'
-                    : 'var(--text)',
-              }}
-            >
+            <span className="dashboard-metric-val" style={{ color: avgScore >= 80 ? 'var(--good)' : avgScore >= 60 ? 'var(--accent-primary)' : 'var(--text)' }}>
               {avgScore}%
             </span>
           </div>
@@ -236,40 +177,22 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ── 62/38 Modular Cockpit Grid ── */}
+      {/* Grid: Setup Form + Performance Hub */}
       <div className="dashboard-cockpit-grid">
         <PracticeStudio
-          mode={mode}
-          setMode={setMode}
-          role={role}
-          setRole={setRole}
-          topic={topic}
-          setTopic={setTopic}
-          customTopic={customTopic}
-          setCustomTopic={setCustomTopic}
-          numQuestions={numQuestions}
-          setNumQuestions={setNumQuestions}
-          difficulty={difficulty}
-          setDifficulty={setDifficulty}
-          timerMinutes={timerMinutes}
-          setTimerMinutes={setTimerMinutes}
-          resumeFileName={resumeFileName}
-          handleFileUpload={handleFileUpload}
-          handleRemoveResume={handleRemoveResume}
-          createSession={createSession}
-          busy={busy}
+          mode={mode} setMode={setMode} role={role} setRole={setRole}
+          topic={topic} setTopic={setTopic} customTopic={customTopic} setCustomTopic={setCustomTopic}
+          numQuestions={numQuestions} setNumQuestions={setNumQuestions}
+          difficulty={difficulty} setDifficulty={setDifficulty}
+          timerMinutes={timerMinutes} setTimerMinutes={setTimerMinutes}
+          resumeFileName={resumeFileName} handleFileUpload={handleFileUpload}
+          handleRemoveResume={handleRemoveResume} createSession={createSession} busy={busy}
         />
-
         <PerformanceHub
-          sessions={sessions}
-          completedSessions={completedSessions}
-          avgScore={avgScore}
-          searchFilter={searchFilter}
-          setSearchFilter={setSearchFilter}
-          filteredSessions={filteredSessions}
-          fetchingSessions={fetchingSessions}
-          deleteSession={deleteSession}
-          navigate={navigate}
+          sessions={sessions} completedSessions={completedSessions} avgScore={avgScore}
+          searchFilter={searchFilter} setSearchFilter={setSearchFilter}
+          filteredSessions={filteredSessions} fetchingSessions={fetchingSessions}
+          deleteSession={deleteSession} navigate={navigate}
         />
       </div>
     </main>
