@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { RotateCcw, Check, X, Bookmark, Award, Edit3, Save, Sparkles, ArrowRight, FileCheck } from 'lucide-react'
+import { RotateCcw, Check, X, Bookmark, Award, Edit3, Save, Sparkles } from 'lucide-react'
 import api, { apiError } from '../lib/api'
 import ScoreChart from '../components/ScoreChart'
 import { formatGeneratedText } from '../lib/text'
 
 const LETTERS = ['A', 'B', 'C', 'D']
 
+/**
+ * Maps overall score percentage to an actionable candidate readiness verdict.
+ */
 function verdict(score) {
   if (score >= 80) return { label: 'Strong Candidate', className: 'score-chip', desc: 'Ready for real-world interviews!' }
   if (score >= 55) return { label: 'Solid, with minor gaps', className: 'chip-pending', desc: 'Good foundation. Review key feedback areas below.' }
@@ -16,12 +19,17 @@ function verdict(score) {
 
 export default function Results() {
   const { id } = useParams()
+
+  // --- States ---
   const [interview, setInterview] = useState(null)
   const [loading, setLoading] = useState(true)
   const [bookmarkedMap, setBookmarkedMap] = useState({})
   const [sessionNotes, setSessionNotes] = useState('')
   const [savingNotes, setSavingNotes] = useState(false)
 
+  /**
+   * Fetches completed interview scorecard from GET /api/interviews/:id.
+   */
   useEffect(() => {
     api
       .get(`/interviews/${id}`)
@@ -34,6 +42,10 @@ export default function Results() {
       .finally(() => setLoading(false))
   }, [id])
 
+  /**
+   * Saves a specific question with its answer, score, and AI feedback to Bookmarks.
+   * Endpoint: POST /api/bookmarks
+   */
   async function handleBookmarkQuestion(q) {
     try {
       await api.post('/bookmarks', {
@@ -53,6 +65,10 @@ export default function Results() {
     }
   }
 
+  /**
+   * Saves overall candidate session takeaways to MongoDB.
+   * Endpoint: PATCH /api/interviews/:id/notes
+   */
   async function handleSaveSessionNotes() {
     setSavingNotes(true)
     try {
@@ -73,7 +89,7 @@ export default function Results() {
 
   return (
     <main className="container">
-      {/* Results Header */}
+      {/* ── Results Header ── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div style={{ minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.6rem', marginBottom: '0.3rem' }}>
@@ -96,140 +112,156 @@ export default function Results() {
         </div>
       </div>
 
-      {/* Top 2-Column Analytics Overview */}
+      {/* ── Top 2-Column Analytics Overview ── */}
       <div className="results-overview-grid" style={{ marginBottom: '2rem' }}>
-        {/* Overall Score Gauge Donut */}
-        <div className="panel score-ring">
-          <div className="score-donut" style={{ '--pct': interview.overallScore }}>
-            <div className="score-donut-inner">
-              <span className="score-value">{interview.overallScore}</span>
-              <span className="muted small">/ 100</span>
-            </div>
-          </div>
-          <div style={{ textAlign: 'center' }}>
-            <span className={v.className} style={{ fontSize: '0.9rem', marginBottom: '0.3rem', display: 'inline-block' }}>
-              {v.label}
+        {/* Left Column: Overall Score Meter */}
+        <div className="panel" style={{ padding: '1.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+            <span className="subtle small uppercase" style={{ letterSpacing: '0.06em', fontWeight: 700 }}>
+              Readiness Rating
             </span>
-            <p className="muted small" style={{ margin: '0.3rem 0 0' }}>{v.desc}</p>
+            <span className={v.className}>{v.label}</span>
           </div>
+
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginBottom: '0.5rem' }}>
+            <span className="mono" style={{ fontSize: '3.5rem', fontWeight: 800, lineHeight: 1 }}>
+              {interview.overallScore}%
+            </span>
+            <span className="muted" style={{ fontSize: '1.1rem' }}>overall rating</span>
+          </div>
+
+          <p className="muted small" style={{ margin: 0 }}>{v.desc}</p>
+          {interview.summary && (
+            <p style={{ marginTop: '1rem', fontSize: '0.92rem', lineHeight: '1.5', color: 'var(--text-muted)' }}>
+              {formatGeneratedText(interview.summary)}
+            </p>
+          )}
         </div>
 
-        {/* Score Per Question Chart */}
-        <div className="panel">
-          <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>Score Per Question</h3>
-          <ScoreChart scores={interview.questions.map((q) => q.score)} />
+        {/* Right Column: Interactive Score Breakdown Chart */}
+        <div className="panel" style={{ padding: '1.75rem' }}>
+          <span className="subtle small uppercase" style={{ letterSpacing: '0.06em', fontWeight: 700, display: 'block', marginBottom: '1rem' }}>
+            Question-by-Question Progression
+          </span>
+          <ScoreChart questions={interview.questions} />
         </div>
       </div>
 
-      {/* Session AI Summary */}
-      {interview.summary && (
-        <div className="panel" style={{ marginBottom: '1.5rem', background: 'var(--surface-2)' }}>
-          <h3 style={{ fontSize: '1.1rem', marginBottom: '0.6rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <Sparkles size={16} style={{ color: 'var(--accent-primary)' }} /> AI Summary &amp; Key Recommendations
-          </h3>
-          <p className="muted" style={{ margin: 0, lineHeight: '1.65' }}>{interview.summary}</p>
-        </div>
-      )}
-
-      {/* Candidate Session Notes Editor */}
-      <div className="panel" style={{ marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
-          <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '1.05rem' }}>
-            <Edit3 size={16} style={{ color: 'var(--accent-primary)' }} /> Personal Session Takeaways &amp; Action Plan
-          </h3>
-          <button className="btn btn-secondary btn-sm" onClick={handleSaveSessionNotes} disabled={savingNotes}>
-            <Save size={14} /> {savingNotes ? 'Saving...' : 'Save Notes'}
+      {/* ── Candidate Session Notes Card ── */}
+      <div className="panel" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+          <span className="field-label" style={{ margin: 0, display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+            <Edit3 size={15} style={{ color: 'var(--accent-primary)' }} /> Session Takeaways &amp; Retrospective Notes
+          </span>
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={handleSaveSessionNotes}
+            disabled={savingNotes}
+          >
+            <Save size={13} /> {savingNotes ? 'Saving…' : 'Save Notes'}
           </button>
         </div>
         <textarea
           rows={3}
           value={sessionNotes}
           onChange={(e) => setSessionNotes(e.target.value)}
-          placeholder="Jot down key topics or concepts you want to revise..."
+          placeholder="Capture your key takeaways, concepts to revise, or algorithmic patterns to practice..."
+          style={{ width: '100%', fontSize: '0.9rem', resize: 'vertical' }}
         />
       </div>
 
-      {/* Detailed Question Breakdown List */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-        <h3 style={{ fontSize: '1.25rem', margin: 0 }}>Detailed Question Breakdown</h3>
+      {/* ── Question Breakdown List ── */}
+      <h2 style={{ fontSize: '1.4rem', marginBottom: '1.25rem' }}>Detailed Question Evaluation</h2>
 
-        {interview.questions.map((q, i) =>
-          isQuiz ? (
-            <div className="glass-card" key={i} style={{ padding: '1.5rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', marginBottom: '1rem' }}>
-                <p className="question-text" style={{ margin: 0, fontSize: '1.1rem', whiteSpace: 'pre-wrap' }}>
-                  <span className="muted mono" style={{ marginRight: '0.4rem' }}>Q{i + 1}.</span> {formatGeneratedText(q.prompt)}
-                </p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexShrink: 0 }}>
-                  <button
-                    className="btn btn-ghost btn-sm"
-                    onClick={() => handleBookmarkQuestion(q)}
-                    title="Bookmark Question"
-                  >
-                    <Bookmark size={14} fill={bookmarkedMap[q.prompt] ? 'currentColor' : 'none'} />
-                  </button>
-                  <span className={`tag ${q.selectedIndex === q.correctIndex ? '' : 'tag-soft'}`} style={{ color: q.selectedIndex === q.correctIndex ? 'var(--good)' : 'var(--bad)' }}>
-                    {q.selectedIndex === q.correctIndex ? 'Correct' : 'Incorrect'}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        {interview.questions.map((q, idx) => {
+          const isBookmarked = Boolean(bookmarkedMap[q.prompt])
+          return (
+            <div key={idx} className="panel" style={{ padding: '1.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <span className="tag-soft mono" style={{ fontSize: '0.78rem' }}>Q{idx + 1}</span>
+                  <span className="score-chip" style={{ fontSize: '0.78rem' }}>
+                    {isQuiz ? (q.score === 10 ? 'Correct (+10)' : 'Incorrect (0)') : `${q.score ?? 0} / 100`}
                   </span>
                 </div>
+
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => handleBookmarkQuestion(q)}
+                  title="Save question"
+                >
+                  <Bookmark size={14} fill={isBookmarked ? 'currentColor' : 'none'} />
+                  {isBookmarked ? 'Saved' : 'Bookmark'}
+                </button>
               </div>
 
-              <div className="options-grid">
-                {q.options.map((opt, oi) => {
-                  const isCorrect = oi === q.correctIndex
-                  const isPicked = Number.isInteger(q.selectedIndex) && oi === q.selectedIndex
-                  return (
-                    <div
-                      key={oi}
-                      className={`option-card ${isCorrect ? 'correct' : ''} ${isPicked && !isCorrect ? 'wrong' : ''}`}
-                      style={{ cursor: 'default' }}
-                    >
-                      <span className="option-letter">{LETTERS[oi]}</span>
-                      <span style={{ whiteSpace: 'pre-wrap', flex: 1 }}>{formatGeneratedText(opt)}</span>
-                      {isPicked && (
-                        <span className="tag-soft" style={{ fontSize: '0.72rem' }}>
-                          Your Choice {isCorrect ? '✓' : '✗'}
-                        </span>
-                      )}
-                      {isCorrect && <Check size={18} style={{ color: 'var(--good)' }} />}
-                      {isPicked && !isCorrect && <X size={18} style={{ color: 'var(--bad)' }} />}
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          ) : (
-            <div className="glass-card" key={i} style={{ padding: '1.5rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', marginBottom: '0.8rem' }}>
-                <p className="question-text" style={{ margin: 0, fontSize: '1.1rem' }}>
-                  <span className="muted mono" style={{ marginRight: '0.4rem' }}>Q{i + 1}.</span> {formatGeneratedText(q.prompt)}
-                </p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexShrink: 0 }}>
-                  <button
-                    className="btn btn-ghost btn-sm"
-                    onClick={() => handleBookmarkQuestion(q)}
-                    title="Bookmark Question"
-                  >
-                    <Bookmark size={14} fill={bookmarkedMap[q.prompt] ? 'currentColor' : 'none'} />
-                  </button>
-                  <span className="score-chip" style={{ fontSize: '0.9rem' }}>{q.score} / 10</span>
+              <p style={{ fontWeight: 600, fontSize: '1.05rem', lineHeight: '1.5', whiteSpace: 'pre-wrap', marginBottom: '1rem' }}>
+                {formatGeneratedText(q.prompt)}
+              </p>
+
+              {/* Quiz Mode: Display Options with Correct vs Picked Indicator */}
+              {isQuiz && Array.isArray(q.options) && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
+                  {q.options.map((opt, optIdx) => {
+                    const isCorrect = optIdx === q.correctIndex
+                    const isPicked = optIdx === q.selectedIndex
+                    return (
+                      <div
+                        key={optIdx}
+                        style={{
+                          padding: '0.7rem 0.9rem',
+                          borderRadius: '8px',
+                          border: isCorrect
+                            ? '1px solid var(--good)'
+                            : isPicked
+                            ? '1px solid var(--bad)'
+                            : '1px solid var(--border)',
+                          background: isCorrect
+                            ? 'var(--good-soft)'
+                            : isPicked
+                            ? 'var(--bad-soft)'
+                            : 'var(--surface-2)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.6rem',
+                          fontSize: '0.88rem',
+                        }}
+                      >
+                        <span className="mono" style={{ fontWeight: 700 }}>{LETTERS[optIdx]}.</span>
+                        <span style={{ flex: 1 }}>{formatGeneratedText(opt)}</span>
+                        {isCorrect && <Check size={16} style={{ color: 'var(--good)' }} />}
+                        {isPicked && !isCorrect && <X size={16} style={{ color: 'var(--bad)' }} />}
+                      </div>
+                    )
+                  })}
                 </div>
-              </div>
+              )}
 
-              <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: '12px', padding: '1rem', marginBottom: '0.8rem' }}>
-                <span className="muted small" style={{ fontWeight: 600, display: 'block', marginBottom: '0.3rem' }}>Your Submitted Answer:</span>
-                <p style={{ margin: 0, whiteSpace: 'pre-wrap', fontSize: '0.95rem' }}>
-                  {q.answer || <em className="muted">No response submitted.</em>}
-                </p>
-              </div>
+              {/* Questions Mode: Show Candidate's Answer */}
+              {!isQuiz && q.answer && (
+                <div style={{ marginBottom: '1rem', padding: '0.9rem', borderRadius: '8px', background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
+                  <span className="subtle small uppercase" style={{ display: 'block', marginBottom: '0.3rem', fontWeight: 700 }}>Your Response:</span>
+                  <p style={{ fontSize: '0.92rem', lineHeight: '1.55', whiteSpace: 'pre-wrap', margin: 0 }}>{q.answer}</p>
+                </div>
+              )}
 
-              <div style={{ borderLeft: '3px solid var(--accent-primary)', paddingLeft: '1rem', color: 'var(--text-muted)', fontSize: '0.93rem', lineHeight: '1.6' }}>
-                <strong style={{ color: 'var(--text)' }}>AI Evaluator Feedback: </strong>
-                {q.feedback}
-              </div>
+              {/* AI Qualitative Feedback */}
+              {q.feedback && (
+                <div style={{ padding: '0.9rem', borderRadius: '8px', background: 'var(--accent-grad-subtle)', border: '1px solid rgba(99, 102, 241, 0.2)' }}>
+                  <span className="subtle small uppercase" style={{ display: 'block', marginBottom: '0.3rem', fontWeight: 700, color: 'var(--accent-primary)' }}>
+                    AI Feedback &amp; Suggestions:
+                  </span>
+                  <p style={{ fontSize: '0.92rem', lineHeight: '1.55', whiteSpace: 'pre-wrap', margin: 0 }}>
+                    {formatGeneratedText(q.feedback)}
+                  </p>
+                </div>
+              )}
             </div>
-          ),
-        )}
+          )
+        })}
       </div>
     </main>
   )

@@ -12,11 +12,19 @@ const {
 const { sendOtpEmail } = require('../services/email')
 const { getSetting } = require('../utils/settings')
 
+// Environment helper for secure cookies
 const isProd = () =>
   process.env.NODE_ENV === 'production' ||
   process.env.RENDER === 'true' ||
   Boolean(process.env.RENDER_SERVICE_ID)
 
+/**
+ * Cookie security options:
+ * - httpOnly: true -> Inaccessible to client JavaScript (prevents XSS token theft)
+ * - sameSite: 'none' (production) / 'lax' (dev) -> Allows cross-origin requests from Vercel to Render
+ * - secure: true in production -> Requires HTTPS
+ * - maxAge: 7 days
+ */
 const cookieOptions = () => ({
   httpOnly: true,
   sameSite: isProd() ? 'none' : 'lax',
@@ -26,6 +34,9 @@ const cookieOptions = () => ({
 
 const emailVerified = (user) => user.isEmailVerified === true || user.isVerified === true
 
+/**
+ * Sanitizes User document to prevent exposing sensitive internal fields like passwordHash or otpHash.
+ */
 const publicUser = (u) => ({
   id: u.id,
   name: u.name,
@@ -34,7 +45,6 @@ const publicUser = (u) => ({
   bio: u.bio || '',
   avatar: u.avatar || '',
   theme: u.theme || 'dark',
-  // Keep `isVerified` for existing client code and expose the clearer field too.
   isVerified: emailVerified(u),
   isEmailVerified: emailVerified(u),
   verifiedAt: u.verifiedAt || null,
@@ -42,6 +52,9 @@ const publicUser = (u) => ({
   hasResume: Boolean(u.resumeText),
 })
 
+/**
+ * Clears OTP fields after successful verification or expiration.
+ */
 function clearOtp(user) {
   user.otpCode = null
   user.otpHash = null
@@ -56,13 +69,19 @@ function cooldownError() {
   return err
 }
 
+/**
+ * Issues a crypto-secure 6-digit OTP:
+ * 1. Checks 60-second resend cooldown.
+ * 2. Generates random 6-digit code.
+ * 3. Hashes with SHA-256 before saving to MongoDB (never plain text in DB).
+ * 4. Sets 10-minute expiry and delivers email via Brevo or SMTP.
+ */
 async function issueOtp(user, purpose) {
   if (user.otpLastSentAt && Date.now() - user.otpLastSentAt.getTime() < OTP_RESEND_COOLDOWN_SECONDS * 1000) {
     throw cooldownError()
   }
 
   const code = generateOtp()
-  // Save OTP in database first so that OTP is active
   user.otpCode = null
   user.otpHash = hashOtp(code)
   user.otpExpires = otpExpiry()
@@ -71,7 +90,7 @@ async function issueOtp(user, purpose) {
   user.otpAttempts = 0
   await user.save()
 
-  // Deliver email
+  // Deliver code to candidate's email address
   await sendOtpEmail(user.email, code, purpose)
 }
 
@@ -81,12 +100,15 @@ async function registrationVerificationState(user) {
     await issueOtp(user, 'verify')
     return { needsVerification: mustVerify, otpSent: true }
   } catch (err) {
-    // Account is intentionally retained. The verification screen can resend once
-    // mail delivery is configured/recovered, without leaking an OTP in a log.
     return { needsVerification: mustVerify, otpSent: false, deliveryError: err.message }
   }
 }
 
+/**
+ * POST /api/auth/register
+ * Creates a new user account with hashed password (bcrypt 10 salt rounds)
+ * and dispatches initial email verification OTP.
+ */
 async function register(req, res) {
   const { name, email, password } = req.body
   if (await User.findOne({ email })) return res.status(409).json({ error: 'That email is already registered' })
@@ -98,8 +120,6 @@ async function register(req, res) {
   const token = signToken(user.id, user.tokenVersion)
   res.cookie('token', token, cookieOptions())
 
-  // A user record is needed to deliver/validate an OTP, but a real session is
-  // withheld until they verify or explicitly choose to skip verification.
   return res.status(201).json({
     user: publicUser(user),
     token,
@@ -108,6 +128,13 @@ async function register(req, res) {
   })
 }
 
+/**
+ * POST /api/auth/login
+ * Validates candidate credentials:
+ * 1. Compares submitted password with stored bcrypt hash.
+ * 2. Checks email verification status if enabled by platform admin.
+ * 3. Issues 7-day httpOnly JWT cookie with tokenVersion claim.
+ */
 async function login(req, res) {
   const email = (req.body.email || '').toLowerCase().trim()
   const password = req.body.password || ''
@@ -146,8 +173,10 @@ async function login(req, res) {
   return res.json({ user: publicUser(user), token })
 }
 
-// This is public so visitors can learn whether verification is mandatory
-// before they have an authenticated session.
+/**
+ * GET /api/auth/verification-settings
+ * Public endpoint exposing verification & certificate signatory configurations.
+ */
 async function verificationSettings(_req, res) {
   const v = await getSetting('verificationRequired', false)
   const h = await getSetting('hide_theme_toggle', false)
@@ -161,6 +190,11 @@ async function verificationSettings(_req, res) {
   res.json({ requireEmailVerification, hideThemeToggle, certSignatoryName, certSignatoryTitle, certSignatureImage })
 }
 
+/**
+ * POST /api/auth/verify-otp
+ * Verifies submitted 6-digit code against the SHA-256 hash in MongoDB.
+ * Enforces 10-minute expiry and max 5 attempts.
+ */
 async function verifyOtp(req, res) {
   const { email, otp } = req.body
   const user = await User.findOne({ email }).select('+otpHash +otpCode')
@@ -202,6 +236,9 @@ async function verifyOtp(req, res) {
   return res.json({ user: publicUser(user), token, message: 'Email verified successfully.' })
 }
 
+/**
+ * POST /api/auth/complete-registration
+ */
 async function completeRegistration(req, res) {
   let payload
   try {
@@ -225,16 +262,23 @@ async function completeRegistration(req, res) {
   return res.json({ user: publicUser(user), token })
 }
 
+/**
+ * POST /api/auth/resend-otp
+ * Resends a fresh 6-digit OTP code subject to the 60s cooldown limit.
+ */
 async function resendOtp(req, res) {
   const { email } = req.body
   const user = await User.findOne({ email })
-  // Do not disclose whether an unknown email exists.
   if (!user) return res.json({ ok: true })
   if (emailVerified(user)) return res.json({ ok: true, alreadyVerified: true })
   await issueOtp(user, 'verify')
   return res.json({ ok: true, cooldownSeconds: OTP_RESEND_COOLDOWN_SECONDS })
 }
 
+/**
+ * POST /api/auth/forgot-password
+ * Initiates password reset by issuing an OTP with purpose 'reset'.
+ */
 async function forgotPassword(req, res) {
   const { email } = req.body
   const user = await User.findOne({ email })
@@ -242,6 +286,11 @@ async function forgotPassword(req, res) {
   return res.json({ ok: true })
 }
 
+/**
+ * POST /api/auth/reset-password
+ * Verifies reset OTP, sets new bcrypt password hash, and increments `tokenVersion`
+ * to immediately invalidate any existing JWT sessions across devices.
+ */
 async function resetPassword(req, res) {
   const { email, otp, newPassword } = req.body
   const user = await User.findOne({ email }).select('+otpHash +otpCode')
@@ -257,11 +306,16 @@ async function resetPassword(req, res) {
   user.tokenVersion = (user.tokenVersion || 0) + 1
   clearOtp(user)
   await user.save()
+
   const token = signToken(user.id, user.tokenVersion)
   res.cookie('token', token, cookieOptions())
   return res.json({ ok: true, user: publicUser(user), token })
 }
 
+/**
+ * PATCH /api/auth/profile
+ * Updates candidate profile details (name, bio, avatar, theme).
+ */
 async function updateProfile(req, res) {
   const { name, bio, avatar, theme } = req.body
   const user = await User.findById(req.userId)
@@ -276,6 +330,10 @@ async function updateProfile(req, res) {
   return res.json({ user: publicUser(user) })
 }
 
+/**
+ * POST /api/auth/change-password
+ * Changes password for logged-in user and increments `tokenVersion` for security.
+ */
 async function changePassword(req, res) {
   const { currentPassword, newPassword } = req.body
   if (!currentPassword || !newPassword || newPassword.length < 6) {
@@ -296,11 +354,19 @@ async function changePassword(req, res) {
   return res.json({ user: publicUser(user), message: 'Password updated successfully.' })
 }
 
+/**
+ * POST /api/auth/logout
+ * Clears the httpOnly token cookie.
+ */
 function logout(_req, res) {
   res.clearCookie('token', { httpOnly: true, sameSite: isProd() ? 'none' : 'lax', secure: isProd(), path: '/' })
   res.json({ ok: true })
 }
 
+/**
+ * GET /api/auth/me
+ * Returns sanitized profile of currently authenticated user.
+ */
 async function me(req, res) {
   const user = await User.findById(req.userId)
   if (!user) return res.status(404).json({ error: 'User not found' })

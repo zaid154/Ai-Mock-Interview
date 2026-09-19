@@ -2,8 +2,12 @@ const Interview = require('../models/Interview.model')
 const User = require('../models/User.model')
 const { generateQuestions, generateQuiz, evaluateInterview } = require('../services/gemini')
 
-// Hide the answer key while a quiz is still in progress so it can't be read from
-// the network response. We reveal correctIndex again on the completed results.
+/**
+ * Data Sanitization Helper:
+ * Hides the answer key (`correctIndex`) while a quiz is still in progress so
+ * candidates cannot inspect network payloads via browser DevTools to cheat.
+ * We reveal `correctIndex` once the session status transitions to 'completed'.
+ */
 function publicInterview(interview) {
   const obj = interview.toObject ? interview.toObject() : interview
   if (obj.mode === 'quiz' && obj.status !== 'completed') {
@@ -12,9 +16,17 @@ function publicInterview(interview) {
   return obj
 }
 
-// POST /api/interviews
-// A saved resume is always the candidate profile. Form fields are only used as
-// a fallback when the user has not uploaded a resume.
+/**
+ * POST /api/interviews
+ * Initializes a new interview practice session.
+ * 
+ * Logic Flow:
+ * 1. Checks if candidate has an uploaded resume saved in User.resumeText.
+ * 2. If mode === 'quiz': Generates multiple-choice options with Gemini AI.
+ * 3. If mode === 'questions': Generates open-ended questions tailored to role or resume.
+ * 4. Fallback: If Gemini quota is exhausted, falls back to the Question.model seed bank.
+ * 5. Saves new session in MongoDB with status 'in_progress'.
+ */
 async function startInterview(req, res) {
   const { role, difficulty, count, experience, mode, category = 'General', timerMinutes = 0 } = req.body
 
@@ -36,7 +48,6 @@ async function startInterview(req, res) {
         selectedIndex: null,
       }))
     } catch (err) {
-      // Quiz mode has no offline fallback — it needs a working Gemini key.
       console.warn('Quiz generation failed:', err.message)
       return res.status(503).json({
         error: 'Quiz mode needs a working Gemini API key. Add one in admin settings, or use Questions mode.',
@@ -73,12 +84,17 @@ async function startInterview(req, res) {
   res.status(201).json({ interview: publicInterview(interview) })
 }
 
-// GET /api/interviews — summaries for the dashboard history list.
+/**
+ * GET /api/interviews
+ * Fetches lightweight session history for the logged-in candidate.
+ * Uses .lean() for minimal memory footprint.
+ */
 async function listInterviews(req, res) {
   const interviews = await Interview.find({ user: req.userId })
     .sort({ createdAt: -1 })
     .select('role category experience difficulty mode timerMinutes status overallScore createdAt questions notes')
     .lean()
+
   res.json({
     interviews: interviews.map(({ questions, ...interview }) => ({
       ...interview,
@@ -87,16 +103,26 @@ async function listInterviews(req, res) {
   })
 }
 
-// GET /api/interviews/:id — one full interview (answer key hidden if quiz + open).
+/**
+ * GET /api/interviews/:id
+ * Fetches a single full interview session by ID.
+ * Scoped to req.userId so users cannot inspect another candidate's session.
+ */
 async function getInterview(req, res) {
   const interview = await Interview.findOne({ _id: req.params.id, user: req.userId })
   if (!interview) return res.status(404).json({ error: 'Interview not found' })
   res.json({ interview: publicInterview(interview) })
 }
 
-// POST /api/interviews/:id/submit
-// Questions mode: body.answers (string[]) → AI/heuristic grading.
-// Quiz mode: body.answers (number[] of chosen option indexes) → score by key.
+/**
+ * POST /api/interviews/:id/submit
+ * Evaluates candidate responses and finalizes the session.
+ * 
+ * Logic Flow:
+ * - Quiz Mode: Evaluates deterministically in memory (10 points per match with correctIndex).
+ * - Questions Mode: Sends answers to Gemini AI (or heuristic fallback) for scoring (0-100) & feedback.
+ * - Transitions status to 'completed' and calculates overallScore.
+ */
 async function submitInterview(req, res) {
   const interview = await Interview.findOne({ _id: req.params.id, user: req.userId })
   if (!interview) return res.status(404).json({ error: 'Interview not found' })
@@ -107,10 +133,8 @@ async function submitInterview(req, res) {
   const answers = Array.isArray(req.body.answers) ? req.body.answers : []
 
   if (interview.mode === 'quiz') {
-    // Grade locally: 10 points for a correct pick, 0 otherwise. No AI needed.
     let correct = 0
     interview.questions.forEach((q, i) => {
-      // Accept a numeric index or a numeric string ("2"); anything else = unanswered.
       const n = Number(answers[i])
       const picked = answers[i] !== '' && answers[i] !== null && Number.isInteger(n) && n >= 0 && n < q.options.length
         ? n
@@ -126,7 +150,6 @@ async function submitInterview(req, res) {
     interview.overallScore = Math.round((correct / (interview.questions.length || 1)) * 100)
     interview.summary = `You scored ${correct} out of ${interview.questions.length} on this quiz.`
   } else {
-    // Questions mode: store answers then grade with Gemini (heuristic fallback).
     interview.questions.forEach((q, i) => {
       q.answer = String(answers[i] ?? '').trim()
     })
@@ -147,7 +170,10 @@ async function submitInterview(req, res) {
   res.json({ interview: publicInterview(interview) })
 }
 
-// PATCH /api/interviews/:id/notes — update notes on an interview or question
+/**
+ * PATCH /api/interviews/:id/notes
+ * Updates personal study notes on either the entire session or a specific question.
+ */
 async function updateNotes(req, res) {
   const { notes, questionIndex } = req.body
   const interview = await Interview.findOne({ _id: req.params.id, user: req.userId })
@@ -163,7 +189,15 @@ async function updateNotes(req, res) {
   res.json({ ok: true, interview: publicInterview(interview) })
 }
 
-// GET /api/interviews/leaderboard — get top users based on completed interviews and average scores.
+/**
+ * GET /api/interviews/leaderboard
+ * Computes global candidate rankings using MongoDB Aggregation Pipeline:
+ * 1. $match completed sessions
+ * 2. $group by user and calculate $avg and $max score
+ * 3. $sort by score descending
+ * 4. $limit to top 20
+ * 5. Populates candidate names and avatars from User collection
+ */
 async function getLeaderboard(req, res) {
   const stats = await Interview.aggregate([
     { $match: { status: 'completed' } },
@@ -200,14 +234,21 @@ async function getLeaderboard(req, res) {
   res.json({ leaderboard })
 }
 
-// DELETE /api/interviews/:id — remove one of your own interviews from history.
+/**
+ * DELETE /api/interviews/:id
+ * Permanently removes a session and its evaluation transcript from history.
+ */
 async function deleteInterview(req, res) {
   const result = await Interview.deleteOne({ _id: req.params.id, user: req.userId })
   if (result.deletedCount === 0) return res.status(404).json({ error: 'Interview not found' })
   res.json({ ok: true })
 }
 
-// POST /api/interviews/resume — upload a CV (PDF).
+/**
+ * POST /api/interviews/resume
+ * Extracts plain text from an uploaded PDF file in-memory using `unpdf`.
+ * The parsed text is saved to User.resumeText for personalized interview generation.
+ */
 async function uploadResume(req, res) {
   if (!req.file) return res.status(400).json({ error: 'Please attach a PDF file' })
 

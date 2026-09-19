@@ -4,14 +4,7 @@ import {
   Zap,
   Sparkles,
   ArrowRight,
-  CheckCircle2,
-  Brain,
-  Code2,
   Trophy,
-  Award,
-  FileText,
-  BarChart3,
-  ShieldCheck,
   Globe,
   Sliders,
   TrendingUp,
@@ -20,30 +13,100 @@ import {
 import { useAuth } from '../context/AuthContext'
 import { scrollToSectionId } from '../lib/scrollToSection'
 
+// Core advantages grid data
+const ADVANTAGES = [
+  {
+    icon: Activity,
+    title: 'Amplify Insights',
+    desc: 'Unlock data-driven candidate evaluation with comprehensive AI analytics, revealing key growth opportunities for technical rounds.',
+  },
+  {
+    icon: Globe,
+    title: 'Control Global Standings',
+    desc: 'Track past interview history, verified score reports, and community standings to benchmark your candidate rank worldwide.',
+  },
+  {
+    icon: Sliders,
+    title: 'Remove Skill Barriers',
+    desc: 'Adapt to diverse engineering domains (Frontend, Backend, DevOps, System Design) with tailored practice modules.',
+  },
+  {
+    icon: TrendingUp,
+    title: 'Visualize Technical Growth',
+    desc: 'Generate precise, visually compelling score reports illustrating your growth trajectories over time.',
+  },
+]
+
+// Interactive feature preview items
+const FEATURE_PREVIEWS = {
+  1: {
+    tag: 'Line-by-Line AI Scoring',
+    tagBg: 'var(--accent-primary)',
+    tagColor: '#fff',
+    title: 'Spot Trends in Seconds',
+    desc: 'Evaluates code syntax, computational complexity (Big-O), and architectural trade-offs automatically.',
+  },
+  2: {
+    tag: 'ISO 18004 Verified Credential',
+    tagBg: 'var(--good)',
+    tagColor: '#fff',
+    title: 'Shareable Verification Portal',
+    desc: 'Generate dynamic, scannable QR certificates with unique verification IDs to showcase on LinkedIn.',
+  },
+  3: {
+    tag: 'PDF Resume Extraction',
+    tagBg: 'var(--warn)',
+    tagColor: '#000',
+    title: 'Personalized Interview Generator',
+    desc: 'Extracts tech stacks from your resume PDF to craft custom system design and code questions.',
+  },
+}
+
+// 3-step simple workflow
+const WORKFLOW_STEPS = [
+  {
+    step: '01',
+    title: 'Select Target Role',
+    desc: 'Choose Frontend, Backend, DevOps, or System Design, set difficulty level, or upload your resume PDF.',
+  },
+  {
+    step: '02',
+    title: 'Complete Focus HUD Interview',
+    desc: 'Answer AI-generated questions in a distraction-free HUD interface with live word count and question palette.',
+  },
+  {
+    step: '03',
+    title: 'Review Analytics & Certificate',
+    desc: 'Get instant scoring breakdown, save key questions to your revision bank, and download your official verified certificate.',
+  },
+]
+
+/**
+ * Landing Page Component
+ * 
+ * Clean, high-converting product showcase:
+ * 1. Nature landscape panoramic hero with direct CTA
+ * 2. 4-column core advantages grid
+ * 3. Deep analytics interactive preview selector
+ * 4. 3-step candidate workflow
+ * 5. Primary conversion call-to-action banner
+ */
 export default function Landing() {
   const { user } = useAuth()
   const { hash } = useLocation()
   const [activeFeature, setActiveFeature] = useState(1)
 
-  // Deep link like /#benefits — same offset rule as the navbar and footer.
-  // A single pass lands short: on a cold load the hero art and the web fonts are
-  // still settling, so the geometry measured on mount is stale by the time the
-  // page has painted. Correct once more after fonts resolve, but bail out if the
-  // reader has already scrolled themselves.
+  // Smooth scroll handler for deep-link anchors (e.g. /#benefits, /#how-it-works)
   useEffect(() => {
     if (!hash) return
     const id = hash.replace('#', '')
 
-    // Detect a real gesture rather than inferring one from scrollY: the layout
-    // settling under us moves the page too, and treating that as "the reader
-    // took over" was exactly what left the deep link short of its section.
     let takenOver = false
     const yield_ = () => { takenOver = true }
     const EVENTS = ['wheel', 'touchstart', 'keydown', 'pointerdown']
     EVENTS.forEach((e) => window.addEventListener(e, yield_, { passive: true, once: true }))
 
     const run = () => { if (!takenOver) scrollToSectionId(id, { smooth: false }) }
-
     const timers = [setTimeout(run, 60), setTimeout(run, 400), setTimeout(run, 900)]
     if (document.fonts?.ready) document.fonts.ready.then(run).catch(() => {})
 
@@ -51,14 +114,13 @@ export default function Landing() {
       timers.forEach(clearTimeout)
       EVENTS.forEach((e) => window.removeEventListener(e, yield_))
     }
-    // Keyed on the hash, not just on mount: arriving at /#benefits while already
-    // on / is a same-document navigation, so the component never remounts and a
-    // mount-only effect would leave the browser's raw fragment jump in place.
   }, [hash])
+
+  const currentPreview = FEATURE_PREVIEWS[activeFeature]
 
   return (
     <div style={{ background: 'var(--bg)', color: 'var(--text)', minHeight: '100dvh', overflowX: 'hidden' }}>
-      {/* Nature Landscape Panoramic Hero Visual Canvas */}
+      {/* ── Panoramic Hero Section ── */}
       <section className="container" id="overview" style={{ paddingTop: '2.5rem', paddingBottom: '3.5rem' }}>
         <div
           style={{
@@ -79,20 +141,7 @@ export default function Landing() {
             boxShadow: 'var(--shadow-lg)',
           }}
         >
-          <div
-            className="badge-glow"
-            style={{
-              marginBottom: '1.2rem',
-              padding: '0.45rem 1.25rem',
-              fontSize: '0.85rem',
-              background: 'rgba(255, 255, 255, 0.12)',
-              color: '#ffffff',
-              borderColor: 'rgba(255, 255, 255, 0.25)',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-            }}
-          >
+          <div className="badge-glow" style={{ marginBottom: '1.2rem', padding: '0.45rem 1.25rem', fontSize: '0.85rem' }}>
             <Sparkles size={15} /> AI-Powered Technical Interview Platform
           </div>
 
@@ -125,7 +174,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 4-Column Feature Cards Section */}
+      {/* ── 4-Column Advantages Grid ── */}
       <section className="container" id="benefits" style={{ paddingTop: '4.5rem', paddingBottom: '3rem' }}>
         <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
           <div className="tag" style={{ marginBottom: '0.8rem', padding: '0.35rem 0.9rem' }}>
@@ -140,52 +189,23 @@ export default function Landing() {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
-          <div className="panel glass-card-hover" style={{ padding: '2rem 1.6rem', display: 'flex', flexDirection: 'column', height: '100%', borderRadius: '16px' }}>
-            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--accent-grad-subtle)', border: '1px solid rgba(99, 102, 241, 0.25)', display: 'grid', placeItems: 'center', color: 'var(--accent-primary)', marginBottom: '1.3rem' }}>
-              <Activity size={24} />
+          {ADVANTAGES.map((adv, i) => (
+            <div key={i} className="panel glass-card-hover" style={{ padding: '2rem 1.6rem', display: 'flex', flexDirection: 'column', height: '100%', borderRadius: '16px' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--accent-grad-subtle)', border: '1px solid rgba(99, 102, 241, 0.25)', display: 'grid', placeItems: 'center', color: 'var(--accent-primary)', marginBottom: '1.3rem' }}>
+                <adv.icon size={24} />
+              </div>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.6rem' }}>{adv.title}</h3>
+              <p className="muted" style={{ fontSize: '0.92rem', lineHeight: '1.65', margin: 0 }}>
+                {adv.desc}
+              </p>
             </div>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.6rem' }}>Amplify Insights</h3>
-            <p className="muted" style={{ fontSize: '0.92rem', lineHeight: '1.65', margin: 0 }}>
-              Unlock data-driven candidate evaluation with comprehensive AI analytics, revealing key growth opportunities for technical rounds.
-            </p>
-          </div>
-
-          <div className="panel glass-card-hover" style={{ padding: '2rem 1.6rem', display: 'flex', flexDirection: 'column', height: '100%', borderRadius: '16px' }}>
-            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--accent-grad-subtle)', border: '1px solid rgba(99, 102, 241, 0.25)', display: 'grid', placeItems: 'center', color: 'var(--accent-primary)', marginBottom: '1.3rem' }}>
-              <Globe size={24} />
-            </div>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.6rem' }}>Control Global Standings</h3>
-            <p className="muted" style={{ fontSize: '0.92rem', lineHeight: '1.65', margin: 0 }}>
-              Track past interview history, verified score reports, and community standings to benchmark your candidate rank worldwide.
-            </p>
-          </div>
-
-          <div className="panel glass-card-hover" style={{ padding: '2rem 1.6rem', display: 'flex', flexDirection: 'column', height: '100%', borderRadius: '16px' }}>
-            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--accent-grad-subtle)', border: '1px solid rgba(99, 102, 241, 0.25)', display: 'grid', placeItems: 'center', color: 'var(--accent-primary)', marginBottom: '1.3rem' }}>
-              <Sliders size={24} />
-            </div>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.6rem' }}>Remove Skill Barriers</h3>
-            <p className="muted" style={{ fontSize: '0.92rem', lineHeight: '1.65', margin: 0 }}>
-              Adapt to diverse engineering domains (Frontend, Backend, DevOps, System Design) with tailored practice modules.
-            </p>
-          </div>
-
-          <div className="panel glass-card-hover" style={{ padding: '2rem 1.6rem', display: 'flex', flexDirection: 'column', height: '100%', borderRadius: '16px' }}>
-            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--accent-grad-subtle)', border: '1px solid rgba(99, 102, 241, 0.25)', display: 'grid', placeItems: 'center', color: 'var(--accent-primary)', marginBottom: '1.3rem' }}>
-              <TrendingUp size={24} />
-            </div>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.6rem' }}>Visualize Technical Growth</h3>
-            <p className="muted" style={{ fontSize: '0.92rem', lineHeight: '1.65', margin: 0 }}>
-              Generate precise, visually compelling score reports illustrating your growth trajectories over time.
-            </p>
-          </div>
+          ))}
         </div>
       </section>
 
-      {/* Split Section: "See the Big Picture" */}
+      {/* ── Split Feature Deep Dive ── */}
       <section className="container" id="specifications" style={{ paddingTop: '4.5rem', paddingBottom: '3.5rem' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '3.5rem', alignItems: 'center' }}>
-          {/* Left Column Text & Numbered List */}
           <div>
             <div className="tag" style={{ marginBottom: '0.8rem', padding: '0.35rem 0.9rem' }}>
               Deep Analytics &amp; Scoring
@@ -198,83 +218,42 @@ export default function Landing() {
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.8rem' }}>
-              {/* Point 01 */}
-              <div
-                onClick={() => setActiveFeature(1)}
-                style={{
-                  display: 'flex',
-                  gap: '1.5rem',
-                  alignItems: 'flex-start',
-                  cursor: 'pointer',
-                  paddingBottom: '1.2rem',
-                  borderBottom: '1px solid var(--border-soft)',
-                  opacity: activeFeature === 1 ? 1 : 0.6,
-                  transition: 'opacity 0.2s',
-                }}
-              >
-                <span className="mono" style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--accent-primary)' }}>01</span>
-                <div>
-                  <h4 style={{ fontSize: '1.1rem', fontWeight: 700, margin: '0 0 0.35rem' }}>
-                    Spot Trends in Seconds
-                  </h4>
-                  <p className="muted small" style={{ margin: 0, fontSize: '0.92rem', lineHeight: '1.55' }}>
-                    No more digging through raw notes. Get instant line-by-line AI scoring breakdown and key takeaways.
-                  </p>
-                </div>
-              </div>
-
-              {/* Point 02 */}
-              <div
-                onClick={() => setActiveFeature(2)}
-                style={{
-                  display: 'flex',
-                  gap: '1.5rem',
-                  alignItems: 'flex-start',
-                  cursor: 'pointer',
-                  paddingBottom: '1.2rem',
-                  borderBottom: '1px solid var(--border-soft)',
-                  opacity: activeFeature === 2 ? 1 : 0.6,
-                  transition: 'opacity 0.2s',
-                }}
-              >
-                <span className="mono" style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--accent-primary)' }}>02</span>
-                <div>
-                  <h4 style={{ fontSize: '1.1rem', fontWeight: 700, margin: '0 0 0.35rem' }}>
-                    Get Everyone on the Same Page
-                  </h4>
-                  <p className="muted small" style={{ margin: 0, fontSize: '0.92rem', lineHeight: '1.55' }}>
-                    Share easy-to-verify certificate credentials and performance reports with hiring managers and recruiters.
-                  </p>
-                </div>
-              </div>
-
-              {/* Point 03 */}
-              <div
-                onClick={() => setActiveFeature(3)}
-                style={{
-                  display: 'flex',
-                  gap: '1.5rem',
-                  alignItems: 'flex-start',
-                  cursor: 'pointer',
-                  paddingBottom: '1.2rem',
-                  opacity: activeFeature === 3 ? 1 : 0.6,
-                  transition: 'opacity 0.2s',
-                }}
-              >
-                <span className="mono" style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--accent-primary)' }}>03</span>
-                <div>
-                  <h4 style={{ fontSize: '1.1rem', fontWeight: 700, margin: '0 0 0.35rem' }}>
-                    Resume Intelligence Matching
-                  </h4>
-                  <p className="muted small" style={{ margin: 0, fontSize: '0.92rem', lineHeight: '1.55' }}>
-                    Upload your resume PDF to automatically generate targeted questions from your past project achievements.
-                  </p>
-                </div>
-              </div>
+              {[1, 2, 3].map((num) => {
+                const item = FEATURE_PREVIEWS[num]
+                const isActive = activeFeature === num
+                return (
+                  <div
+                    key={num}
+                    onClick={() => setActiveFeature(num)}
+                    style={{
+                      display: 'flex',
+                      gap: '1.5rem',
+                      alignItems: 'flex-start',
+                      cursor: 'pointer',
+                      paddingBottom: '1.2rem',
+                      borderBottom: '1px solid var(--border-soft)',
+                      opacity: isActive ? 1 : 0.6,
+                      transition: 'opacity 0.2s',
+                    }}
+                  >
+                    <span className="mono" style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--accent-primary)' }}>
+                      0{num}
+                    </span>
+                    <div>
+                      <h4 style={{ fontSize: '1.1rem', fontWeight: 700, margin: '0 0 0.35rem' }}>
+                        {item.title}
+                      </h4>
+                      <p className="muted small" style={{ margin: 0, fontSize: '0.92rem', lineHeight: '1.55' }}>
+                        {item.desc}
+                      </p>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </div>
 
-          {/* Right Column Graphic Card */}
+          {/* Feature Graphic Canvas */}
           <div>
             <div
               style={{
@@ -286,18 +265,16 @@ export default function Landing() {
                 boxShadow: 'var(--shadow-lg)',
                 overflow: 'hidden',
                 padding: '2.5rem 1.8rem',
-                minHeight: '480px',
+                minHeight: '440px',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'flex-end',
-                position: 'relative',
               }}
             >
               <div
                 style={{
                   background: 'rgba(15, 23, 42, 0.88)',
                   backdropFilter: 'blur(16px)',
-                  WebkitBackdropFilter: 'blur(16px)',
                   borderRadius: '16px',
                   padding: '1.4rem',
                   border: '1px solid rgba(255, 255, 255, 0.15)',
@@ -305,65 +282,20 @@ export default function Landing() {
                   textAlign: 'left',
                 }}
               >
-                {activeFeature === 1 && (
-                  <div>
-                    <span className="tag" style={{ background: 'var(--accent-primary)', color: '#fff', marginBottom: '0.6rem' }}>
-                      Line-by-Line AI Scoring
-                    </span>
-                    <h3 style={{ fontSize: '1.2rem', marginBottom: '0.4rem', color: '#ffffff' }}>Spot Trends in Seconds</h3>
-                    <p style={{ margin: 0, fontSize: '0.9rem', color: 'rgba(255,255,255,0.82)', lineHeight: '1.55' }}>
-                      Evaluates code syntax, computational complexity (Big-O), and architectural trade-offs automatically.
-                    </p>
-                  </div>
-                )}
-
-                {activeFeature === 2 && (
-                  <div>
-                    <span className="tag" style={{ background: 'var(--good)', color: '#fff', marginBottom: '0.6rem' }}>
-                      ISO 18004 Verified Credential
-                    </span>
-                    <h3 style={{ fontSize: '1.2rem', marginBottom: '0.4rem', color: '#ffffff' }}>Shareable Verification Portal</h3>
-                    <p style={{ margin: 0, fontSize: '0.9rem', color: 'rgba(255,255,255,0.82)', lineHeight: '1.55' }}>
-                      Generate dynamic, scannable QR certificates with unique verification IDs to showcase on LinkedIn.
-                    </p>
-                  </div>
-                )}
-
-                {activeFeature === 3 && (
-                  <div>
-                    <span className="tag" style={{ background: 'var(--warn)', color: '#000', marginBottom: '0.6rem' }}>
-                      PDF Resume Extraction
-                    </span>
-                    <h3 style={{ fontSize: '1.2rem', marginBottom: '0.4rem', color: '#ffffff' }}>Personalized Interview Generator</h3>
-                    <p style={{ margin: 0, fontSize: '0.9rem', color: 'rgba(255,255,255,0.82)', lineHeight: '1.55' }}>
-                      Extracts tech stacks from your resume PDF to craft custom system design and code questions.
-                    </p>
-                  </div>
-                )}
+                <span className="tag" style={{ background: currentPreview.tagBg, color: currentPreview.tagColor, marginBottom: '0.6rem' }}>
+                  {currentPreview.tag}
+                </span>
+                <h3 style={{ fontSize: '1.2rem', marginBottom: '0.4rem', color: '#ffffff' }}>{currentPreview.title}</h3>
+                <p style={{ margin: 0, fontSize: '0.9rem', color: 'rgba(255,255,255,0.82)', lineHeight: '1.55' }}>
+                  {currentPreview.desc}
+                </p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Middle Panoramic Mountain Canvas Image Banner */}
-      <section className="container" style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>
-        <div
-          style={{
-            borderRadius: '28px',
-            overflow: 'hidden',
-            height: '320px',
-            width: '100%',
-            backgroundImage: 'url("https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1600&q=80")',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            border: '1px solid var(--border)',
-            boxShadow: 'var(--shadow-md)',
-          }}
-        />
-      </section>
-
-      {/* 3-Step How-To Section */}
+      {/* ── 3-Step Simple Workflow ── */}
       <section className="container" id="how-it-works" style={{ paddingTop: '4rem', paddingBottom: '5rem' }}>
         <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
           <span className="tag" style={{ marginBottom: '0.5rem' }}>Simple Workflow</span>
@@ -371,33 +303,19 @@ export default function Landing() {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem' }}>
-          <div className="panel" style={{ padding: '2rem' }}>
-            <div className="step-badge" style={{ fontSize: '0.9rem', marginBottom: '1rem' }}>01</div>
-            <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>Select Target Role</h3>
-            <p className="muted" style={{ fontSize: '0.94rem', lineHeight: '1.6', margin: 0 }}>
-              Choose Frontend, Backend, DevOps, or System Design, set difficulty level, or upload your resume PDF.
-            </p>
-          </div>
-
-          <div className="panel" style={{ padding: '2rem' }}>
-            <div className="step-badge" style={{ fontSize: '0.9rem', marginBottom: '1rem' }}>02</div>
-            <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>Complete Focus HUD Interview</h3>
-            <p className="muted" style={{ fontSize: '0.94rem', lineHeight: '1.6', margin: 0 }}>
-              Answer AI-generated questions in a distraction-free HUD interface with live word count and question palette.
-            </p>
-          </div>
-
-          <div className="panel" style={{ padding: '2rem' }}>
-            <div className="step-badge" style={{ fontSize: '0.9rem', marginBottom: '1rem' }}>03</div>
-            <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>Review Analytics &amp; Certificate</h3>
-            <p className="muted" style={{ fontSize: '0.94rem', lineHeight: '1.6', margin: 0 }}>
-              Get instant scoring breakdown, save key questions to your revision bank, and download your official verified certificate.
-            </p>
-          </div>
+          {WORKFLOW_STEPS.map((wf) => (
+            <div key={wf.step} className="panel" style={{ padding: '2rem' }}>
+              <div className="step-badge" style={{ fontSize: '0.9rem', marginBottom: '1rem' }}>{wf.step}</div>
+              <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>{wf.title}</h3>
+              <p className="muted" style={{ fontSize: '0.94rem', lineHeight: '1.6', margin: 0 }}>
+                {wf.desc}
+              </p>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* Bottom CTA Banner */}
+      {/* ── Bottom CTA ── */}
       <section className="container" style={{ paddingBottom: '6rem' }}>
         <div
           className="panel"

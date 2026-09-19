@@ -1,7 +1,18 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { ChevronLeft, ChevronRight, Bookmark, Edit3, Sparkles, CheckCircle2, Clock, RotateCcw, Copy, Check, FileText } from 'lucide-react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  Bookmark,
+  Edit3,
+  Sparkles,
+  CheckCircle2,
+  RotateCcw,
+  Copy,
+  Check,
+  FileText,
+} from 'lucide-react'
 import api, { apiError } from '../lib/api'
 import { formatGeneratedText } from '../lib/text'
 import Timer from '../components/Timer'
@@ -10,15 +21,21 @@ export default function Interview() {
   const { id } = useParams()
   const navigate = useNavigate()
 
+  // --- Session & Answers State ---
   const [interview, setInterview] = useState(null)
-  const [answers, setAnswers] = useState([])
-  const [notes, setNotes] = useState([])
-  const [current, setCurrent] = useState(0)
+  const [answers, setAnswers] = useState([]) // Array of answer strings corresponding to each question
+  const [notes, setNotes] = useState([]) // Array of personal candidate scratchpad notes
+  const [current, setCurrent] = useState(0) // 0-indexed active question pointer
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
-  const [bookmarkedMap, setBookmarkedMap] = useState({})
+  const [bookmarkedMap, setBookmarkedMap] = useState({}) // Tracks which question indices are saved
   const [copiedPrompt, setCopiedPrompt] = useState(false)
 
+  /**
+   * Load active interview session from GET /api/interviews/:id.
+   * If already completed, redirects directly to /results/:id.
+   * If it was created in quiz mode, redirects to /quiz/:id.
+   */
   useEffect(() => {
     api
       .get(`/interviews/${id}`)
@@ -43,29 +60,43 @@ export default function Interview() {
       .finally(() => setLoading(false))
   }, [id, navigate])
 
-  const total = interview?.questions.length ?? 0
+  // Computed helper metrics
+  const total = interview?.questions?.length ?? 0
   const answeredCount = useMemo(() => answers.filter((a) => a.trim()).length, [answers])
   const isLast = current === total - 1
-
   const currentAnswer = answers[current] || ''
+
+  // Word count calculation for real-time answer depth feedback
   const wordCount = useMemo(() => {
     const trimmed = currentAnswer.trim()
     return trimmed ? trimmed.split(/\s+/).length : 0
   }, [currentAnswer])
 
+  /**
+   * Updates the candidate's answer for the current active question index.
+   */
   function updateAnswer(value) {
     setAnswers((prev) => prev.map((a, i) => (i === current ? value : a)))
   }
 
+  /**
+   * Updates candidate scratchpad notes for this specific question.
+   */
   function updateNote(value) {
     setNotes((prev) => prev.map((n, i) => (i === current ? value : n)))
   }
 
+  /**
+   * Clears the current answer text.
+   */
   function clearCurrentAnswer() {
     updateAnswer('')
     toast.success('Answer field cleared')
   }
 
+  /**
+   * Copies question text to candidate's clipboard for external reference.
+   */
   function copyQuestionPrompt(prompt) {
     navigator.clipboard.writeText(prompt)
     setCopiedPrompt(true)
@@ -73,12 +104,17 @@ export default function Interview() {
     setTimeout(() => setCopiedPrompt(false), 3000)
   }
 
+  /**
+   * Saves the current question to candidate's bookmarks collection.
+   * Endpoint: POST /api/bookmarks
+   */
   async function handleBookmark(prompt) {
+    if (bookmarkedMap[current]) {
+      toast.success('Question already bookmarked!')
+      return
+    }
+
     try {
-      if (bookmarkedMap[current]) {
-        toast.success('Question already bookmarked!')
-        return
-      }
       await api.post('/bookmarks', {
         prompt,
         role: interview.role,
@@ -93,11 +129,17 @@ export default function Interview() {
     }
   }
 
+  /**
+   * Submits all answers to the backend for evaluation.
+   * Endpoint: POST /api/interviews/:id/submit
+   * On success: Redirects candidate to scorecard /results/:id.
+   */
   async function submit() {
     if (answeredCount === 0) {
       toast.error('Answer at least one question before submitting')
       return
     }
+
     setSubmitting(true)
     try {
       await api.post(`/interviews/${id}/submit`, { answers })
@@ -108,6 +150,9 @@ export default function Interview() {
     }
   }
 
+  /**
+   * Auto-submits answers when countdown timer reaches zero.
+   */
   function handleTimeUp() {
     toast.error('Time is up! Submitting your answers...')
     submit()
@@ -121,41 +166,18 @@ export default function Interview() {
 
   return (
     <main className="container" style={{ maxWidth: '980px' }}>
-      {/* Focus Mode HUD Header */}
+      {/* ── Focus Mode HUD Header ── */}
       <div className="interview-hud-head">
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.3rem', flexWrap: 'wrap' }}>
             <span className="badge-glow" style={{ fontSize: '0.75rem' }}>
               <Sparkles size={13} /> Focus Mode Session
             </span>
-            <span
-              style={{
-                padding: '0.2rem 0.65rem',
-                borderRadius: '6px',
-                fontSize: '0.74rem',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                background: 'var(--accent-grad-subtle)',
-                color: 'var(--accent-primary)',
-                border: '1px solid rgba(99, 102, 241, 0.25)',
-              }}
-            >
+            <span className="tag" style={{ textTransform: 'uppercase' }}>
               {interview.role}
             </span>
             {interview.category && interview.category !== 'General' && (
-              <span
-                style={{
-                  padding: '0.2rem 0.65rem',
-                  borderRadius: '6px',
-                  fontSize: '0.74rem',
-                  fontWeight: 600,
-                  background: 'var(--surface-2)',
-                  color: 'var(--text-muted)',
-                  border: '1px solid var(--border)',
-                }}
-              >
-                {interview.category}
-              </span>
+              <span className="tag-soft">{interview.category}</span>
             )}
           </div>
           <p className="muted small" style={{ margin: 0 }}>
@@ -174,7 +196,7 @@ export default function Interview() {
         </div>
       </div>
 
-      {/* Question Number Palette Selector */}
+      {/* ── Question Quick-Jump Palette ── */}
       <div
         style={{
           display: 'flex',
@@ -188,7 +210,7 @@ export default function Interview() {
           border: '1px solid var(--border)',
         }}
       >
-        <span className="muted small" style={{ fontSize: '0.76rem', fontWeight: 700, letterSpacing: '0.05em', marginRight: '0.2rem' }}>
+        <span className="muted small" style={{ fontSize: '0.76rem', fontWeight: 700, marginRight: '0.2rem' }}>
           Questions:
         </span>
         {interview.questions.map((q, idx) => {
@@ -207,9 +229,7 @@ export default function Interview() {
                 color: isCurrent ? 'var(--accent-primary)' : isAnswered ? 'var(--good)' : 'var(--text-muted)',
                 fontWeight: isCurrent || isAnswered ? 700 : 500,
                 fontSize: '0.85rem',
-                fontFamily: 'var(--font-mono)',
                 cursor: 'pointer',
-                transition: 'all 0.15s ease',
                 display: 'grid',
                 placeItems: 'center',
                 position: 'relative',
@@ -240,21 +260,10 @@ export default function Interview() {
         <div className="progress-fill" style={{ width: `${((current + 1) / total) * 100}%` }} />
       </div>
 
-      {/* Question Workbench Card */}
+      {/* ── Question Workbench Card ── */}
       <div className="panel" style={{ padding: '1.75rem', marginBottom: '1.75rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-          <span
-            style={{
-              padding: '0.2rem 0.6rem',
-              borderRadius: '6px',
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              fontFamily: 'var(--font-mono)',
-              background: 'var(--surface-2)',
-              color: 'var(--text-muted)',
-              border: '1px solid var(--border)',
-            }}
-          >
+          <span className="tag-soft" style={{ fontFamily: 'var(--font-mono)' }}>
             QUESTION {current + 1} OF {total}
           </span>
 
@@ -294,7 +303,7 @@ export default function Interview() {
             }}
           />
 
-          {/* Word Count HUD Bar */}
+          {/* Word Count & Depth Feedback */}
           <div
             style={{
               display: 'flex',
@@ -348,11 +357,9 @@ export default function Interview() {
 
         {/* Candidate Scratchpad Drawer */}
         <div style={{ marginTop: '1.25rem', padding: '1rem 1.2rem', background: 'var(--surface-2)', borderRadius: '12px', border: '1px solid var(--border-soft)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
-            <span className="field-label" style={{ margin: 0, display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.82rem' }}>
-              <Edit3 size={14} style={{ color: 'var(--accent-primary)' }} /> Candidate Scratchpad / Personal Notes
-            </span>
-          </div>
+          <span className="field-label" style={{ marginBottom: '0.4rem', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.82rem' }}>
+            <Edit3 size={14} style={{ color: 'var(--accent-primary)' }} /> Candidate Scratchpad / Personal Notes
+          </span>
           <input
             type="text"
             value={notes[current]}
@@ -363,7 +370,7 @@ export default function Interview() {
         </div>
       </div>
 
-      {/* Bottom Navigation Controls */}
+      {/* ── Bottom Navigation Controls ── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.8rem', flexWrap: 'wrap', gap: '1rem' }}>
         <button className="btn btn-secondary" onClick={() => setCurrent((c) => c - 1)} disabled={current === 0}>
           <ChevronLeft size={18} /> Previous Question
