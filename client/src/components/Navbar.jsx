@@ -151,7 +151,7 @@ export default function Navbar() {
               )}
             </div>
           ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+            <div className="reflect-auth-desktop">
               <Link to="/login" className="reflect-login-link">
                 Sign in
               </Link>

@@ -14,10 +14,11 @@ export default function ForgotPassword() {
 
   async function sendCode(e) {
     e.preventDefault()
+    const cleanEmail = email.trim().toLowerCase()
     setBusy(true)
     try {
-      await api.post('/auth/forgot-password', { email })
-      toast.success('Security reset code generated! Check your email or server console.')
+      await api.post('/auth/forgot-password', { email: cleanEmail })
+      toast.success('Security reset code dispatched! Check your email inbox.')
       setStep(2)
     } catch (err) {
       toast.error(apiError(err, 'Could not send reset code'))
@@ -28,9 +29,10 @@ export default function ForgotPassword() {
 
   async function resetPassword(e) {
     e.preventDefault()
+    const cleanEmail = email.trim().toLowerCase()
     setBusy(true)
     try {
-      await api.post('/auth/reset-password', { email, otp, newPassword })
+      await api.post('/auth/reset-password', { email: cleanEmail, otp, newPassword })
       toast.success('Password updated successfully! Please sign in.')
       navigate('/login')
     } catch (err) {

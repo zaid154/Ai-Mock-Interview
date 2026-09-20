@@ -4078,6 +4078,12 @@ body:has(.reflect-canvas) .navbar .nav-link.active,
   z-index: 2;
 }
 
+.reflect-auth-desktop {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
 .reflect-login-link {
   color: rgba(255, 255, 255, 0.78);
   font-size: 0.85rem;
@@ -4187,6 +4193,9 @@ body:has(.reflect-canvas) .navbar .nav-link.active,
 @media (max-width: 900px) {
   .reflect-nav-pill {
     display: none;
+  }
+  .reflect-auth-desktop {
+    display: none !important;
   }
   .reflect-mobile-toggle {
     display: block;

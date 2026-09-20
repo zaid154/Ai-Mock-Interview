@@ -42,7 +42,7 @@ function parseSender() {
     process.env.BREVO_SENDER_EMAIL ||
     process.env.SMTP_FROM ||
     process.env.SMTP_USER ||
-    'MockMate AI <trendykart.app@gmail.com>'
+    'MockMate AI <zaidm1323@gmail.com>'
   const match = raw.match(/^(.*?)\s*<(.+?)>$/)
   if (match) {
     return {
@@ -52,21 +52,22 @@ function parseSender() {
   }
   return {
     name: process.env.BREVO_SENDER_NAME || 'MockMate AI',
-    email: raw.trim() || 'trendykart.app@gmail.com',
+    email: raw.trim() || 'zaidm1323@gmail.com',
   }
 }
 
 async function sendEmail(to, subject, text, html) {
-  const brevoKey = process.env.BREVO_API_KEY
+  const brevoKey = process.env.BREVO_API_KEY ? process.env.BREVO_API_KEY.trim() : ''
 
   if (brevoKey) {
     const sender = parseSender()
     try {
+      console.log(`[Email Service] Dispatching via Brevo to ${to} (Sender: ${sender.email})`)
       const res = await fetch('https://api.brevo.com/v3/smtp/email', {
         method: 'POST',
         headers: {
           accept: 'application/json',
-          'api-key': brevoKey.trim(),
+          'api-key': brevoKey,
           'content-type': 'application/json',
         },
         body: JSON.stringify({
@@ -80,9 +81,11 @@ async function sendEmail(to, subject, text, html) {
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}))
-        console.error('Brevo API error:', errData)
-        throw new Error(errData.message || `Brevo API error: ${res.status}`)
+        console.error('Brevo API error details:', errData)
+        const detailedMsg = errData.message || errData.code || `Brevo HTTP ${res.status}`
+        throw new Error(`Brevo delivery failed: ${detailedMsg}`)
       }
+      console.log(`[Email Service] Brevo delivery succeeded to ${to}`)
       return
     } catch (err) {
       console.error('Brevo delivery error:', err.message)
@@ -93,11 +96,21 @@ async function sendEmail(to, subject, text, html) {
   // SMTP fallback (Nodemailer)
   const tx = getTransporter()
   if (!tx) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.log(`[Dev Email Log] To: ${to} | Subject: ${subject} | Body: ${text}`)
+    const isProdEnv =
+      process.env.NODE_ENV === 'production' ||
+      process.env.RENDER === 'true' ||
+      Boolean(process.env.RENDER_SERVICE_ID)
+
+    if (!isProdEnv) {
+      console.log(`\n========================================`)
+      console.log(`[Dev Email Log - SMTP/Brevo not configured]`)
+      console.log(`To: ${to}`)
+      console.log(`Subject: ${subject}`)
+      console.log(`Body: ${text}`)
+      console.log(`========================================\n`)
       return
     }
-    const err = new Error('Email delivery is not configured. Please set BREVO_API_KEY or SMTP credentials in .env.')
+    const err = new Error('Email delivery is not configured on server. Please set BREVO_API_KEY or SMTP credentials in environment variables.')
     err.status = 503
     throw err
   }

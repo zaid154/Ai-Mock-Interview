@@ -151,7 +151,8 @@ async function completeRegistration(req, res) {
 
 // POST /api/auth/resend-otp — Resends fresh OTP code within cooldown restrictions
 async function resendOtp(req, res) {
-  const user = await User.findOne({ email: req.body.email })
+  const email = (req.body.email || '').toLowerCase().trim()
+  const user = await User.findOne({ email })
   if (!user) return res.json({ ok: true })
   if (emailVerified(user)) return res.json({ ok: true, alreadyVerified: true })
   await issueOtp(user, 'verify')
@@ -160,14 +161,20 @@ async function resendOtp(req, res) {
 
 // POST /api/auth/forgot-password — Dispatches password reset code
 async function forgotPassword(req, res) {
-  const user = await User.findOne({ email: req.body.email })
-  if (user) await issueOtp(user, 'reset')
+  const email = (req.body.email || '').toLowerCase().trim()
+  const user = await User.findOne({ email })
+  if (!user) {
+    return res.status(404).json({ error: 'No account found with this email address.' })
+  }
+  await issueOtp(user, 'reset')
   return res.json({ ok: true })
 }
 
 // POST /api/auth/reset-password — Verifies reset code & increments tokenVersion to revoke all sessions
 async function resetPassword(req, res) {
-  const { email, otp, newPassword } = req.body
+  const email = (req.body.email || '').toLowerCase().trim()
+  const otp = String(req.body.otp || '').trim()
+  const newPassword = req.body.newPassword || ''
   const user = await User.findOne({ email }).select('+otpHash +otpCode')
   if (!user || user.otpPurpose !== 'reset' || !isOtpValid(user, otp)) {
     return res.status(400).json({ error: 'Invalid or expired code' })
