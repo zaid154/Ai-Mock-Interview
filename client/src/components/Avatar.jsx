@@ -78,7 +78,7 @@ export default function Avatar({ src, name, size = 40, ring = false, title, lazy
           // `lazy` only for genuinely long, scrolled lists.
           loading={lazy ? 'lazy' : 'eager'}
           decoding="async"
-          fetchPriority={lazy ? 'auto' : 'high'}
+          fetchpriority={lazy ? 'auto' : 'high'}
           // Intrinsic size so the box is reserved before the bytes arrive.
           width={size}
           height={size}

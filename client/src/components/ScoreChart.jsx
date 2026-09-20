@@ -6,9 +6,14 @@ function colorFor(score) {
   return 'var(--bad)'
 }
 
-export default function ScoreChart({ scores = [] }) {
-  const data = scores.map((score, i) => ({ name: `Q${i + 1}`, score: Number(score) || 0 }))
-  const maxScoreInSeries = Math.max(...scores.map(Number), 10)
+export default function ScoreChart({ scores, questions = [] }) {
+  const resolvedScores = Array.isArray(scores) && scores.length > 0
+    ? scores
+    : Array.isArray(questions)
+    ? questions.map((q) => (typeof q === 'object' && q !== null ? q.score : q))
+    : []
+  const data = resolvedScores.map((score, i) => ({ name: `Q${i + 1}`, score: Number(score) || 0 }))
+  const maxScoreInSeries = Math.max(...resolvedScores.map(Number), 10)
   const maxY = maxScoreInSeries > 10 ? 100 : 10
 
   return (

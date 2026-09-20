@@ -2,11 +2,25 @@ const Interview = require('../models/interviewModel')
 const User = require('../models/userModel')
 const { generateQuestions, generateQuiz, evaluateInterview } = require('../services/aiService')
 
-// Hides correctIndex while a quiz is ongoing to prevent cheating via browser inspection
+// Hides correctIndex while a quiz is ongoing to prevent cheating via browser inspection;
+// and normalizes unanswered questions in open-ended interviews to 0 score
 function publicInterview(interview) {
   const obj = interview.toObject ? interview.toObject() : interview
   if (obj.mode === 'quiz' && obj.status !== 'completed') {
     obj.questions = obj.questions.map((q) => ({ ...q, correctIndex: undefined }))
+  }
+  if (obj.mode !== 'quiz' && Array.isArray(obj.questions)) {
+    obj.questions = obj.questions.map((q) => {
+      const hasAnswer = Boolean(q.answer && q.answer.trim())
+      if (!hasAnswer && (q.score > 0 || !q.feedback)) {
+        return {
+          ...q,
+          score: 0,
+          feedback: 'No response was submitted for this question.',
+        }
+      }
+      return q
+    })
   }
   return obj
 }
@@ -103,8 +117,9 @@ async function submitInterview(req, res) {
     interview.questions.forEach((q, i) => { q.answer = String(answers[i] ?? '').trim() })
     const result = await evaluateInterview(interview.role, interview.questions.map((q) => ({ prompt: q.prompt, answer: q.answer })))
     interview.questions.forEach((q, i) => {
-      q.score = result.perQuestion[i]?.score ?? 0
-      q.feedback = result.perQuestion[i]?.feedback ?? ''
+      const hasAnswer = Boolean(q.answer && q.answer.trim())
+      q.score = hasAnswer ? (result.perQuestion[i]?.score ?? 0) : 0
+      q.feedback = hasAnswer ? (result.perQuestion[i]?.feedback ?? '') : 'No response was submitted for this question.'
     })
     interview.overallScore = result.overallScore
     interview.summary = result.summary

@@ -124,10 +124,19 @@ async function evaluateInterview(role, items) {
 
   try {
     const data = await generateJson(prompt)
-    const perQuestion = items.map((_, i) => ({
-      score: clamp(Number(data?.perQuestion?.[i]?.score) || 0, 0, 10),
-      feedback: String(data?.perQuestion?.[i]?.feedback || '').trim() || 'No feedback returned.',
-    }))
+    const perQuestion = items.map((it, i) => {
+      const hasAnswer = Boolean((it.answer || '').trim())
+      if (!hasAnswer) {
+        return {
+          score: 0,
+          feedback: 'No response was provided for this question. Make sure to attempt all questions.',
+        }
+      }
+      return {
+        score: clamp(Number(data?.perQuestion?.[i]?.score) || 0, 0, 10),
+        feedback: String(data?.perQuestion?.[i]?.feedback || '').trim() || 'No feedback returned.',
+      }
+    })
     return {
       perQuestion,
       overallScore: clamp(Math.round(Number(data?.overallScore) || 0), 0, 100),

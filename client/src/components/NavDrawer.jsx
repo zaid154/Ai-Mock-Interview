@@ -9,7 +9,7 @@ export default function NavDrawer({
   onLogout,
   onSectionClick
 }) {
-  if (!isOpen) return null
+  if (!isOpen || typeof document === 'undefined') return null
 
   return createPortal(
     <>
@@ -121,6 +121,7 @@ export default function NavDrawer({
           )}
         </div>
       </div>
-    </>
+    </>,
+    document.body
   )
 }

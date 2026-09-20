@@ -285,11 +285,18 @@ a:hover {
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 .app-main {
   flex: 1;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  max-width: 100vw;
+  overflow-x: hidden;
   animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
@@ -1624,6 +1631,125 @@ input:focus, select:focus, textarea:focus {
   flex-shrink: 0;
 }
 
+/* --- Interview Quick-Jump Palette ----------------------------------------- */
+.interview-jump-palette {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1.2rem 0 0.8rem;
+  flex-wrap: wrap;
+  background: var(--surface);
+  padding: 0.65rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.interview-jump-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  position: relative;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+/* --- Interview Workbench Card --------------------------------------------- */
+.interview-workbench-panel {
+  padding: 1.75rem;
+  margin-bottom: 1.75rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.interview-workbench-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.1rem;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.interview-workbench-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.interview-question-text {
+  font-size: 1.12rem;
+  line-height: 1.65;
+  font-weight: 600;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  margin-bottom: 1.5rem;
+}
+
+.interview-textarea {
+  font-size: 0.98rem;
+  line-height: 1.6;
+  padding: 1.1rem;
+  border-radius: 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
+.interview-word-count-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.2rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.interview-scratchpad-drawer {
+  margin-top: 1.25rem;
+  padding: 1rem 1.2rem;
+  background: var(--surface-2);
+  border-radius: 12px;
+  border: 1px solid var(--border-soft);
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.interview-scratchpad-input {
+  font-size: 0.88rem;
+  padding: 0.55rem 0.8rem;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.interview-bottom-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.8rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+  width: 100%;
+}
+
 /* --- Progress bar ---------------------------------------------------------- */
 .progress-track {
   width: 100%;
@@ -2784,6 +2910,79 @@ button.option-card:hover:not(.selected) {
   }
   .step-badge {
     margin-bottom: 0.4rem;
+  }
+
+  /* Focus Session HUD & Workbench Responsive Mobile Engine */
+  .interview-hud-head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.85rem;
+    padding-bottom: 0.9rem;
+  }
+  .interview-hud-head > *:last-child {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding-top: 0.45rem;
+    border-top: 1px dashed var(--border-soft);
+  }
+  .interview-jump-palette {
+    padding: 0.5rem 0.65rem;
+    gap: 0.4rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+  }
+  .interview-jump-palette::-webkit-scrollbar {
+    display: none;
+  }
+  .interview-workbench-panel {
+    padding: 1.1rem 0.9rem;
+    margin-bottom: 1.25rem;
+    border-radius: 14px;
+  }
+  .interview-workbench-actions {
+    width: 100%;
+    gap: 0.45rem;
+  }
+  .interview-workbench-actions .btn {
+    flex: 1;
+    padding: 0.4rem 0.55rem;
+    font-size: 0.78rem;
+    justify-content: center;
+  }
+  .interview-question-text {
+    font-size: 1.02rem;
+    line-height: 1.55;
+    margin-bottom: 1.1rem;
+  }
+  .interview-textarea {
+    font-size: 0.92rem;
+    padding: 0.8rem;
+    border-radius: 10px;
+  }
+  .interview-scratchpad-drawer {
+    margin-top: 1rem;
+    padding: 0.75rem 0.8rem;
+    border-radius: 10px;
+  }
+  .interview-scratchpad-input {
+    font-size: 0.84rem;
+    padding: 0.5rem 0.65rem;
+  }
+  .interview-bottom-nav {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 0.75rem;
+    margin-top: 1.35rem;
+  }
+  .interview-bottom-nav > .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .question-card {
+    padding: 1.1rem 0.9rem;
   }
 }
 
