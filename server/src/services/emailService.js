@@ -42,7 +42,7 @@ function parseSender() {
     process.env.BREVO_SENDER_EMAIL ||
     process.env.SMTP_FROM ||
     process.env.SMTP_USER ||
-    'MockMate AI <zaidm1323@gmail.com>'
+    'MockMate AI <trendykart.app@gmail.com>'
   const match = raw.match(/^(.*?)\s*<(.+?)>$/)
   if (match) {
     return {
@@ -52,7 +52,7 @@ function parseSender() {
   }
   return {
     name: process.env.BREVO_SENDER_NAME || 'MockMate AI',
-    email: raw.trim() || 'zaidm1323@gmail.com',
+    email: raw.trim() || 'trendykart.app@gmail.com',
   }
 }
 
@@ -89,7 +89,7 @@ async function sendEmail(to, subject, text, html) {
       return
     } catch (err) {
       console.error('Brevo delivery error:', err.message)
-      throw err
+      console.log('[Email Service] Attempting fallback to SMTP...')
     }
   }
 
