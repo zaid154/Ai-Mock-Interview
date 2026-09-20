@@ -44,70 +44,76 @@ export default function Login() {
   function fillDemoAdmin() {
     setEmail('zaidm1323@gmail.com')
     setPassword('ChangeMe123!')
-    toast.success('Demo admin credentials filled!')
+    toast.success('Demo credentials loaded!')
   }
 
   return (
-    <div className="auth-layout-page">
-      <div className="auth-card-panel">
-        {/* Left Pane: Brand Showcase */}
-        <div
-          className="auth-left-pane"
-          style={{
-            background: 'var(--surface-2)',
-            padding: '1.6rem 1.8rem',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            borderRight: '1px solid var(--border-soft)',
-          }}
-        >
+    <div className="reflect-auth-page">
+      <div className="reflect-auth-ambient" />
+
+      <div className="reflect-auth-card">
+        {/* Left Pane: Cosmic Showcase */}
+        <div className="reflect-auth-left">
           <div>
-            <Link to="/" className="brand" style={{ fontSize: '1.2rem', marginBottom: '1rem', display: 'inline-flex' }}>
-              <div className="brand-icon-box" style={{ width: '30px', height: '30px' }}>
-                <Zap size={16} />
+            <Link to="/" className="reflect-brand" style={{ marginBottom: '1.25rem', display: 'inline-flex' }}>
+              <div className="reflect-brand-icon">
+                <img src="/logo.png" alt="MockMate AI Logo" className="reflect-brand-img" />
               </div>
-              <span>MockMate</span>
+              <span className="reflect-brand-title">
+                MockMate <span className="reflect-brand-badge">AI</span>
+              </span>
             </Link>
 
-            <h2 style={{ fontSize: '1.4rem', lineHeight: '1.25', marginBottom: '0.6rem', fontWeight: 800 }}>
+            <h2 style={{ fontSize: '1.35rem', lineHeight: '1.25', marginBottom: '0.5rem', fontWeight: 600, color: '#f8fafc', letterSpacing: '-0.025em' }}>
               Prepare for high-stakes technical interviews.
             </h2>
-            <p className="muted" style={{ fontSize: '0.85rem', lineHeight: '1.5', marginBottom: '1.1rem' }}>
-              Get real-time line-by-line evaluation, scoring breakdown charts, and official verified certificates.
+            <p style={{ color: 'rgba(239, 237, 253, 0.65)', fontSize: '0.84rem', lineHeight: '1.5', marginBottom: '0.85rem' }}>
+              Real-time architectural feedback, Big-O computational checks, and tamper-proof milestone credentials.
             </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', fontSize: '0.82rem' }}>
-                <CheckCircle2 size={15} style={{ color: 'var(--good)', flexShrink: 0 }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontSize: '0.84rem', color: 'rgba(239, 237, 253, 0.85)' }}>
+                <CheckCircle2 size={16} style={{ color: '#c084fc', flexShrink: 0 }} />
                 <span>Role-specific technical questions</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', fontSize: '0.82rem' }}>
-                <CheckCircle2 size={15} style={{ color: 'var(--good)', flexShrink: 0 }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontSize: '0.84rem', color: 'rgba(239, 237, 253, 0.85)' }}>
+                <CheckCircle2 size={16} style={{ color: '#c084fc', flexShrink: 0 }} />
                 <span>Instant PDF resume parsing</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', fontSize: '0.82rem' }}>
-                <CheckCircle2 size={15} style={{ color: 'var(--good)', flexShrink: 0 }} />
-                <span>Official verified milestone credentials</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontSize: '0.84rem', color: 'rgba(239, 237, 253, 0.85)' }}>
+                <CheckCircle2 size={16} style={{ color: '#c084fc', flexShrink: 0 }} />
+                <span>Verifiable SHA-256 diplomas</span>
               </div>
             </div>
+          </div>
+
+          <div style={{ marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
+            <button
+              type="button"
+              onClick={fillDemoAdmin}
+              style={{ background: 'none', border: 'none', color: '#c084fc', fontSize: '0.78rem', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
+            >
+              Fill Demo Credentials
+            </button>
           </div>
         </div>
 
         {/* Right Pane: Login Form */}
-        <div style={{ padding: '1.6rem 1.8rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <div className="reflect-auth-right">
           <div style={{ marginBottom: '1rem' }}>
-            <h1 style={{ fontSize: '1.45rem', marginBottom: '0.2rem', fontWeight: 800 }}>Sign in</h1>
-            <p className="muted small" style={{ margin: 0, fontSize: '0.84rem' }}>
-              Welcome back! Please enter your details.
+            <h1 style={{ fontSize: '1.45rem', marginBottom: '0.3rem', fontWeight: 600, color: '#f8fafc', letterSpacing: '-0.025em' }}>
+              Sign in
+            </h1>
+            <p style={{ margin: 0, fontSize: '0.86rem', color: 'rgba(239, 237, 253, 0.65)' }}>
+              Welcome back! Enter your details to continue.
             </p>
           </div>
 
-          <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-            <div className="field" style={{ marginBottom: 0 }}>
-              <span className="field-label" style={{ fontSize: '0.8rem' }}>Email Address</span>
-              <div className="input-icon-wrap">
-                <Mail size={15} className="input-icon" />
+          <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
+            <div>
+              <label className="reflect-field-label">Email Address</label>
+              <div className="reflect-input-wrap">
+                <Mail size={16} className="reflect-input-icon" />
                 <input
                   type="email"
                   value={email}
@@ -115,20 +121,20 @@ export default function Login() {
                   placeholder="candidate@example.com"
                   autoComplete="email"
                   required
-                  style={{ padding: '0.55rem 0.8rem 0.55rem 2.5rem', fontSize: '0.85rem' }}
+                  className="reflect-input"
                 />
               </div>
             </div>
 
-            <div className="field" style={{ marginBottom: 0 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.2rem' }}>
-                <span className="field-label" style={{ fontSize: '0.8rem' }}>Password</span>
-                <Link to="/forgot-password" className="small muted" style={{ fontSize: '0.78rem', fontWeight: 500 }}>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                <label className="reflect-field-label" style={{ marginBottom: 0 }}>Password</label>
+                <Link to="/forgot-password" style={{ fontSize: '0.78rem', color: '#c084fc', textDecoration: 'none' }}>
                   Forgot?
                 </Link>
               </div>
-              <div className="input-icon-wrap">
-                <Lock size={15} className="input-icon" />
+              <div className="reflect-input-wrap">
+                <Lock size={16} className="reflect-input-icon" />
                 <input
                   type={showPw ? 'text' : 'password'}
                   value={password}
@@ -136,39 +142,33 @@ export default function Login() {
                   placeholder="Enter password"
                   autoComplete="current-password"
                   required
-                  style={{ padding: '0.55rem 2.5rem 0.55rem 2.5rem', fontSize: '0.85rem' }}
+                  className="reflect-input"
+                  style={{ paddingRight: '2.5rem' }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPw(!showPw)}
-                  style={{
-                    position: 'absolute',
-                    right: '0.75rem',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    background: 'none',
-                    border: 'none',
-                    color: 'var(--text-muted)',
-                    cursor: 'pointer',
-                    zIndex: 2,
-                    display: 'flex',
-                    alignItems: 'center',
-                  }}
+                  style={{ position: 'absolute', right: '0.85rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'rgba(255, 255, 255, 0.5)', cursor: 'pointer', padding: 0, display: 'flex' }}
                   aria-label={showPw ? 'Hide password' : 'Show password'}
                 >
-                  {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                  {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </div>
 
-            <button type="submit" className="btn btn-primary btn-block" disabled={busy} style={{ marginTop: '0.3rem', padding: '0.65rem 1rem' }}>
+            <button
+              type="submit"
+              className="reflect-btn-primary"
+              disabled={busy}
+              style={{ width: '100%', justifyContent: 'center', padding: '0.75rem', marginTop: '0.4rem', fontSize: '0.9rem' }}
+            >
               {busy ? 'Signing in…' : <>Sign in to Account <ArrowRight size={16} /></>}
             </button>
 
-            <div style={{ borderTop: '1px solid var(--border-soft)', marginTop: '0.3rem', paddingTop: '0.75rem', textAlign: 'center' }}>
-              <p className="muted small" style={{ margin: 0, fontSize: '0.82rem' }}>
+            <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', marginTop: '0.5rem', paddingTop: '1rem', textAlign: 'center' }}>
+              <p style={{ margin: 0, fontSize: '0.84rem', color: 'rgba(239, 237, 253, 0.65)' }}>
                 Don't have an account?{' '}
-                <Link to="/register" style={{ fontWeight: 700, color: 'var(--accent-primary)' }}>
+                <Link to="/register" style={{ fontWeight: 600, color: '#c084fc' }}>
                   Create account
                 </Link>
               </p>

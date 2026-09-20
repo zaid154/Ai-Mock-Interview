@@ -6,7 +6,7 @@ const Setting = require('../models/settingModel')
 // GET /api/admin/users — list users with their verification status.
 async function listUsers(_req, res) {
   const users = await User.find()
-    .select('name email role isVerified createdAt')
+    .select('name email role isVerified avatar createdAt')
     .sort({ createdAt: -1 })
     .lean()
   res.json({ users })
@@ -51,7 +51,12 @@ async function deleteUser(req, res) {
 // GET /api/admin/settings — all key/value config entries.
 async function listSettings(_req, res) {
   const settings = await Setting.find().sort({ key: 1 }).lean()
-  res.json({ settings })
+  const envKeys = [
+    ...(process.env.GEMINI_API_KEYS ? process.env.GEMINI_API_KEYS.split(',') : []),
+    ...(process.env.GEMINI_API_KEY ? [process.env.GEMINI_API_KEY] : []),
+  ].map((k) => k.trim()).filter(Boolean)
+  const envKeysCount = new Set(envKeys).size
+  res.json({ settings, envKeysCount })
 }
 
 // PUT /api/admin/settings  { key, value }

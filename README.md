@@ -1,11 +1,25 @@
-# MockMate AI
+<div align="center">
 
-> AI-powered mock interview platform with real-time Gemini evaluation, admin-managed milestone certificates, and public credential verification.
+  <img src="client/public/logo.png" alt="MockMate AI Logo" width="108" height="108" style="border-radius: 50%;" />
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-6366f1?style=for-the-badge&logo=vercel)](https://ai-mock-interview-three-pi.vercel.app/)
-[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
+  # MockMate AI
+  
+  **Next-Generation AI Technical Interview Platform with Real-Time Multi-Modal Evaluation & Verifiable Milestone Credentials**
 
-A full-stack MERN application that runs a **React (Vite + JavaScript) client** and an **Express (JavaScript + Google Gemini 2.5) server** together from one command.
+  [![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-a855f7?style=for-the-badge&logo=vercel)](https://ai-mock-interview-three-pi.vercel.app/)
+  [![Google Gemini](https://img.shields.io/badge/AI%20Engine-Gemini%202.5-38bdf8?style=for-the-badge&logo=google)](https://ai.google.dev/)
+  [![Node Version](https://img.shields.io/badge/Node.js-18%2B-22c55e?style=for-the-badge&logo=node.js)](https://nodejs.org/)
+  [![License](https://img.shields.io/badge/License-MIT-purple?style=for-the-badge)](LICENSE)
+
+</div>
+
+---
+
+## 🌌 Overview
+
+**MockMate AI** is a full-stack MERN application built for engineering candidates to prepare for competitive technical rounds. It pairs real-time **Google Gemini 2.5** evaluation with candidate telemetry, automated scoring, interactive audio/visual HUD components, and cryptographic milestone certificates with public QR-verification.
+
+Featuring the **Reflect Cosmic Dark Space Aesthetic** (`#030014`, starlight glass borders, radiant purple/cyan neon highlights) and a clean modular architecture where every client file is strictly maintainable.
 
 ---
 
@@ -13,200 +27,144 @@ A full-stack MERN application that runs a **React (Vite + JavaScript) client** a
 
 ```bash
 npm run setup          # 1) Install root + client + server dependencies
-cp .env.example .env   # 2) Create your env file (see "Environment" below)
-npm run seed           # 3) Seed admins, candidates, sessions, certificates, milestones
-npm run dev            # 4) Run client + server together
+cp .env.example .env   # 2) Create your environment file (see configuration below)
+npm run seed           # 3) Seed admin, candidate accounts, sessions, and milestones
+npm run dev            # 4) Run client + server simultaneously
 ```
 
-- **Client:** [http://localhost:5173](http://localhost:5173) — Vite picks the next free port if 5173 is taken, so check the terminal.
-- **Server:** [http://localhost:5050](http://localhost:5050) (health check: `GET /api/health`)
+* **Client:** [http://localhost:5173](http://localhost:5173) (or auto-picked port by Vite)
+* **API Server:** [http://localhost:5050](http://localhost:5050) (`GET /api/health` for healthcheck)
 
-You need a running **MongoDB** (local or Atlas) before seeding. `GEMINI_API_KEY` is optional
-for a first run: Questions mode falls back to a 31-question offline bank, but **Quiz mode
-needs a real key**.
+### Default Seeded Credentials
 
-### Seeded accounts
+| Role | Email | Password | Access |
+| :--- | :--- | :--- | :--- |
+| **Super Admin** | `zaidm1323@gmail.com` | `ChangeMe123!` | Full Admin Console + Pre-completed sessions |
+| **Admin** | `admin@mockmate.com` | `Admin@123` | Full Admin Console |
+| **Candidate** | `aarav.sharma@gmail.com` | `Password123!` | Candidate Hub & Practice Studio |
+| **Candidate** | `priya.patel@gmail.com` | `Password123!` | Candidate Hub & Practice Studio |
 
-`npm run seed` prints every admin credential it creates. The defaults are:
-
-| Role | Email | Password |
-| --- | --- | --- |
-| **Admin** | `admin@mockmate.com` | `Admin@123` |
-| Admin | `admin@shop.com` | `Admin@123` |
-| Admin + candidate data | `zaidm1323@gmail.com` | `ChangeMe123!` |
-| Candidate | `aarav.sharma@gmail.com` | `Password123!` |
-| Candidate | `priya.patel@gmail.com` | `Password123!` |
-| Candidate | `rohan.verma@gmail.com` | `Password123!` |
-| Candidate | `ananya.gupta@gmail.com` | `Password123!` |
-
-The first row is driven by `ADMIN_EMAIL` / `ADMIN_PASSWORD` / `ADMIN_NAME` in `.env` — change
-those and re-seed to get your own admin. `zaidm1323@gmail.com` is the only account that comes
-with completed sessions, so it is the one to use when reviewing the Certificates page.
+> Seeded admin credentials can be customized via `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `ADMIN_NAME` in `.env`.
 
 ---
 
-## 🌟 Key Features
+## ✨ Key Features & Architecture
 
-### 🎯 Core interview capabilities
-- **Two practice modes**: open-ended **Questions** (AI-graded with line-by-line feedback) or multiple-choice **Quiz** (auto-scored, includes code-output and problem-solving items).
-- **Role, level and category aware**: frontend, backend, fullstack, MERN, Java, Python, .NET, SQL, HR, aptitude — each with an experience level and difficulty.
-- **Resume-tailored questions**: upload a PDF (`unpdf` parsing); the extracted text is passed to Gemini so questions match your stack.
-- **Multiple Gemini keys with auto-fallback**: keys rotate out of the pool when rate-limited.
-- **Fisher-Yates shuffling** so question order is not predictable across sessions.
+### 🎙️ 1. Technical Practice Modes (`/practice`)
+* **Technical Interview Mode:** Conversational open-ended architectural and algorithmic scenarios with line-by-line AI critique, rubric scoring (Problem Solving, Communication, Code Quality), and model solutions.
+* **Rapid Technical Assessment Mode:** Timed multiple-choice challenges evaluating core engineering, algorithmic time-complexity ($O(N)$), and distributed system trade-offs.
+* **Stack & Track Customization:** Full Stack, Backend, Frontend, Cloud & DevOps, System Design, Data Structures & Algorithms, and HR / Behavioral.
+* **Resume-Driven AI Scenarios:** Upload a candidate CV (PDF parsed server-side via `unpdf`). Gemini synthesizes tailored technical questions targeted specifically at the candidate's declared projects and tech stack.
 
-### 📜 Admin-managed milestone certificates
-Milestones are **documents, not code**. An admin creates, retunes, retires and restyles them
-from the panel without a deploy.
+### ⚡ 2. Gemini Multi-Key Round-Robin Load Balancer
+* **Unified Key Pooling:** Seamlessly pools Gemini API keys from both environment variables (`GEMINI_API_KEYS`, `GEMINI_API_KEY`) and dynamic MongoDB admin settings.
+* **Round-Robin Balancing:** Distributes incoming AI requests evenly across all healthy keys in the pool, multiplying requests-per-minute (RPM) limits.
+* **Automated 60s Cooldown Failover:** If an API key hits rate limits (HTTP 429) or quota errors, it is placed on a 60-second cooldown and the request automatically retries on the next healthy key without throwing an error to the user.
 
-- **Three layouts per credential** — `classic` (two columns with a ribbon sidebar and seal), `modern` (accent bar, large sans-serif name), `elegant` (framed, centred, serif). One component renders all three, so a candidate downloads exactly what the admin previewed.
-- **Per-milestone accent colour**, applied through a single `--cert-accent` custom property.
-- **Two award rules**: *N sessions at or above a minimum score*, or *any single session at or above a target score*.
-- **Hide without deleting** — retire a credential while keeping its history.
-- **Live preview** in the editor renders the real certificate component, scaled down.
-- **1-click A4 landscape PDF** (`html2canvas` + `jsPDF`).
-- **Public verification portal** at `/verify-certificate/:certId` with a scannable QR code.
-- **Signature control**: upload a signature image and set the signatory name and title.
+### 📊 3. Candidate Performance Hub (`/dashboard`)
+* Dedicated engineering candidate control center.
+* Quick-launch cards for Technical Interviews and Assessments.
+* Telemetry metrics: Average Score, Total Interviews, Quiz Accuracy, and Performance trends.
+* Direct action history with detailed result review and bookmarks.
 
-> The root element keeps the `.official-cert-card` class in **every** layout on purpose — the
-> PDF export and the `@media print` block both select it. Renaming it silently breaks both.
+### 📜 4. Verifiable Milestone Certificates (`/certificates`)
+* **3 Modular Card Layouts:** Classic, Modern, and Elegant.
+* **Export Options:** 1-click high-fidelity A4 landscape PDF export (`html2canvas` + `jsPDF`).
+* **Public Verification Portal:** Public route at `/verify-certificate/:certId` with live scannable QR verification and signatory validation.
 
-### 🔖 Revision flashcard vault (`/bookmarks`)
-Reveal/hide model answers, copy question + answer in one click, filter by topic, and keep
-private revision notes per question.
+### 🛡️ 5. Modular Administrator Console (`/admin`)
+Split into dedicated, high-performance management views:
+* **Candidate Management (`/admin/users`):** Real-time candidate directory with live avatars, verification toggles, role promotion/demotion (Admin vs Candidate), and account deletion safeguards.
+* **Milestone Templates (`/admin/certificates`):** Create, update, style, and retire credential milestones without redeploying code.
+* **Platform & AI Settings (`/admin/settings`):** Live AI load balancer pool status, key addition/removal, mandatory email verification switch, signatory credentials, and custom key-value store.
 
-### 🏆 Leaderboard (`/leaderboard`)
-Candidate rankings by average score and sessions completed, with avatars.
-
-### 👤 Profile (`/profile`)
-- **One avatar everywhere.** A single `Avatar` component renders the navbar, profile, leaderboard and admin list, and understands all four forms the field can take: an image URL, a `data:` URL, an emoji, or a name initial. It falls back to the initial if an image 404s.
-- **Uploads are cropped square and re-encoded to a 256px JPEG in the browser** before they are sent. The avatar is a single `String` on the user document, so a new picture replaces the old one outright — there is nothing to clean up — and a 3 MB photo becomes ~25 KB instead of a ~4 MB base64 string on every `/auth/me`.
-- **Live preview** showing the picture as it appears in the navbar, the leaderboard and the profile header.
-- Password change with a live requirement checklist.
-
-### 🛡️ Admin console (`/admin`)
-- **Certificate milestones**: full create / edit / delete / hide, layout and accent picker, restore-defaults.
-- **Gemini API key rotation pool**: add, mask, remove.
-- **Email verification policy**: require OTP verification before login.
-- **Candidate management**: verify, promote, demote, delete.
-- **Flexible key/value settings** for anything else.
+### 🔖 6. Revision Flashcard Vault (`/bookmarks`)
+* Save tricky technical interview questions and model answers.
+* Attach private markdown revision notes and filter by domain category.
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Technology Stack
 
-- **Frontend:** React 18, Vite 6, React Router 6, Lucide Icons, Recharts, `html2canvas`, `jspdf`, Axios, React Hot Toast
-- **Backend:** Node.js, Express, MongoDB (Mongoose), Google Gemini (`@google/generative-ai`), JWT cookie auth, bcryptjs, `unpdf`, Zod
-- **Styling:** one hand-written stylesheet (`client/src/index.css`) built on CSS custom properties
-
-### Responsive system
-Three breakpoints, declared once, at the end of `index.css`:
-
-| Token | Range | Behaviour |
-| --- | --- | --- |
-| Desktop | `> 1024px` | full multi-column layouts |
-| Tablet | `≤ 1024px` | hamburger nav, two-column grids collapse |
-| Mobile | `≤ 640px` | single column, tighter rail, larger tap targets |
-| Small | `≤ 380px` | typography and padding only — never layout |
-
-`.container`, `.nav-inner` and the footer all read the same `--rail-max` / `--rail-gutter`
-tokens, so the navbar can never drift out of alignment with the page beneath it. The navbar
-height lives in `--nav-h` and drives the anchor-scroll offset, so in-page links always land
-flush under the sticky bar.
-
-### Theme
-The app ships **light**. `ThemeContext` still supports dark and honours a stored preference,
-but there is no switcher in the UI, so following `prefers-color-scheme` would hand dark-mode
-visitors a theme they could not leave. Certificates are always light-on-white whatever the
-theme — they are printed documents.
+| Layer | Technologies |
+| :--- | :--- |
+| **Frontend** | React 18, Vite 6, React Router 6, Lucide Icons, Recharts, Axios, React Hot Toast, `html2canvas`, `jspdf` |
+| **Backend** | Node.js, Express, MongoDB (Mongoose), Google Generative AI (`@google/generative-ai`), JWT Cookie Auth, Bcrypt.js, `unpdf`, Zod |
+| **Styling** | Reflect Space Design System (`#030014`, starlight glassmorphism, responsive CSS variables, zero runtime CSS overhead) |
+| **Security** | HTTP-only same-site cookies, Mongo sanitization, Helmet headers, rate-limiting, SHA-256 hashed OTPs |
 
 ---
 
-## 🔑 Environment (`.env`)
+## 🔑 Environment Configuration (`.env`)
 
-A single `.env` at the project root powers both client and server.
+A single `.env` at the root configures both frontend and backend:
 
-| Variable | Used by | Purpose |
-| --- | --- | --- |
-| `PORT` | server | API port (default `5050`) |
-| `NODE_ENV` | server | `development` / `production` |
-| `CLIENT_URL` | server | CORS allowed origins, comma-separated |
-| `MONGODB_URI` | server | MongoDB connection string |
-| `JWT_SECRET` | server | Token signing secret — **rotate before deploying** |
-| `JWT_EXPIRES_IN` | server | Token lifetime (e.g. `7d`) |
-| `ADMIN_NAME` / `ADMIN_EMAIL` / `ADMIN_PASSWORD` | seed | The admin account `npm run seed` creates or updates |
-| `GEMINI_API_KEY` / `GEMINI_API_KEYS` | server | Gemini key, or a comma-separated pool |
-| `GEMINI_MODEL` | server | Defaults to `gemini-2.5-flash` |
-| `BREVO_API_KEY` or `SMTP_*` | server | OTP delivery. Blank = no email; verification is off by default |
-| `VITE_API_URL` | client | **Leave blank in local dev.** Blank means the client calls the relative `/api`, which Vite proxies to the server — same origin, so no CORS and cookies work. Set it to an absolute URL only when the client is deployed separately from the API. |
+```env
+NODE_ENV=development
+PORT=5050
+CLIENT_URL=http://localhost:5173,http://localhost:5174
 
----
+# Database
+MONGODB_URI=mongodb://localhost:27017/mockmate
 
-## 📡 API Endpoints
+# Security & Auth
+JWT_SECRET=your_jwt_secret_key_here
+JWT_EXPIRES_IN=7d
 
-| Method & Path | Auth | Purpose |
-| --- | :---: | --- |
-| **Auth** | | |
-| `POST /api/auth/register` | — | Register |
-| `POST /api/auth/login` | — | Authenticate |
-| `POST /api/auth/verify-otp` | — | Confirm the emailed code |
-| `POST /api/auth/resend-otp` | — | Re-send the code |
-| `POST /api/auth/forgot-password` | — | Start a reset |
-| `POST /api/auth/reset-password` | — | Finish a reset |
-| `GET /api/auth/verification-settings` | — | Public settings + certificate signatory |
-| `GET /api/auth/me` | ✅ | Current user |
-| `PATCH /api/auth/profile` | ✅ | Update name, bio, avatar |
-| `POST /api/auth/change-password` | ✅ | Change password |
-| `POST /api/auth/complete-registration` | — | Finish signup when OTP is skipped |
-| `POST /api/auth/logout` | — | Clear the session cookie |
-| **Interviews & quizzes** | | |
-| `POST /api/interviews` | ✅ | Start a session |
-| `POST /api/interviews/resume` | ✅ | Parse an uploaded resume PDF into question context |
-| `GET /api/interviews` | ✅ | Session history |
-| `GET /api/interviews/leaderboard` | ✅ | Rankings |
-| `GET /api/interviews/:id` | ✅ | One session |
-| `POST /api/interviews/:id/submit` | ✅ | Grade and save answers |
-| `PATCH /api/interviews/:id/notes` | ✅ | Save notes |
-| `DELETE /api/interviews/:id` | ✅ | Remove a session |
-| **Bookmarks** | | |
-| `GET /api/bookmarks` | ✅ | List |
-| `POST /api/bookmarks` | ✅ | Save |
-| `PATCH /api/bookmarks/:id/notes` | ✅ | Update the revision note |
-| `DELETE /api/bookmarks/:id` | ✅ | Delete |
-| **Certificates** | | |
-| `GET /api/certificates/templates` | ✅ | Milestones visible to candidates |
-| **Admin** | | |
-| `GET /api/admin/users` | Admin | List users |
-| `PATCH /api/admin/users/:id/verified` | Admin | Verify / unverify |
-| `PATCH /api/admin/users/:id/role` | Admin | Promote / demote |
-| `DELETE /api/admin/users/:id` | Admin | Delete a user |
-| `GET /api/admin/certificate-templates` | Admin | All milestones, including hidden |
-| `POST /api/admin/certificate-templates` | Admin | Create a milestone |
-| `PATCH /api/admin/certificate-templates/:id` | Admin | Update a milestone |
-| `DELETE /api/admin/certificate-templates/:id` | Admin | Delete a milestone |
-| `POST /api/admin/certificate-templates/reset` | Admin | Restore the four shipped milestones |
-| `GET /api/admin/settings` | Admin | List key/value settings |
-| `PUT /api/admin/settings` | Admin | Upsert a setting |
-| `PATCH /api/admin/settings/:key/rename` | Admin | Rename a setting |
-| `DELETE /api/admin/settings/:key` | Admin | Delete a setting |
+# Default Admin Seed Credentials
+ADMIN_NAME=Mohd Zaid
+ADMIN_EMAIL=zaidm1323@gmail.com
+ADMIN_PASSWORD=ChangeMe123!
 
-Admins can neither change their own role nor delete their own account, so the last admin
-cannot lock everyone out.
+# Google Gemini AI (Multiple keys separated by comma)
+GEMINI_API_KEY=AIzaSy...
+GEMINI_API_KEYS=AIzaSy...,AIzaSy...
+GEMINI_MODEL=gemini-2.5-flash
+
+# Email / OTP Delivery (Optional)
+BREVO_API_KEY=
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=
+SMTP_PASS=
+SMTP_FROM=MockMate AI <no-reply@mockmate.ai>
+```
 
 ---
 
-## 🌱 Seeding
+## 📡 API Reference
 
-`npm run seed` is **idempotent** — run it as often as you like:
+### Authentication (`/api/auth`)
+* `POST /api/auth/register` — Register a new account
+* `POST /api/auth/login` — Sign in with credentials
+* `POST /api/auth/verify-otp` — Verify email OTP code
+* `POST /api/auth/resend-otp` — Resend verification OTP
+* `POST /api/auth/forgot-password` — Request password reset
+* `POST /api/auth/reset-password` — Set new password with OTP
+* `GET  /api/auth/me` — Fetch current session user
+* `PATCH /api/auth/profile` — Update candidate profile & avatar
+* `POST /api/auth/logout` — Invalidate session cookie
 
-- Admins and candidates are upserted by email.
-- Certificate milestones are upserted **by key with `$setOnInsert`**, so re-seeding never
-  discards a milestone an admin has since retitled, recoloured or switched layout on.
-- Sessions and certificates for the seeded candidates are rebuilt each run.
+### Interviews & Quizzes (`/api/interviews`)
+* `POST /api/interviews` — Initialize interview / quiz session
+* `POST /api/interviews/resume` — Extract technical stack from PDF resume
+* `GET  /api/interviews` — List candidate session history
+* `GET  /api/interviews/leaderboard` — Global candidate rankings
+* `GET  /api/interviews/:id` — Fetch session questions and state
+* `POST /api/interviews/:id/submit` — Submit answers for AI grading
+* `PATCH /api/interviews/:id/notes` — Save candidate private notes
+* `DELETE /api/interviews/:id` — Delete a session record
 
-`npm run seed:reset` clears the seeded data instead.
-
-If the milestone collection is ever empty, the controller creates the four defaults on the
-next read, so the Certificates page is never blank even without seeding.
+### Administration (`/api/admin`)
+* `GET    /api/admin/users` — Candidate list with avatars and verification state
+* `PATCH  /api/admin/users/:id/verified` — Toggle candidate verification
+* `PATCH  /api/admin/users/:id/role` — Promote/demote candidate role
+* `DELETE /api/admin/users/:id` — Delete user account
+* `GET    /api/admin/certificate-templates` — All milestone templates
+* `POST   /api/admin/certificate-templates` — Create custom milestone
+* `GET    /api/admin/settings` — Platform settings & active AI keys count
+* `PUT    /api/admin/settings` — Upsert configuration / add AI key
+* `DELETE /api/admin/settings/:key` — Delete setting entry
 
 ---
 
@@ -214,97 +172,70 @@ next read, so the Certificates page is never blank even without seeding.
 
 ```
 Ai-Mock-Interview/
-├── .env.example
-├── package.json                 # root: runs client + server together
-├── README.md
-├── server/
+├── package.json                   # Root orchestrator scripts
+├── README.md                      # Platform documentation
+├── server/                        # Express API Backend
 │   └── src/
-│       ├── app.js               # express app + route mounts
-│       ├── index.js             # boot + db connect
-│       ├── seed.js / seed.reset.js
-│       ├── config/              # db.js, env.js
-│       ├── middleware/          # auth.js, validate.js, error.js
-│       ├── controllers/
-│       │   ├── admin.controller.js
-│       │   ├── auth.controller.js
-│       │   ├── bookmark.controller.js
-│       │   ├── certificateTemplate.controller.js
-│       │   └── interview.controller.js
-│       ├── models/
-│       │   ├── Bookmark.model.js
-│       │   ├── Certificate.model.js
-│       │   ├── CertificateTemplate.model.js
-│       │   ├── Interview.model.js
-│       │   ├── Question.model.js
-│       │   ├── Setting.model.js
-│       │   └── User.model.js
-│       ├── routes/
-│       │   ├── admin.routes.js
-│       │   ├── auth.routes.js
-│       │   ├── bookmark.routes.js
-│       │   ├── certificate.routes.js
-│       │   └── interview.routes.js
-│       ├── services/            # email.js, gemini.js
-│       └── utils/               # asyncHandler, otp, settings, token
-└── client/
+│       ├── index.js               # Entrypoint & DB connection
+│       ├── app.js                 # Middleware & route mounting
+│       ├── seed.js                # Database seeder
+│       ├── controllers/           # admin, auth, bookmark, certificate, interview
+│       ├── models/                # User, Interview, Question, Bookmark, Setting, Certificate
+│       ├── routes/                # admin, auth, bookmark, certificate, interview
+│       ├── services/              # aiService.js (Gemini rotation), emailService.js
+│       └── utils/                 # authHelpers, tokenUtils, otpUtils, settingsUtils
+└── client/                        # React + Vite Frontend
+    ├── public/
+    │   ├── logo.png               # 3D Circular Transparent Logo
+    │   ├── favicon.png            # High-density Chrome Tab Icon
+    │   ├── black-hole.mp4         # Visual effect assets
+    │   └── black-hole.webm
     └── src/
-        ├── App.jsx, main.jsx, index.css
+        ├── App.jsx                # Router & Protected route layout
+        ├── index.css              # Reflect Space Dark Design System
         ├── components/
-        │   ├── AdminRoute.jsx
-        │   ├── Avatar.jsx              # the single avatar renderer
-        │   ├── CertificateCard.jsx     # all three certificate layouts
-        │   ├── CertificateManager.jsx  # admin milestone CRUD + preview
-        │   ├── ConfirmDialog.jsx
-        │   ├── Footer.jsx
-        │   ├── Navbar.jsx
-        │   ├── ProtectedRoute.jsx
-        │   ├── ScoreChart.jsx
-        │   ├── ScrollToTop.jsx         # resets scroll on route change
-        │   └── Timer.jsx
-        ├── context/                    # AuthContext.jsx, ThemeContext.jsx
-        ├── lib/
-        │   ├── api.js                  # axios instance + bearer interceptor
-        │   ├── image.js                # square-crop + resize before upload
-        │   ├── scrollToSection.js      # shared in-page anchor scrolling
-        │   └── text.js
-        └── pages/
-            ├── AdminDashboard.jsx
-            ├── Bookmarks.jsx
-            ├── Certificates.jsx
-            ├── Dashboard.jsx
-            ├── ForgotPassword.jsx
-            ├── Interview.jsx
-            ├── Landing.jsx
-            ├── Leaderboard.jsx
-            ├── Login.jsx
-            ├── OtpVerify.jsx
-            ├── Profile.jsx
-            ├── Quiz.jsx
-            ├── Register.jsx
-            ├── Results.jsx
-            └── VerifyCertificate.jsx
+        │   ├── Navbar.jsx         # Floating glass header with logo
+        │   ├── NavDrawer.jsx      # Mobile responsive navigation drawer
+        │   ├── Footer.jsx         # Platform footer & branding
+        │   ├── Avatar.jsx         # Multi-format user avatar renderer
+        │   ├── ConfirmDialog.jsx  # Glass confirmation modal
+        │   ├── CertificateCard.jsx# Milestone credential renderer
+        │   ├── admin/             # AdminNav, AdminSettingsTab, AdminUsersTable
+        │   ├── dashboard/         # PerformanceHub, PracticeStudio
+        │   ├── landing/           # HeroHUD, GlassBentoGrid, TrackExplorer, ReflectBlackHole
+        │   └── profile/           # ProfileOverview, ProfileEdit, ProfileSecurity
+        └── pages/                 # Landing, Login, Register, Dashboard, Practice,
+                                   # Interview, Quiz, Results, Bookmarks, Leaderboard,
+                                   # Certificates, VerifyCertificate, AdminUsers,
+                                   # AdminCertificates, AdminSettings
 ```
 
 ---
 
-## 📜 Scripts
+## 📜 Available NPM Scripts
 
-| Command | What it does |
-| --- | --- |
-| `npm run setup` | Install root, client and server dependencies |
-| `npm run dev` | Run server (`5050`) and client (`5173`) together |
-| `npm run dev:server` / `npm run dev:client` | Run one side only |
-| `npm run build` | Production build of the client |
-| `npm start` | Start the built server |
-| `npm run seed` | Seed admins, candidates, sessions, certificates, milestones |
-| `npm run seed:reset` | Clear the seeded data |
+| Command | Action |
+| :--- | :--- |
+| `npm run setup` | Install all dependencies across root, client, and server |
+| `npm run dev` | Launch both backend API (`:5050`) and client (`:5173`) in parallel |
+| `npm run dev:client` | Launch Vite frontend development server only |
+| `npm run dev:server` | Launch Express backend server with nodemon |
+| `npm run build` | Execute production client build via Vite |
+| `npm run seed` | Seed initial database accounts, sessions, and milestones |
+| `npm run seed:reset` | Flush and rebuild database from clean initial state |
 
 ---
 
-## 👨‍💻 Author
+## 👨‍💻 Author & Creator
 
-Designed, engineered and built by **Mohd Zaid**
+Designed and engineered with passion by **Mohd Zaid**
 
-- 🌐 **Portfolio:** [portfolio-zeta-drab-97.vercel.app](https://portfolio-zeta-drab-97.vercel.app/)
-- 🐙 **GitHub:** [@zaid154](https://github.com/zaid154)
-- 💼 **LinkedIn:** [linkedin.com/in/mohd-zaid-794090231](https://www.linkedin.com/in/mohd-zaid-794090231/)
+* 🌐 **Portfolio:** [portfolio-zeta-drab-97.vercel.app](https://portfolio-zeta-drab-97.vercel.app/)
+* 🐙 **GitHub:** [@zaid154](https://github.com/zaid154)
+* 💼 **LinkedIn:** [linkedin.com/in/mohd-zaid-794090231](https://www.linkedin.com/in/mohd-zaid-794090231/)
+
+---
+
+<div align="center">
+  <sub>Built with modern React, Node.js, Express, MongoDB, and Google Gemini. © 2026 MockMate AI. All rights reserved.</sub>
+</div>

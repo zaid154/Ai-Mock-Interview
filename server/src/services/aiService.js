@@ -5,6 +5,7 @@ const Setting = require('../models/settingModel')
 // Multi-key rotation with cooldown guard (60s) to handle quota/rate limits gracefully
 const COOLDOWN_MS = 60 * 1000
 const lastFailedAt = new Map()
+let currentKeyIndex = 0
 
 // Fetches and deduplicates Gemini API keys from admin DB settings and environment variables
 async function getKeys() {
@@ -15,7 +16,13 @@ async function getKeys() {
   } catch (_) {}
   if (process.env.GEMINI_API_KEYS) keys.push(...process.env.GEMINI_API_KEYS.split(','))
   if (process.env.GEMINI_API_KEY) keys.push(process.env.GEMINI_API_KEY)
-  return [...new Set(keys.map((k) => String(k).trim()).filter(Boolean))]
+  return [
+    ...new Set(
+      keys
+        .map((k) => (typeof k === 'object' && k !== null && k.key ? k.key : String(k || '')).trim())
+        .filter(Boolean)
+    ),
+  ]
 }
 
 const modelName = () => process.env.GEMINI_MODEL || 'gemini-1.5-flash'
@@ -32,9 +39,15 @@ async function generateJson(prompt) {
   const now = Date.now()
   const fresh = keys.filter((k) => !lastFailedAt.has(k) || now - lastFailedAt.get(k) > COOLDOWN_MS)
   const cooling = keys.filter((k) => !fresh.includes(k))
+
+  // True round-robin load balancing across healthy keys
+  const startIdx = fresh.length > 0 ? (currentKeyIndex++ % fresh.length) : 0
+  const prioritized = fresh.length > 0
+    ? [...fresh.slice(startIdx), ...fresh.slice(0, startIdx), ...cooling]
+    : cooling
   let lastErr
 
-  for (const key of [...fresh, ...cooling]) {
+  for (const key of prioritized) {
     try {
       const model = new GoogleGenerativeAI(key).getGenerativeModel({ model: modelName() })
       const res = await model.generateContent({

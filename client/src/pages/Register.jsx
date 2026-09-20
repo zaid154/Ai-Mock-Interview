@@ -33,86 +33,82 @@ export default function Register() {
   }
 
   return (
-    <div className="auth-layout-page">
-      <div className="auth-card-panel">
-        {/* Left Pane: Brand Showcase */}
-        <div
-          className="auth-left-pane"
-          style={{
-            background: 'var(--surface-2)',
-            padding: '1.8rem 2rem',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            borderRight: '1px solid var(--border-soft)',
-          }}
-        >
+    <div className="reflect-auth-page">
+      <div className="reflect-auth-ambient" />
+
+      <div className="reflect-auth-card">
+        {/* Left Pane: Brand & Value Props */}
+        <div className="reflect-auth-left">
           <div>
-            <Link to="/" className="brand" style={{ fontSize: '1.2rem', marginBottom: '1.2rem', display: 'inline-flex' }}>
-              <div className="brand-icon-box" style={{ width: '30px', height: '30px' }}>
-                <Zap size={16} />
+            <Link to="/" className="reflect-brand" style={{ marginBottom: '1.25rem', display: 'inline-flex' }}>
+              <div className="reflect-brand-icon">
+                <img src="/logo.png" alt="MockMate AI Logo" className="reflect-brand-img" />
               </div>
-              <span>MockMate</span>
+              <span className="reflect-brand-title">
+                MockMate <span className="reflect-brand-badge">AI</span>
+              </span>
             </Link>
 
-            <h2 style={{ fontSize: '1.45rem', lineHeight: '1.25', marginBottom: '0.6rem', fontWeight: 800 }}>
+            <h2 style={{ fontSize: '1.35rem', lineHeight: '1.25', marginBottom: '0.5rem', fontWeight: 600, color: '#f8fafc', letterSpacing: '-0.025em' }}>
               Start practicing mock interviews today.
             </h2>
-            <p className="muted" style={{ fontSize: '0.85rem', lineHeight: '1.5', marginBottom: '1.4rem' }}>
-              Create your free candidate profile and access AI-powered technical interview simulations.
+            <p style={{ color: 'rgba(239, 237, 253, 0.65)', fontSize: '0.84rem', lineHeight: '1.5', marginBottom: '0.85rem' }}>
+              Create your candidate profile and access AI-powered technical simulations across fullstack, frontend, and backend tracks.
             </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.82rem' }}>
-                <CheckCircle2 size={16} style={{ color: 'var(--good)', flexShrink: 0 }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontSize: '0.84rem', color: 'rgba(239, 237, 253, 0.85)' }}>
+                <CheckCircle2 size={16} style={{ color: '#c084fc', flexShrink: 0 }} />
                 <span>Unlimited mock practice sessions</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.82rem' }}>
-                <CheckCircle2 size={16} style={{ color: 'var(--good)', flexShrink: 0 }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontSize: '0.84rem', color: 'rgba(239, 237, 253, 0.85)' }}>
+                <CheckCircle2 size={16} style={{ color: '#c084fc', flexShrink: 0 }} />
                 <span>Revision bookmarks bank &amp; study notes</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.82rem' }}>
-                <CheckCircle2 size={16} style={{ color: 'var(--good)', flexShrink: 0 }} />
-                <span>Verified ISO milestone credentials</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontSize: '0.84rem', color: 'rgba(239, 237, 253, 0.85)' }}>
+                <CheckCircle2 size={16} style={{ color: '#c084fc', flexShrink: 0 }} />
+                <span>Verified SHA-256 milestone diplomas</span>
               </div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1.5rem', color: 'var(--text-muted)', fontSize: '0.78rem' }}>
-            <ShieldCheck size={16} style={{ color: 'var(--accent-primary)' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(255, 255, 255, 0.08)', color: 'rgba(239, 237, 253, 0.6)', fontSize: '0.78rem' }}>
+            <ShieldCheck size={16} style={{ color: '#c084fc' }} />
             <span>256-bit Secure Candidate Encryption</span>
           </div>
         </div>
 
         {/* Right Pane: Registration Form */}
-        <div style={{ padding: '1.8rem 2rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <div className="reflect-auth-right">
           <div style={{ marginBottom: '1rem' }}>
-            <h1 style={{ fontSize: '1.5rem', marginBottom: '0.2rem', fontWeight: 800 }}>Create Account</h1>
-            <p className="muted small" style={{ margin: 0, fontSize: '0.84rem' }}>
+            <h1 style={{ fontSize: '1.45rem', marginBottom: '0.3rem', fontWeight: 600, color: '#f8fafc', letterSpacing: '-0.025em' }}>
+              Create Account
+            </h1>
+            <p style={{ margin: 0, fontSize: '0.86rem', color: 'rgba(239, 237, 253, 0.65)' }}>
               Join MockMate and start practicing for free.
             </p>
           </div>
 
-          <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
-            <div className="field" style={{ marginBottom: 0 }}>
-              <span className="field-label" style={{ fontSize: '0.8rem' }}>Full Name</span>
-              <div className="input-icon-wrap">
-                <User size={15} className="input-icon" />
+          <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+            <div>
+              <label className="reflect-field-label">Full Name</label>
+              <div className="reflect-input-wrap">
+                <User size={16} className="reflect-input-icon" />
                 <input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Mohd Zaid"
                   autoComplete="name"
                   required
-                  style={{ padding: '0.55rem 0.8rem 0.55rem 2.5rem', fontSize: '0.85rem' }}
+                  className="reflect-input"
                 />
               </div>
             </div>
 
-            <div className="field" style={{ marginBottom: 0 }}>
-              <span className="field-label" style={{ fontSize: '0.8rem' }}>Email Address</span>
-              <div className="input-icon-wrap">
-                <Mail size={15} className="input-icon" />
+            <div>
+              <label className="reflect-field-label">Email Address</label>
+              <div className="reflect-input-wrap">
+                <Mail size={16} className="reflect-input-icon" />
                 <input
                   type="email"
                   value={email}
@@ -120,15 +116,15 @@ export default function Register() {
                   placeholder="candidate@example.com"
                   autoComplete="email"
                   required
-                  style={{ padding: '0.55rem 0.8rem 0.55rem 2.5rem', fontSize: '0.85rem' }}
+                  className="reflect-input"
                 />
               </div>
             </div>
 
-            <div className="field" style={{ marginBottom: 0 }}>
-              <span className="field-label" style={{ fontSize: '0.8rem' }}>Password</span>
-              <div className="input-icon-wrap">
-                <Lock size={15} className="input-icon" />
+            <div>
+              <label className="reflect-field-label">Password</label>
+              <div className="reflect-input-wrap">
+                <Lock size={16} className="reflect-input-icon" />
                 <input
                   type={showPw ? 'text' : 'password'}
                   value={password}
@@ -137,39 +133,33 @@ export default function Register() {
                   autoComplete="new-password"
                   minLength={6}
                   required
-                  style={{ padding: '0.55rem 2.5rem 0.55rem 2.5rem', fontSize: '0.85rem' }}
+                  className="reflect-input"
+                  style={{ paddingRight: '2.5rem' }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPw(!showPw)}
-                  style={{
-                    position: 'absolute',
-                    right: '0.75rem',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    background: 'none',
-                    border: 'none',
-                    color: 'var(--text-muted)',
-                    cursor: 'pointer',
-                    zIndex: 2,
-                    display: 'flex',
-                    alignItems: 'center',
-                  }}
+                  style={{ position: 'absolute', right: '0.85rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'rgba(255, 255, 255, 0.5)', cursor: 'pointer', padding: 0, display: 'flex' }}
                   aria-label={showPw ? 'Hide password' : 'Show password'}
                 >
-                  {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                  {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </div>
 
-            <button type="submit" className="btn btn-primary btn-block" disabled={busy} style={{ marginTop: '0.4rem', padding: '0.65rem 1rem' }}>
+            <button
+              type="submit"
+              className="reflect-btn-primary"
+              disabled={busy}
+              style={{ width: '100%', justifyContent: 'center', padding: '0.75rem', marginTop: '0.4rem', fontSize: '0.9rem' }}
+            >
               {busy ? 'Creating Account…' : <>Get Started Free <ArrowRight size={16} /></>}
             </button>
 
-            <div style={{ borderTop: '1px solid var(--border-soft)', marginTop: '0.4rem', paddingTop: '0.8rem', textAlign: 'center' }}>
-              <p className="muted small" style={{ margin: 0, fontSize: '0.82rem' }}>
+            <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', marginTop: '0.4rem', paddingTop: '1rem', textAlign: 'center' }}>
+              <p style={{ margin: 0, fontSize: '0.84rem', color: 'rgba(239, 237, 253, 0.65)' }}>
                 Already have an account?{' '}
-                <Link to="/login" style={{ fontWeight: 700, color: 'var(--accent-primary)' }}>
+                <Link to="/login" style={{ fontWeight: 600, color: '#c084fc' }}>
                   Sign in
                 </Link>
               </p>

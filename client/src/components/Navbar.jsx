@@ -1,18 +1,10 @@
 import { useState } from 'react'
-import { createPortal } from 'react-dom'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { goToSection } from '../lib/scrollToSection'
 import Avatar from './Avatar'
-import {
-  Zap,
-  User,
-  LogOut,
-  Shield,
-  Menu,
-  X,
-  ChevronDown,
-} from 'lucide-react'
+import NavDrawer from './NavDrawer'
+import { Zap, User, LogOut, Shield, Menu, ChevronDown } from 'lucide-react'
 
 export default function Navbar() {
   const { user, logout } = useAuth()
@@ -21,7 +13,6 @@ export default function Navbar() {
 
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
-
 
   function handleLogout() {
     setUserMenuOpen(false)
@@ -36,6 +27,7 @@ export default function Navbar() {
     location.pathname.startsWith('/quiz') ||
     location.pathname.startsWith('/results')
 
+  const isPracticeActive = location.pathname === '/practice'
   const isBookmarksActive = location.pathname === '/bookmarks'
   const isLeaderboardActive = location.pathname === '/leaderboard'
   const isCertificatesActive =
@@ -47,32 +39,35 @@ export default function Navbar() {
   }
 
   return (
-    <header className="navbar">
-      <div className="nav-inner">
+    <header className="reflect-header">
+      <div className="reflect-header-inner">
         {/* Brand */}
-        <Link to={user ? '/dashboard' : '/'} className="brand">
-          <div className="brand-icon-box">
-            <Zap size={18} />
+        <Link to={user ? '/dashboard' : '/'} className="reflect-brand">
+          <div className="reflect-brand-icon">
+            <img src="/logo.png" alt="MockMate AI Logo" className="reflect-brand-img" />
           </div>
-          <span>
-            MockMate <span className="brand-accent">AI</span>
+          <span className="reflect-brand-title">
+            MockMate <span className="reflect-brand-badge">AI</span>
           </span>
         </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="nav-links nav-links-desktop">
+        {/* Floating Glass Pill Navigation */}
+        <nav className="reflect-nav-pill">
           {user ? (
             <>
-              <Link to="/dashboard" className={`nav-link ${isDashboardActive ? 'active' : ''}`}>
+              <Link to="/dashboard" className={`reflect-nav-link ${isDashboardActive ? 'active' : ''}`}>
                 Dashboard
               </Link>
-              <Link to="/bookmarks" className={`nav-link ${isBookmarksActive ? 'active' : ''}`}>
+              <Link to="/practice" className={`reflect-nav-link ${isPracticeActive ? 'active' : ''}`}>
+                Practice
+              </Link>
+              <Link to="/bookmarks" className={`reflect-nav-link ${isBookmarksActive ? 'active' : ''}`}>
                 Bookmarks
               </Link>
-              <Link to="/leaderboard" className={`nav-link ${isLeaderboardActive ? 'active' : ''}`}>
+              <Link to="/leaderboard" className={`reflect-nav-link ${isLeaderboardActive ? 'active' : ''}`}>
                 Leaderboard
               </Link>
-              <Link to="/certificates" className={`nav-link ${isCertificatesActive ? 'active' : ''}`}>
+              <Link to="/certificates" className={`reflect-nav-link ${isCertificatesActive ? 'active' : ''}`}>
                 Certificates
               </Link>
             </>
@@ -81,36 +76,32 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => scrollToSection('overview')}
-                className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}
-                style={{ background: 'none', border: 'none', font: 'inherit', cursor: 'pointer' }}
+                className={`reflect-nav-link ${location.pathname === '/' ? 'active' : ''}`}
               >
                 Overview
               </button>
               <button
                 type="button"
                 onClick={() => scrollToSection('benefits')}
-                className="nav-link"
-                style={{ background: 'none', border: 'none', font: 'inherit', cursor: 'pointer' }}
+                className="reflect-nav-link"
               >
                 Benefits
               </button>
               <button
                 type="button"
                 onClick={() => scrollToSection('specifications')}
-                className="nav-link"
-                style={{ background: 'none', border: 'none', font: 'inherit', cursor: 'pointer' }}
+                className="reflect-nav-link"
               >
                 Specifications
               </button>
               <button
                 type="button"
                 onClick={() => scrollToSection('how-it-works')}
-                className="nav-link"
-                style={{ background: 'none', border: 'none', font: 'inherit', cursor: 'pointer' }}
+                className="reflect-nav-link"
               >
                 How-to
               </button>
-              <Link to="/leaderboard" className={`nav-link ${isLeaderboardActive ? 'active' : ''}`}>
+              <Link to="/leaderboard" className={`reflect-nav-link ${isLeaderboardActive ? 'active' : ''}`}>
                 Leaderboard
               </Link>
             </>
@@ -118,110 +109,60 @@ export default function Navbar() {
         </nav>
 
         {/* Right Actions */}
-        <div className="nav-actions">
-
-
+        <div className="reflect-header-actions">
           {user ? (
             <div style={{ position: 'relative' }}>
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="user-menu-btn"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  padding: '0.3rem 0.6rem 0.3rem 0.3rem',
-                  borderRadius: '999px',
-                  border: '1px solid var(--border)',
-                  background: 'var(--surface-2)',
-                  color: 'var(--text)',
-                  cursor: 'pointer',
-                  fontSize: '0.85rem',
-                }}
+                className="reflect-user-btn"
               >
-                <Avatar src={user.avatar} name={user.name} size={28} />
-                <span className="user-menu-name">
-                  {user.name?.split(' ')[0]}
-                </span>
-                <ChevronDown size={14} className="muted" />
+                <Avatar src={user.avatar} name={user.name} size={26} />
+                <span className="reflect-user-name">{user.name?.split(' ')[0]}</span>
+                <ChevronDown size={14} style={{ opacity: 0.6 }} />
               </button>
 
-              {/* User Dropdown Menu */}
               {userMenuOpen && (
-                <div
-                  className="glass-card dropdown-menu-anim"
-                  style={{
-                    position: 'absolute',
-                    top: 'calc(100% + 0.5rem)',
-                    right: 0,
-                    width: '210px',
-                    padding: '0.6rem',
-                    zIndex: 110,
-                    boxShadow: 'var(--shadow-lg)',
-                  }}
-                >
-                  <div style={{ padding: '0.4rem 0.6rem', borderBottom: '1px solid var(--border-soft)', marginBottom: '0.4rem' }}>
-                    <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text)' }}>{user.name}</div>
-                    <div className="muted small" style={{ fontSize: '0.76rem', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div className="reflect-dropdown">
+                  <div className="reflect-dropdown-header">
+                    <div style={{ fontWeight: 600, fontSize: '0.86rem', color: '#f8fafc' }}>{user.name}</div>
+                    <div style={{ fontSize: '0.74rem', color: 'rgba(239, 237, 253, 0.55)', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {user.email}
                     </div>
                   </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                    <Link
-                      to="/profile"
-                      className="nav-link"
-                      onClick={() => setUserMenuOpen(false)}
-                      style={{ width: '100%', justifyContent: 'flex-start' }}
-                    >
-                      <User size={15} /> Profile &amp; Settings
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <Link to="/profile" className="reflect-dropdown-item" onClick={() => setUserMenuOpen(false)}>
+                      <User size={14} /> Profile &amp; Settings
                     </Link>
-
                     {user.role === 'admin' && (
-                      <Link
-                        to="/admin"
-                        className="nav-link"
-                        onClick={() => setUserMenuOpen(false)}
-                        style={{ width: '100%', justifyContent: 'flex-start' }}
-                      >
-                        <Shield size={15} /> Admin Settings
+                      <Link to="/admin" className="reflect-dropdown-item" onClick={() => setUserMenuOpen(false)}>
+                        <Shield size={14} /> Admin Settings
                       </Link>
                     )}
-
-                    <div style={{ borderTop: '1px solid var(--border-soft)', margin: '0.3rem 0' }} />
-
                     <button
                       type="button"
                       onClick={handleLogout}
-                      className="nav-link"
-                      style={{
-                        width: '100%',
-                        justifyContent: 'flex-start',
-                        color: 'var(--bad)',
-                        background: 'transparent',
-                        border: 'none',
-                        cursor: 'pointer',
-                      }}
+                      className="reflect-dropdown-item"
+                      style={{ color: '#fb7185' }}
                     >
-                      <LogOut size={15} /> Sign out
+                      <LogOut size={14} /> Sign out
                     </button>
                   </div>
                 </div>
               )}
             </div>
           ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Link to="/login" className="nav-link">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+              <Link to="/login" className="reflect-login-link">
                 Sign in
               </Link>
-              <Link to="/register" className="btn btn-primary btn-sm">
+              <Link to="/register" className="reflect-btn-primary" style={{ padding: '0.45rem 1.15rem', fontSize: '0.84rem' }}>
                 Get Started
               </Link>
             </div>
           )}
 
           <button
-            className="mobile-menu-btn"
+            className="reflect-mobile-toggle"
             onClick={() => setDrawerOpen(true)}
             aria-label="Open menu"
           >
@@ -230,82 +171,16 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Drawer Rendered via React Portal onto document.body */}
-      {drawerOpen &&
-        createPortal(
-          <>
-            <div className="mobile-drawer-overlay" onClick={() => setDrawerOpen(false)} />
-            <div className={`mobile-drawer ${drawerOpen ? 'open' : ''}`}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-soft)', paddingBottom: '0.8rem' }}>
-                <span className="brand" style={{ fontSize: '1.1rem' }}>
-                  MockMate
-                </span>
-                <button
-                  onClick={() => setDrawerOpen(false)}
-                  style={{ background: 'none', border: 'none', color: 'var(--text)', cursor: 'pointer' }}
-                >
-                  <X size={20} />
-                </button>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginTop: '0.8rem' }}>
-                {user ? (
-                  <>
-                    <Link to="/dashboard" className="nav-link" onClick={() => setDrawerOpen(false)}>
-                      Dashboard
-                    </Link>
-                    <Link to="/bookmarks" className="nav-link" onClick={() => setDrawerOpen(false)}>
-                      Bookmarks
-                    </Link>
-                    <Link to="/leaderboard" className="nav-link" onClick={() => setDrawerOpen(false)}>
-                      Leaderboard
-                    </Link>
-                    <Link to="/certificates" className="nav-link" onClick={() => setDrawerOpen(false)}>
-                      Certificates
-                    </Link>
-                    <Link to="/profile" className="nav-link" onClick={() => setDrawerOpen(false)}>
-                      Profile
-                    </Link>
-                    {user.role === 'admin' && (
-                      <Link to="/admin" className="nav-link" onClick={() => setDrawerOpen(false)}>
-                        Admin
-                      </Link>
-                    )}
-                    <button className="btn btn-danger btn-block" onClick={handleLogout} style={{ marginTop: '1rem' }}>
-                      Sign out
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button type="button" onClick={() => { setDrawerOpen(false); scrollToSection('overview'); }} className="nav-link" style={{ background: 'none', border: 'none', textAlign: 'left', font: 'inherit', color: 'var(--text)' }}>
-                      Overview
-                    </button>
-                    <button type="button" onClick={() => { setDrawerOpen(false); scrollToSection('benefits'); }} className="nav-link" style={{ background: 'none', border: 'none', textAlign: 'left', font: 'inherit', color: 'var(--text)' }}>
-                      Benefits
-                    </button>
-                    <button type="button" onClick={() => { setDrawerOpen(false); scrollToSection('specifications'); }} className="nav-link" style={{ background: 'none', border: 'none', textAlign: 'left', font: 'inherit', color: 'var(--text)' }}>
-                      Specifications
-                    </button>
-                    <button type="button" onClick={() => { setDrawerOpen(false); scrollToSection('how-it-works'); }} className="nav-link" style={{ background: 'none', border: 'none', textAlign: 'left', font: 'inherit', color: 'var(--text)' }}>
-                      How-to
-                    </button>
-                    <Link to="/leaderboard" className="nav-link" onClick={() => setDrawerOpen(false)}>
-                      Leaderboard
-                    </Link>
-                    <div style={{ borderTop: '1px solid var(--border-soft)', margin: '0.4rem 0' }} />
-                    <Link to="/login" className="btn btn-secondary btn-block" onClick={() => setDrawerOpen(false)}>
-                      Sign in
-                    </Link>
-                    <Link to="/register" className="btn btn-primary btn-block" onClick={() => setDrawerOpen(false)}>
-                      Get Started
-                    </Link>
-                  </>
-                )}
-              </div>
-            </div>
-          </>,
-          document.body
-        )}
+      <NavDrawer
+        isOpen={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        user={user}
+        onLogout={handleLogout}
+        onSectionClick={(id) => {
+          setDrawerOpen(false)
+          scrollToSection(id)
+        }}
+      />
     </header>
   )
 }

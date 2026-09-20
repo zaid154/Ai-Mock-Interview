@@ -10,10 +10,13 @@ import Register from './pages/Register'
 import OtpVerify from './pages/OtpVerify'
 import ForgotPassword from './pages/ForgotPassword'
 import Dashboard from './pages/Dashboard'
+import Practice from './pages/Practice'
 import Interview from './pages/Interview'
 import Quiz from './pages/Quiz'
 import Results from './pages/Results'
-import AdminDashboard from './pages/AdminDashboard'
+import AdminUsers from './pages/AdminUsers'
+import AdminCertificates from './pages/AdminCertificates'
+import AdminSettings from './pages/AdminSettings'
 import Profile from './pages/Profile'
 import Bookmarks from './pages/Bookmarks'
 import Leaderboard from './pages/Leaderboard'
@@ -41,6 +44,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/practice"
+            element={
+              <ProtectedRoute>
+                <Practice />
               </ProtectedRoute>
             }
           />
@@ -104,7 +115,31 @@ export default function App() {
             path="/admin"
             element={
               <AdminRoute>
-                <AdminDashboard />
+                <Navigate to="/admin/users" replace />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/users"
+            element={
+              <AdminRoute>
+                <AdminUsers />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/certificates"
+            element={
+              <AdminRoute>
+                <AdminCertificates />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/settings"
+            element={
+              <AdminRoute>
+                <AdminSettings />
               </AdminRoute>
             }
           />
