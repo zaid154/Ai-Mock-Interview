@@ -95,7 +95,7 @@ export default function PracticeStudio({
           {/* 4. Question Count & Duration */}
           <div className="studio-section">
             <span className="studio-section-label">4. Questions &amp; Duration</span>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+            <div className="studio-params-row">
               <div>
                 <span className="field-label" style={{ marginBottom: '0.3rem', display: 'block' }}>Questions</span>
                 <div className="pill-button-group" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
