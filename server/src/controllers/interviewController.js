@@ -1,6 +1,8 @@
+const crypto = require('crypto')
 const Interview = require('../models/interviewModel')
 const User = require('../models/userModel')
-const { generateQuestions, generateQuiz, evaluateInterview } = require('../services/aiService')
+const Resume = require('../models/resumeModel')
+const { generateQuestions, generateQuiz, evaluateInterview, extractResumeContext } = require('../services/aiService')
 
 // Hides correctIndex while a quiz is ongoing to prevent cheating via browser inspection;
 // and normalizes unanswered questions in open-ended interviews to 0 score
@@ -27,31 +29,34 @@ function publicInterview(interview) {
 
 // POST /api/interviews — Generates and initiates an interview or quiz session
 async function startInterview(req, res) {
-  const { role, difficulty, count, experience, mode, category = 'General', timerMinutes = 0 } = req.body
-  const user = await User.findById(req.userId).select('resumeText')
-  const resumeText = user?.resumeText || ''
-  const hasResume = Boolean(resumeText.trim())
+  const { role, difficulty, count = 5, experience, mode = 'questions', category = 'General', timerMinutes = 0, questions: preGenerated } = req.body
+  const activeResume = await Resume.findOne({ user: req.userId, isActive: true })
+  const hasResume = Boolean(activeResume)
   if (!hasResume && !role) return res.status(400).json({ error: 'Tell us the role you want to practise for' })
 
-  let questions
-  if (mode === 'quiz') {
-    try {
-      const quiz = await generateQuiz(role, difficulty, count, experience, resumeText, category)
-      questions = quiz.map((q) => ({ prompt: q.prompt, options: q.options, correctIndex: q.correctIndex, selectedIndex: null }))
-    } catch (err) {
-      console.warn('Quiz generation failed:', err.message)
-      return res.status(503).json({ error: 'Quiz mode needs a working Gemini API key. Add one in admin settings, or use Questions mode.' })
-    }
-  } else {
-    try {
-      const prompts = await generateQuestions(role, difficulty, count, experience, resumeText, category)
-      questions = prompts.map((prompt) => ({ prompt }))
-    } catch (err) {
-      if (hasResume) {
-        console.warn('Resume question generation failed:', err.message)
-        return res.status(503).json({ error: 'Your resume is saved, but resume-based questions need a working Gemini API key.' })
+  let questions = preGenerated
+
+  // If pre-generated questions were not provided, generate in single fallback request
+  if (!Array.isArray(questions) || questions.length === 0) {
+    if (mode === 'quiz') {
+      try {
+        const quiz = await generateQuiz(role, difficulty, count, experience, activeResume?.resumeContext, category)
+        questions = quiz.map((q) => ({ prompt: q.prompt, options: q.options, correctIndex: q.correctIndex, selectedIndex: null }))
+      } catch (err) {
+        console.warn('Quiz generation failed:', err.message)
+        return res.status(503).json({ error: 'Quiz mode needs a working Gemini API key. Add one in admin settings, or use Questions mode.' })
       }
-      throw err
+    } else {
+      try {
+        const prompts = await generateQuestions(role, difficulty, count, experience, activeResume?.resumeContext, category)
+        questions = prompts.map((prompt) => ({ prompt }))
+      } catch (err) {
+        if (hasResume) {
+          console.warn('Resume question generation failed:', err.message)
+          return res.status(503).json({ error: 'Your resume is saved, but resume-based questions need a working Gemini API key.' })
+        }
+        throw err
+      }
     }
   }
 
@@ -189,10 +194,34 @@ async function deleteInterview(req, res) {
   res.json({ ok: true })
 }
 
-// POST /api/interviews/resume — Parses uploaded PDF resume text for interview context
+// POST /api/interviews/resume — Parses uploaded PDF, hashes content, saves structured context
 async function uploadResume(req, res) {
   if (!req.file) return res.status(400).json({ error: 'Please attach a PDF file' })
 
+  const fileHash = crypto.createHash('sha256').update(req.file.buffer).digest('hex')
+  const fileName = req.file.originalname || 'Resume.pdf'
+
+  // 1. Content Hash Deduplication: If this exact resume was already processed for this user, reuse it!
+  const existing = await Resume.findOne({ user: req.userId, fileHash })
+  if (existing) {
+    await Resume.updateMany({ user: req.userId }, { isActive: false })
+    existing.isActive = true
+    await existing.save()
+    await User.findByIdAndUpdate(req.userId, {
+      activeResume: existing._id,
+      resumeFileName: existing.fileName,
+      resumeText: existing.rawText || '',
+    })
+    return res.json({
+      ok: true,
+      cached: true,
+      fileName: existing.fileName,
+      resumeContext: existing.resumeContext,
+      message: 'Resume already processed. Using saved resume context.',
+    })
+  }
+
+  // 2. New Resume Upload: Extract text from PDF once
   let text = ''
   try {
     const { extractText, getDocumentProxy } = await import('unpdf')
@@ -204,8 +233,94 @@ async function uploadResume(req, res) {
   }
   if (!text) return res.status(400).json({ error: 'No readable text found in that PDF' })
 
-  await User.findByIdAndUpdate(req.userId, { resumeText: text })
-  res.json({ ok: true, hasResume: true })
+  // 3. Extract compact structured context once
+  const resumeContext = await extractResumeContext(text)
+
+  // 4. Deactivate old resumes and save new resume
+  await Resume.updateMany({ user: req.userId }, { isActive: false })
+  const newResume = await Resume.create({
+    user: req.userId,
+    fileName,
+    fileHash,
+    rawText: text,
+    resumeContext,
+    isActive: true,
+  })
+
+  await User.findByIdAndUpdate(req.userId, {
+    activeResume: newResume._id,
+    resumeFileName: fileName,
+    resumeText: text,
+  })
+
+  return res.status(201).json({
+    ok: true,
+    cached: false,
+    fileName,
+    resumeContext,
+    message: 'Resume parsed and structured context saved.',
+  })
+}
+
+// GET /api/interviews/resume/active — Retrieves candidate's active saved resume
+async function getActiveResume(req, res) {
+  const resume = await Resume.findOne({ user: req.userId, isActive: true }).select('fileName createdAt resumeContext')
+  if (!resume) return res.json({ active: false, fileName: '', resumeContext: null })
+  return res.json({
+    active: true,
+    fileName: resume.fileName,
+    uploadedAt: resume.createdAt,
+    hasContext: Boolean(resume.resumeContext?.skills?.length || resume.resumeContext?.projects?.length),
+  })
+}
+
+// DELETE /api/interviews/resume/active — Detaches active resume from candidate profile
+async function removeActiveResume(req, res) {
+  await Resume.updateMany({ user: req.userId }, { isActive: false })
+  await User.findByIdAndUpdate(req.userId, { activeResume: null, resumeFileName: '', resumeText: '' })
+  return res.json({ ok: true })
+}
+
+// POST /api/interviews/batch — Generates a micro-batch of questions (1 or 2) using cached resume context
+async function generateQuestionBatch(req, res) {
+  const { role, difficulty, count = 2, experience = 'Fresher', mode = 'questions', category = 'General', excludePrompts = [] } = req.body
+
+  const activeResume = await Resume.findOne({ user: req.userId, isActive: true })
+  const resumeContext = activeResume ? activeResume.resumeContext : null
+  const hasResume = Boolean(resumeContext && (resumeContext.skills?.length || resumeContext.projects?.length))
+
+  if (!hasResume && !role) {
+    return res.status(400).json({ error: 'Tell us the role you want to practise for' })
+  }
+
+  let questions
+  if (mode === 'quiz') {
+    try {
+      const quiz = await generateQuiz(role, difficulty, Number(count), experience, resumeContext, category, excludePrompts)
+      questions = quiz.map((q) => ({
+        prompt: q.prompt,
+        options: q.options,
+        correctIndex: q.correctIndex,
+        selectedIndex: null,
+      }))
+    } catch (err) {
+      console.warn('Batch quiz generation failed:', err.message)
+      return res.status(503).json({ error: 'Quiz mode requires an active Gemini API key. Add one in admin settings or use Q&A mode.' })
+    }
+  } else {
+    try {
+      const prompts = await generateQuestions(role, difficulty, Number(count), experience, resumeContext, category, excludePrompts)
+      questions = prompts.map((prompt) => ({ prompt }))
+    } catch (err) {
+      console.warn('Batch question generation failed:', err.message)
+      if (hasResume) {
+        return res.status(503).json({ error: 'Resume-tailored question generation failed. Please verify API key.' })
+      }
+      return res.status(503).json({ error: 'Question generation failed.' })
+    }
+  }
+
+  return res.json({ ok: true, questions })
 }
 
 module.exports = {
@@ -217,4 +332,7 @@ module.exports = {
   getLeaderboard,
   deleteInterview,
   uploadResume,
+  getActiveResume,
+  removeActiveResume,
+  generateQuestionBatch,
 }

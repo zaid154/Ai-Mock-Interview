@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import api, { apiError } from '../lib/api'
@@ -7,6 +7,17 @@ import { ArrowLeft } from 'lucide-react'
 import PracticeStudio from '../components/dashboard/PracticeStudio'
 
 const DIFFICULTY_MAP = { Junior: 'easy', Intermediate: 'medium', Senior: 'hard' }
+
+function getBatchSizes(total) {
+  const batches = []
+  let remaining = total
+  while (remaining > 0) {
+    const size = remaining >= 2 ? 2 : 1
+    batches.push(size)
+    remaining -= size
+  }
+  return batches
+}
 
 export default function Practice() {
   const { user } = useAuth()
@@ -20,16 +31,21 @@ export default function Practice() {
   const [numQuestions, setNumQuestions] = useState(5)
   const [difficulty, setDifficulty] = useState('Intermediate')
   const [timerMinutes, setTimerMinutes] = useState('0')
-  const [resumeText, setResumeText] = useState('')
   const [resumeFileName, setResumeFileName] = useState('')
   const [busy, setBusy] = useState(false)
+  const [progress, setProgress] = useState({ active: false, percent: 0, statusText: '' })
+  const cancelRef = useRef(false)
 
   useEffect(() => {
     const qMode = searchParams.get('mode')
-    if (qMode === 'quiz' || qMode === 'questions') {
-      setMode(qMode)
-    }
+    if (qMode === 'quiz' || qMode === 'questions') setMode(qMode)
   }, [searchParams])
+
+  useEffect(() => {
+    api.get('/interviews/resume/active').then(({ data }) => {
+      if (data?.active && data?.fileName) setResumeFileName(data.fileName)
+    }).catch(() => {})
+  }, [])
 
   async function handleFileUpload(e) {
     const file = e.target.files?.[0]
@@ -37,39 +53,88 @@ export default function Practice() {
     if (!file.name.toLowerCase().endsWith('.pdf')) return toast.error('Please upload a PDF file')
     const formData = new FormData()
     formData.append('resume', file)
-    const toastId = toast.loading('Parsing resume context…')
+    const toastId = toast.loading('Analyzing resume context…')
     try {
       const { data } = await api.post('/interviews/resume', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
-      setResumeText(data.text || ''); setResumeFileName(file.name)
-      toast.success('Resume context attached', { id: toastId })
+      setResumeFileName(data.fileName || file.name)
+      toast.success(data.cached ? '✓ Existing resume found! Loaded saved context.' : 'Resume context structured and saved', { id: toastId })
     } catch (err) {
       toast.error(apiError(err, 'Could not parse resume'), { id: toastId })
     }
   }
 
-  function handleRemoveResume(e) {
+  async function handleRemoveResume(e) {
     e.preventDefault(); e.stopPropagation()
-    setResumeFileName(''); setResumeText('')
-    toast.success('Resume context removed')
+    try {
+      await api.delete('/interviews/resume/active')
+      setResumeFileName('')
+      toast.success('Resume context detached')
+    } catch (err) {
+      toast.error(apiError(err, 'Could not remove resume'))
+    }
   }
 
   async function createSession(e) {
-    e.preventDefault(); setBusy(true)
+    if (e) e.preventDefault()
     const finalTopic = topic === 'Custom Topic' ? customTopic.trim() : topic
-    if (!finalTopic) { toast.error('Please specify a topic'); setBusy(false); return }
+    if (!finalTopic) return toast.error('Please specify a topic')
+
+    cancelRef.current = false
+    setBusy(true)
+    const total = Number(numQuestions)
+    const batches = getBatchSizes(total)
+    const collected = []
+
+    const runBatch = async (idx, isRetry = false) => {
+      if (cancelRef.current) return null
+      const size = batches[idx]
+      const sNum = collected.length + 1
+      const eNum = collected.length + size
+      const label = sNum === eNum ? `Generating question ${sNum} of ${total}` : `Generating questions ${sNum}–${eNum} of ${total}`
+      setProgress({
+        active: true, percent: Math.round((collected.length / total) * 100),
+        statusText: isRetry ? `${label} (Retrying…)` : label, isRetrying: isRetry, errorMessage: null,
+        onCancel: () => { cancelRef.current = true; setBusy(false); setProgress({ active: false }) },
+      })
+      try {
+        const { data } = await api.post('/interviews/batch', {
+          mode, role: role.trim() || 'Software Engineer', category: finalTopic,
+          experience: difficulty, difficulty: DIFFICULTY_MAP[difficulty] || 'medium',
+          count: size, excludePrompts: collected.map((q) => q.prompt),
+        })
+        return data.questions || []
+      } catch (err) {
+        if (!isRetry) return runBatch(idx, true)
+        throw err
+      }
+    }
+
+    for (let i = 0; i < batches.length; i++) {
+      if (cancelRef.current) { setBusy(false); setProgress({ active: false }); return }
+      try {
+        const res = await runBatch(i, false)
+        if (cancelRef.current) return
+        collected.push(...res)
+      } catch (err) {
+        setBusy(false)
+        setProgress((p) => ({ ...p, errorMessage: `Unable to generate questions batch ${i + 1}.`, onRetry: () => createSession() }))
+        return toast.error(apiError(err, 'Question generation failed'))
+      }
+    }
+
+    setProgress({ active: true, percent: 100, statusText: 'Assessment ready ✓' })
     try {
       const payload = {
-        mode: mode === 'quiz' ? 'quiz' : 'questions', role: role.trim() || 'Software Engineer',
-        category: finalTopic, experience: difficulty, difficulty: DIFFICULTY_MAP[difficulty] || 'medium',
-        count: Number(numQuestions), timerMinutes: Number(timerMinutes),
+        mode, role: role.trim() || 'Software Engineer', category: finalTopic,
+        experience: difficulty, difficulty: DIFFICULTY_MAP[difficulty] || 'medium',
+        count: total, timerMinutes: Number(timerMinutes), questions: collected,
       }
       const { data } = await api.post('/interviews', payload)
       const session = data.interview || data.session
       navigate(session.mode === 'quiz' ? `/quiz/${session._id}` : `/interview/${session._id}`)
     } catch (err) {
-      toast.error(apiError(err, 'Could not initialize practice session'))
-    } finally {
-      setBusy(false)
+      toast.error(apiError(err, 'Could not start session'))
+      setBusy(false); setProgress({ active: false })
     }
   }
 
@@ -78,12 +143,8 @@ export default function Practice() {
       <div style={{ maxWidth: '1060px', margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.75rem' }}>
           <div>
-            <h1 style={{ fontSize: '1.35rem', fontWeight: 700, margin: '0 0 0.15rem', color: '#f8fafc', letterSpacing: '-0.025em' }}>
-              Practice Studio
-            </h1>
-            <p style={{ margin: 0, fontSize: '0.82rem', color: 'rgba(239, 237, 253, 0.6)' }}>
-              Configure parameters to simulate real technical hiring rounds.
-            </p>
+            <h1 style={{ fontSize: '1.35rem', fontWeight: 700, margin: '0 0 0.15rem', color: '#f8fafc', letterSpacing: '-0.025em' }}>Practice Studio</h1>
+            <p style={{ margin: 0, fontSize: '0.82rem', color: 'rgba(239, 237, 253, 0.6)' }}>Configure parameters to simulate real technical hiring rounds.</p>
           </div>
           <Link to="/dashboard" style={{ fontSize: '0.82rem', color: '#c084fc', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', textDecoration: 'none', fontWeight: 500 }}>
             <ArrowLeft size={14} /> Back to Dashboard
@@ -95,7 +156,7 @@ export default function Practice() {
           topic={topic} setTopic={setTopic} customTopic={customTopic} setCustomTopic={setCustomTopic}
           numQuestions={numQuestions} setNumQuestions={setNumQuestions} difficulty={difficulty} setDifficulty={setDifficulty}
           timerMinutes={timerMinutes} setTimerMinutes={setTimerMinutes} resumeFileName={resumeFileName}
-          handleFileUpload={handleFileUpload} handleRemoveResume={handleRemoveResume} createSession={createSession} busy={busy}
+          handleFileUpload={handleFileUpload} handleRemoveResume={handleRemoveResume} createSession={createSession} busy={busy} progress={progress}
         />
       </div>
     </main>

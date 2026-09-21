@@ -159,13 +159,122 @@ async function generateJson(prompt) {
   throw lastErr || new Error('all-keys-failed')
 }
 
-function promptContext(role, difficulty, experience, resumeText, category) {
+// Parses raw resume text into a structured, compact JSON context (called ONLY on first upload)
+async function extractResumeContext(rawText) {
+  if (!rawText || !rawText.trim()) return null
+  const sanitized = rawText.replace(/\s+/g, ' ').trim().slice(0, 8000)
+
+  const prompt = `You are an expert technical ATS resume parser. Extract the structured candidate profile from this resume text into JSON. Include ONLY real facts stated in the text — do not hallucinate.
+Resume Text:
+"""${sanitized}"""
+
+Respond strictly with valid JSON conforming to this schema:
+{
+  "name": string,
+  "summary": string,
+  "skills": string[],
+  "experience": [{ "role": string, "company": string, "duration": string, "summary": string }],
+  "projects": [{ "name": string, "technologies": string[], "description": string }],
+  "education": [{ "degree": string, "institution": string, "year": string }],
+  "certifications": string[]
+}`
+
+  try {
+    const data = await generateJson(prompt)
+    if (data && typeof data === 'object') {
+      return {
+        name: String(data.name || '').trim(),
+        summary: String(data.summary || '').trim(),
+        skills: Array.isArray(data.skills) ? data.skills.map((s) => String(s).trim()).filter(Boolean) : [],
+        experience: Array.isArray(data.experience)
+          ? data.experience.map((e) => ({
+              role: String(e.role || '').trim(),
+              company: String(e.company || '').trim(),
+              duration: String(e.duration || '').trim(),
+              summary: String(e.summary || '').trim(),
+            }))
+          : [],
+        projects: Array.isArray(data.projects)
+          ? data.projects.map((p) => ({
+              name: String(p.name || '').trim(),
+              technologies: Array.isArray(p.technologies) ? p.technologies.map((t) => String(t).trim()).filter(Boolean) : [],
+              description: String(p.description || '').trim(),
+            }))
+          : [],
+        education: Array.isArray(data.education)
+          ? data.education.map((ed) => ({
+              degree: String(ed.degree || '').trim(),
+              institution: String(ed.institution || '').trim(),
+              year: String(ed.year || '').trim(),
+            }))
+          : [],
+        certifications: Array.isArray(data.certifications) ? data.certifications.map((c) => String(c).trim()).filter(Boolean) : [],
+      }
+    }
+  } catch (err) {
+    console.warn('[AI Service] Gemini resume parsing failed, using heuristic extraction:', err.message)
+  }
+  return fallbackResumeContext(sanitized)
+}
+
+function fallbackResumeContext(text) {
+  const skillsList = [
+    'JavaScript', 'TypeScript', 'React', 'Next.js', 'Node.js', 'Express', 'MongoDB', 'PostgreSQL',
+    'MySQL', 'Python', 'Django', 'FastAPI', 'Java', 'Spring Boot', 'C++', 'Docker', 'Kubernetes',
+    'AWS', 'Git', 'GraphQL', 'REST API', 'Tailwind CSS', 'Redux', 'HTML', 'CSS', 'Redis'
+  ]
+  const foundSkills = skillsList.filter((s) => new RegExp(`\\b${s.replace('.', '\\.')}\\b`, 'i').test(text))
+  return {
+    name: 'Candidate',
+    summary: 'Technical candidate with experience in modern software engineering.',
+    skills: foundSkills.length ? foundSkills : ['Fullstack Web Development', 'Problem Solving'],
+    experience: [],
+    projects: [],
+    education: [],
+    certifications: [],
+  }
+}
+
+// Selects ONLY the relevant slice of resume context for the current interview topic/role (minimizing input tokens)
+function filterRelevantContext(resumeContext, role = '', category = 'General') {
+  if (!resumeContext) return ''
+  const domainKeywords = `${role} ${category}`.toLowerCase()
+  const allSkills = Array.isArray(resumeContext.skills) ? resumeContext.skills : []
+
+  const matchedSkills = allSkills.filter((s) =>
+    domainKeywords.includes(s.toLowerCase()) || s.toLowerCase().split(' ').some((w) => w.length > 2 && domainKeywords.includes(w))
+  )
+  const finalSkills = matchedSkills.length >= 2 ? matchedSkills.slice(0, 8) : allSkills.slice(0, 8)
+
+  const allProjects = Array.isArray(resumeContext.projects) ? resumeContext.projects : []
+  const matchedProjects = allProjects.filter((p) => {
+    const techStr = (p.technologies || []).join(' ').toLowerCase()
+    const descStr = `${p.name} ${p.description}`.toLowerCase()
+    return domainKeywords.split(' ').some((kw) => kw.length > 2 && (techStr.includes(kw) || descStr.includes(kw)))
+  })
+  const finalProjects = (matchedProjects.length ? matchedProjects : allProjects).slice(0, 2)
+
+  const parts = []
+  if (resumeContext.name) parts.push(`Candidate: ${resumeContext.name}`)
+  if (finalSkills.length) parts.push(`Relevant Skills: ${finalSkills.join(', ')}`)
+  if (finalProjects.length) {
+    const projDesc = finalProjects.map((p) => `${p.name} (Tech: ${(p.technologies || []).join(', ')}; ${p.description || ''})`).join(' | ')
+    parts.push(`Key Projects: ${projDesc}`)
+  }
+  const exp = Array.isArray(resumeContext.experience) ? resumeContext.experience : []
+  if (exp.length && exp[0].role) {
+    parts.push(`Experience: ${exp[0].role} at ${exp[0].company || 'Company'}`)
+  }
+
+  return parts.join(' \n')
+}
+
+function promptContext(role, difficulty, experience, relevantResumeSnippet, category) {
   const cat = category && category !== 'General' ? ` focus specifically on the "${category}" domain.` : ''
-  if (resumeText) {
-    const trimmed = resumeText.replace(/\s+/g, ' ').trim().slice(0, 1500)
+  if (relevantResumeSnippet && relevantResumeSnippet.trim()) {
     return {
-      profile: 'the candidate described exclusively in the uploaded resume at an inferred challenge level',
-      rules: ` Use the resume as sole source of truth. Ask about concrete technologies, projects, and achievements in it.\n"""${trimmed}"""${cat}`,
+      profile: `a "${role}" candidate (${experience || 'Fresher'} level at ${difficulty} difficulty) with this verified resume profile:\n${relevantResumeSnippet.trim()}`,
+      rules: ` Ground technical scenario questions on the technologies and projects explicitly mentioned in their resume profile. Do not invent unlisted companies or tools.${cat}`,
     }
   }
   return {
@@ -174,10 +283,18 @@ function promptContext(role, difficulty, experience, resumeText, category) {
   }
 }
 
-// Generates open-ended interview questions tailored to role or parsed resume
-async function generateQuestions(role, difficulty, count, experience, resumeText, category) {
-  const ctx = promptContext(role, difficulty, experience, resumeText, category)
-  const prompt = `You are a senior technical interviewer. Write ${count} interview questions for ${ctx.profile}.${ctx.rules} Match depth to experience level (freshers get fundamentals, seniors get scenario/system design). Keep questions to 1-2 sentences. Mix conceptual and practical questions. Do not number them. Respond as JSON: { "questions": string[] }.`
+// Generates open-ended interview questions tailored to role or parsed resume context, excluding duplicate prompts
+async function generateQuestions(role, difficulty, count, experience, resumeContextOrText, category, excludePrompts = []) {
+  const relevantResume = typeof resumeContextOrText === 'object' && resumeContextOrText !== null
+    ? filterRelevantContext(resumeContextOrText, role, category)
+    : (typeof resumeContextOrText === 'string' ? resumeContextOrText.slice(0, 1200) : '')
+
+  const ctx = promptContext(role, difficulty, experience, relevantResume, category)
+  const excludeRule = excludePrompts && excludePrompts.length > 0
+    ? ` Do not repeat or ask variations of these already asked questions:\n${excludePrompts.map((p) => `- ${p}`).join('\n')}`
+    : ''
+
+  const prompt = `You are a senior technical interviewer. Write exactly ${count} distinct interview questions for ${ctx.profile}.${ctx.rules}${excludeRule} Match depth to experience level. Keep questions to 1-2 sentences. Mix conceptual depth with practical implementation. Do not number them. Respond as JSON: { "questions": string[] }.`
 
   try {
     const data = await generateJson(prompt)
@@ -185,17 +302,40 @@ async function generateQuestions(role, difficulty, count, experience, resumeText
     const cleaned = list.map((q) => String(q).trim()).filter(Boolean).slice(0, count)
     if (cleaned.length) return cleaned
   } catch (err) {
-    if (resumeText) throw err
-    console.warn('Gemini question generation fallback:', err.message)
+    console.warn('[AI Service] Gemini question generation failed, using resume/role fallback:', err.message)
   }
-  if (resumeText) throw new Error('empty-resume-questions')
-  return fallbackQuestions(role, difficulty, count)
+  if (relevantResume) {
+    const tailored = fallbackResumeQuestions(relevantResume, role, count, excludePrompts)
+    if (tailored.length) return tailored
+  }
+  return fallbackQuestions(role, difficulty, count, excludePrompts)
 }
 
-// Generates 4-option multiple choice questions with single correct answer index
-async function generateQuiz(role, difficulty, count, experience, resumeText, category) {
-  const ctx = promptContext(role, difficulty, experience, resumeText, category)
-  const prompt = `You are creating a multiple-choice quiz for ${ctx.profile}.${ctx.rules} Write ${count} questions. Include problem-solving questions with code snippets where relevant. Each question must have exactly 4 options and exactly one correct answer. Respond as JSON: { "questions": [{ "prompt": string, "options": string[4], "correctIndex": number }] }.`
+function fallbackResumeQuestions(relevantSnippet, role, count, excludePrompts = []) {
+  const defaults = [
+    `Can you walk me through the architecture of your key projects and the core technical decisions you made as a ${role}?`,
+    `In your recent project work, how did you structure state management, asynchronous data fetching, and component hierarchy?`,
+    `Tell me about a challenging technical bottleneck or production bug you solved in your applications and your debugging process.`,
+    `How did you architect the backend APIs, database schemas, and caching layers to maintain high performance?`,
+    `Explain your approach to testing, error boundary handling, and continuous integration across your applications.`,
+  ]
+  const excluded = new Set((excludePrompts || []).map((p) => p.toLowerCase().trim()))
+  const available = defaults.filter((q) => !excluded.has(q.toLowerCase().trim()))
+  return (available.length ? available : defaults).slice(0, count)
+}
+
+// Generates 4-option multiple choice questions with single correct answer index, excluding duplicate prompts
+async function generateQuiz(role, difficulty, count, experience, resumeContextOrText, category, excludePrompts = []) {
+  const relevantResume = typeof resumeContextOrText === 'object' && resumeContextOrText !== null
+    ? filterRelevantContext(resumeContextOrText, role, category)
+    : (typeof resumeContextOrText === 'string' ? resumeContextOrText.slice(0, 1200) : '')
+
+  const ctx = promptContext(role, difficulty, experience, relevantResume, category)
+  const excludeRule = excludePrompts && excludePrompts.length > 0
+    ? ` Do not repeat questions covering these topics:\n${excludePrompts.slice(-6).map((p) => `- ${p}`).join('\n')}`
+    : ''
+
+  const prompt = `You are creating a multiple-choice technical quiz for ${ctx.profile}.${ctx.rules}${excludeRule} Write exactly ${count} questions. Include problem-solving questions with code snippets where relevant. Each question must have exactly 4 plausible options and exactly one correct answer index (0-3). Respond as JSON: { "questions": [{ "prompt": string, "options": string[4], "correctIndex": number }] }.`
 
   const data = await generateJson(prompt)
   const list = Array.isArray(data?.questions) ? data.questions : []
@@ -245,13 +385,17 @@ async function evaluateInterview(role, items) {
 const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5)
 
 // Offline question bank fallback when Gemini API keys are unavailable or rate-limited
-async function fallbackQuestions(role, difficulty, count) {
+async function fallbackQuestions(role, difficulty, count, excludePrompts = []) {
   const [byRole, byDiff, any] = await Promise.all([
     Question.find({ role, difficulty }).lean(),
     Question.find({ difficulty }).lean(),
     Question.find().lean(),
   ])
-  const pool = [...shuffle(byRole), ...shuffle(byDiff), ...shuffle(any)].map((q) => q.prompt)
+  const excludedSet = new Set((excludePrompts || []).map((p) => String(p).toLowerCase().trim()))
+  const pool = [...shuffle(byRole), ...shuffle(byDiff), ...shuffle(any)]
+    .map((q) => q.prompt)
+    .filter((p) => !excludedSet.has(p.toLowerCase().trim()))
+
   const selection = shuffle([...new Set(pool)]).slice(0, count)
 
   const DEFAULTS = [
@@ -260,9 +404,10 @@ async function fallbackQuestions(role, difficulty, count) {
     `Explain your step-by-step approach to code reviews and maintaining quality standards.`,
     `How do you evaluate performance bottlenecks and memory leaks in your applications?`,
     `Describe how you design secure, scalable REST/GraphQL APIs for high concurrency.`,
-  ]
+  ].filter((p) => !excludedSet.has(p.toLowerCase().trim()))
+
   let idx = 0
-  while (selection.length < count) {
+  while (selection.length < count && DEFAULTS.length > 0) {
     selection.push(DEFAULTS[idx % DEFAULTS.length])
     idx++
   }
@@ -296,4 +441,6 @@ module.exports = {
   getKeyPoolStatus,
   testAllKeyPool,
   testKeyById,
+  extractResumeContext,
+  filterRelevantContext,
 }

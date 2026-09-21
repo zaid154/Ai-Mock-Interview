@@ -31,6 +31,8 @@ const userSchema = new Schema(
     tokenVersion: { type: Number, default: 0 },
 
     resumeText: { type: String, default: '' },
+    activeResume: { type: Schema.Types.ObjectId, ref: 'Resume', default: null },
+    resumeFileName: { type: String, default: '' },
     bio: { type: String, default: '' },
     avatar: { type: String, default: '' },
     theme: { type: String, enum: ['dark', 'light'], default: 'dark' },

@@ -29,7 +29,8 @@ const publicUser = (u) => ({
   isEmailVerified: emailVerified(u),
   verifiedAt: u.verifiedAt || null,
   registrationCompleted: u.registrationCompleted !== false,
-  hasResume: Boolean(u.resumeText),
+  hasResume: Boolean(u.resumeText || u.activeResume || u.resumeFileName),
+  resumeFileName: u.resumeFileName || '',
 })
 
 // Clears temporary OTP state upon verification or invalidation

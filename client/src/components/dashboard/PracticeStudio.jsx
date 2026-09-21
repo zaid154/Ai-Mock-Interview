@@ -1,4 +1,5 @@
-import { HelpCircle, Layers, Briefcase, Code2, Upload, FileCheck, X, ArrowRight } from 'lucide-react'
+import { HelpCircle, Layers, Briefcase, Code2, Upload, FileCheck, X, ArrowRight, FileText } from 'lucide-react'
+import PracticeProgress from './PracticeProgress'
 
 const ROLES = [
   { label: 'Fullstack', value: 'Fullstack Developer' },
@@ -18,7 +19,7 @@ const LEVELS = ['Junior', 'Intermediate', 'Senior']
 export default function PracticeStudio({
   mode, setMode, role, setRole, topic, setTopic, customTopic, setCustomTopic,
   numQuestions, setNumQuestions, difficulty, setDifficulty, timerMinutes, setTimerMinutes,
-  resumeFileName, handleFileUpload, handleRemoveResume, createSession, busy,
+  resumeFileName, handleFileUpload, handleRemoveResume, createSession, busy, progress,
 }) {
   return (
     <div className="studio-card">
@@ -122,27 +123,51 @@ export default function PracticeStudio({
           {/* 5. Resume Context */}
           <div className="studio-section">
             <span className="studio-section-label">5. Resume PDF Context (Optional)</span>
-            <label className={`resume-studio-zone ${resumeFileName ? 'attached' : ''}`}>
+            <div className={`resume-studio-zone ${resumeFileName ? 'attached' : ''}`}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0, flex: 1 }}>
-                {resumeFileName ? <FileCheck size={18} style={{ color: 'var(--good)' }} /> : <Upload size={16} />}
-                <span style={{ fontSize: '0.82rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {resumeFileName || 'Attach Resume PDF (Tailors questions to projects)'}
-                </span>
+                {resumeFileName ? <FileCheck size={18} style={{ color: '#4ade80' }} /> : <Upload size={16} />}
+                <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                  <span style={{ fontSize: '0.82rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {resumeFileName || 'Attach Resume PDF (Tailors questions to projects)'}
+                  </span>
+                  {resumeFileName && (
+                    <span style={{ fontSize: '0.7rem', color: '#4ade80' }}>
+                      ✓ Saved resume context available
+                    </span>
+                  )}
+                </div>
               </div>
               {resumeFileName ? (
-                <button type="button" onClick={handleRemoveResume} className="btn btn-secondary btn-sm" style={{ padding: '0.15rem 0.45rem', fontSize: '0.74rem' }}>
-                  <X size={12} /> Remove
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <label className="btn btn-secondary btn-sm" style={{ padding: '0.15rem 0.45rem', fontSize: '0.72rem', cursor: 'pointer' }}>
+                    Replace <input type="file" accept=".pdf" onChange={handleFileUpload} style={{ display: 'none' }} />
+                  </label>
+                  <button type="button" onClick={handleRemoveResume} className="btn btn-secondary btn-sm" style={{ padding: '0.15rem 0.45rem', fontSize: '0.72rem' }}>
+                    <X size={12} /> Remove
+                  </button>
+                </div>
               ) : (
-                <span className="tag-soft" style={{ fontSize: '0.72rem', padding: '0.15rem 0.45rem' }}>Browse</span>
+                <label className="tag-soft" style={{ fontSize: '0.72rem', padding: '0.15rem 0.45rem', cursor: 'pointer' }}>
+                  Browse <input type="file" accept=".pdf" onChange={handleFileUpload} style={{ display: 'none' }} />
+                </label>
               )}
-              <input type="file" accept=".pdf" onChange={handleFileUpload} style={{ display: 'none' }} />
-            </label>
+            </div>
           </div>
 
-          <button type="submit" className="studio-launch-btn" disabled={busy} style={{ marginTop: '0.25rem' }}>
-            {busy ? 'Preparing Assessment…' : <>Start {mode === 'quiz' ? 'MCQ Drill' : 'Mock Interview'} <ArrowRight size={17} /></>}
-          </button>
+          {progress?.active ? (
+            <PracticeProgress
+              statusText={progress.statusText}
+              percent={progress.percent}
+              isRetrying={progress.isRetrying}
+              errorMessage={progress.errorMessage}
+              onRetry={progress.onRetry}
+              onCancel={progress.onCancel}
+            />
+          ) : (
+            <button type="submit" className="studio-launch-btn" disabled={busy} style={{ marginTop: '0.25rem' }}>
+              Start {mode === 'quiz' ? 'MCQ Drill' : 'Mock Interview'} <ArrowRight size={17} />
+            </button>
+          )}
         </div>
       </form>
     </div>

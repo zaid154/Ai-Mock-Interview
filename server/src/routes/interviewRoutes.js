@@ -27,7 +27,18 @@ const startSchema = z.object({
   difficulty: z.enum(['easy', 'medium', 'hard']).default('medium'),
   mode: z.enum(['questions', 'quiz']).default('questions'),
   timerMinutes: z.coerce.number().int().min(0).max(120).default(0),
-  count: z.coerce.number().int().min(3).max(10).default(5),
+  count: z.coerce.number().int().min(1).max(10).default(5),
+  questions: z.array(z.any()).optional(),
+})
+
+const batchSchema = z.object({
+  role: z.string().trim().max(120).default(''),
+  category: z.string().trim().default('General'),
+  experience: z.string().min(1).default('Fresher'),
+  difficulty: z.enum(['easy', 'medium', 'hard']).default('medium'),
+  mode: z.enum(['questions', 'quiz']).default('questions'),
+  count: z.coerce.number().int().min(1).max(5).default(2),
+  excludePrompts: z.array(z.string()).optional(),
 })
 
 // answers can be strings (questions mode) or numbers (quiz option indexes).
@@ -36,7 +47,10 @@ const submitSchema = z.object({
 })
 
 router.post('/', validate(startSchema), wrap(interview.startInterview))
+router.post('/batch', validate(batchSchema), wrap(interview.generateQuestionBatch))
 router.get('/', wrap(interview.listInterviews))
+router.get('/resume/active', wrap(interview.getActiveResume))
+router.delete('/resume/active', wrap(interview.removeActiveResume))
 router.post('/resume', upload.single('resume'), wrap(interview.uploadResume))
 router.get('/:id', wrap(interview.getInterview))
 router.post('/:id/submit', validate(submitSchema), wrap(interview.submitInterview))
