@@ -39,6 +39,7 @@ const batchSchema = z.object({
   mode: z.enum(['questions', 'quiz']).default('questions'),
   count: z.coerce.number().int().min(1).max(5).default(2),
   excludePrompts: z.array(z.string()).optional(),
+  batchIndex: z.coerce.number().optional(),
 })
 
 // answers can be strings (questions mode) or numbers (quiz option indexes).

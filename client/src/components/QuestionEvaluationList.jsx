@@ -1,5 +1,6 @@
 import { Check, X, Bookmark } from 'lucide-react'
 import { formatGeneratedText } from '../lib/text'
+import FormattedPrompt from './FormattedPrompt'
 
 const LETTERS = ['A', 'B', 'C', 'D']
 
@@ -38,9 +39,9 @@ export default function QuestionEvaluationList({
             </div>
 
             {/* Prompt */}
-            <p style={{ fontWeight: 600, fontSize: '1.05rem', lineHeight: '1.5', whiteSpace: 'pre-wrap', marginBottom: '1rem' }}>
-              {formatGeneratedText(q.prompt)}
-            </p>
+            <div style={{ fontWeight: 600, fontSize: '1.05rem', lineHeight: '1.5', marginBottom: '1rem' }}>
+              <FormattedPrompt text={q.prompt} />
+            </div>
 
             {/* Quiz Mode: Multiple Choice Options with answers */}
             {isQuiz && Array.isArray(q.options) && (
@@ -71,7 +72,7 @@ export default function QuestionEvaluationList({
                       }}
                     >
                       <span className="mono" style={{ fontWeight: 700 }}>{LETTERS[optIdx]}.</span>
-                      <span style={{ flex: 1 }}>{formatGeneratedText(opt)}</span>
+                      <span style={{ flex: 1 }}><FormattedPrompt text={opt} /></span>
                       {isCorrect && <Check size={16} style={{ color: 'var(--good)' }} />}
                       {isPicked && !isCorrect && <X size={16} style={{ color: 'var(--bad)' }} />}
                     </div>

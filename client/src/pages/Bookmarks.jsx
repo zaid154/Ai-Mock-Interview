@@ -3,6 +3,7 @@ import { Bookmark, Search, Trash2, Edit3, CheckCircle2, Filter, Sparkles, BookOp
 import api, { apiError } from '../lib/api'
 import toast from 'react-hot-toast'
 import { formatGeneratedText } from '../lib/text'
+import FormattedPrompt from '../components/FormattedPrompt'
 
 const RECOMMENDED_BOOKMARKS = [
   {
@@ -189,9 +190,9 @@ export default function Bookmarks() {
                       <span className="tag">{b.role || 'Question'}</span>
                       {b.category && <span className="tag-soft">{b.category}</span>}
                     </div>
-                    <h3 style={{ fontSize: '1.18rem', margin: 0, lineHeight: '1.5', fontWeight: 700, color: 'var(--text)', whiteSpace: 'pre-wrap' }}>
-                      {formatGeneratedText(b.prompt)}
-                    </h3>
+                    <div style={{ fontSize: '1.18rem', margin: 0, lineHeight: '1.5', fontWeight: 700, color: 'var(--text)' }}>
+                      <FormattedPrompt text={b.prompt} />
+                    </div>
                   </div>
 
                   {/* Actions Header */}
@@ -239,9 +240,9 @@ export default function Bookmarks() {
                         <span className="muted small" style={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.75rem', display: 'block', marginBottom: '0.4rem', color: 'var(--accent-primary)' }}>
                           Model / Candidate Response:
                         </span>
-                        <p style={{ margin: 0, fontSize: '0.96rem', lineHeight: '1.6', whiteSpace: 'pre-wrap', color: 'var(--text)' }}>
-                          {formatGeneratedText(b.answer)}
-                        </p>
+                        <div style={{ margin: 0, fontSize: '0.96rem', lineHeight: '1.6', color: 'var(--text)' }}>
+                          <FormattedPrompt text={b.answer} />
+                        </div>
                       </div>
                     )}
 

@@ -125,6 +125,15 @@ const clamp = (n, min, max) => Math.max(min, Math.min(max, n))
 // Cleans JSON string escape artifacts from AI responses
 const cleanText = (val) => String(val || '').replaceAll('\\r\\n', '\n').replaceAll('\\n', '\n').replaceAll('\\t', '\t').trim()
 
+// Cleans escape artifacts and strips comments inside code snippets that spoil answers or leak clues
+function sanitizePromptText(val) {
+  const text = cleanText(val)
+  return text
+    .replace(/\/\/\s*(?:assume\b|note\b|hint\b|clue\b|bug\b|fix\b|solution\b|this causes|this triggers|fires even if|your logic here)[^\r\n]*/gi, '')
+    .replace(/\/\/\s*$/gm, '')
+    .trim()
+}
+
 // Executes Gemini API call with automatic key rotation and cooldown tracking
 async function generateJson(prompt) {
   const keys = await getKeys()
@@ -144,10 +153,16 @@ async function generateJson(prompt) {
   for (const key of prioritized) {
     try {
       const model = new GoogleGenerativeAI(key).getGenerativeModel({ model: modelName() })
-      const res = await model.generateContent({
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: 'application/json' },
-      })
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('AI latency timeout (2200ms)')), 2200)
+      )
+      const res = await Promise.race([
+        model.generateContent({
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          generationConfig: { responseMimeType: 'application/json' },
+        }),
+        timeoutPromise,
+      ])
       lastFailedAt.delete(key)
       return JSON.parse(res.response.text())
     } catch (err) {
@@ -294,12 +309,12 @@ async function generateQuestions(role, difficulty, count, experience, resumeCont
     ? ` Do not repeat or ask variations of these already asked questions:\n${excludePrompts.map((p) => `- ${p}`).join('\n')}`
     : ''
 
-  const prompt = `You are a senior technical interviewer. Write exactly ${count} distinct interview questions for ${ctx.profile}.${ctx.rules}${excludeRule} Match depth to experience level. Keep questions to 1-2 sentences. Mix conceptual depth with practical implementation. Do not number them. Respond as JSON: { "questions": string[] }.`
+  const prompt = `You are a senior technical interviewer. Write exactly ${count} distinct interview questions for ${ctx.profile}.${ctx.rules}${excludeRule} Match depth to experience level. Keep questions to 1-2 sentences. Mix conceptual depth with practical implementation. If code snippets are included, format with markdown code fences (\`\`\`javascript ... \`\`\`) and do not include comments that give away the answer or explain the bug. Do not number them. Respond as JSON: { "questions": string[] }.`
 
   try {
     const data = await generateJson(prompt)
     const list = Array.isArray(data?.questions) ? data.questions : []
-    const cleaned = list.map((q) => String(q).trim()).filter(Boolean).slice(0, count)
+    const cleaned = list.map(sanitizePromptText).filter(Boolean).slice(0, count)
     if (cleaned.length) return cleaned
   } catch (err) {
     console.warn('[AI Service] Gemini question generation failed, using resume/role fallback:', err.message)
@@ -335,14 +350,19 @@ async function generateQuiz(role, difficulty, count, experience, resumeContextOr
     ? ` Do not repeat questions covering these topics:\n${excludePrompts.slice(-6).map((p) => `- ${p}`).join('\n')}`
     : ''
 
-  const prompt = `You are creating a multiple-choice technical quiz for ${ctx.profile}.${ctx.rules}${excludeRule} Write exactly ${count} questions. Include problem-solving questions with code snippets where relevant. Each question must have exactly 4 plausible options and exactly one correct answer index (0-3). Respond as JSON: { "questions": [{ "prompt": string, "options": string[4], "correctIndex": number }] }.`
+  const prompt = `You are creating a multiple-choice technical quiz for ${ctx.profile}.${ctx.rules}${excludeRule} Write exactly ${count} questions. Include problem-solving questions with code snippets where relevant.
+CRITICAL FORMATTING & CODE RULES:
+1. Always format code snippets using markdown code fences (e.g. \`\`\`javascript ... \`\`\`).
+2. CODE SNIPPETS MUST NOT CONTAIN COMMENTS THAT LEAK ANSWERS: Never write comments explaining bugs, stating assumptions, or hinting at solutions (e.g. NEVER write '// Assume wrapped with React.memo', '// this causes re-render', '// fires even if...', or '// bug here'). Keep code snippets completely realistic, neutral, and clean.
+3. Each question must have exactly 4 plausible options and exactly one correct answer index (0-3).
+Respond as JSON: { "questions": [{ "prompt": string, "options": string[4], "correctIndex": number }] }.`
 
   const data = await generateJson(prompt)
   const list = Array.isArray(data?.questions) ? data.questions : []
   const cleaned = list
     .map((q) => {
-      const options = Array.isArray(q?.options) ? q.options.map(cleanText).slice(0, 4) : []
-      return { prompt: cleanText(q?.prompt), options, correctIndex: clamp(Number(q?.correctIndex) || 0, 0, options.length - 1) }
+      const options = Array.isArray(q?.options) ? q.options.map(sanitizePromptText).slice(0, 4) : []
+      return { prompt: sanitizePromptText(q?.prompt), options, correctIndex: clamp(Number(q?.correctIndex) || 0, 0, options.length - 1) }
     })
     .filter((q) => q.prompt && q.options.length === 4)
     .slice(0, count)

@@ -84,42 +84,52 @@ export default function Practice() {
     const total = Number(numQuestions)
     const batches = getBatchSizes(total)
     const collected = []
+    let completedCount = 0
+
+    setProgress({
+      active: true,
+      percent: 25,
+      statusText: `Generating questions 1–${batches[0]} of ${total}`,
+      isRetrying: false,
+      errorMessage: null,
+      onCancel: () => { cancelRef.current = true; setBusy(false); setProgress({ active: false }) },
+    })
 
     const runBatch = async (idx, isRetry = false) => {
-      if (cancelRef.current) return null
+      if (cancelRef.current) return []
       const size = batches[idx]
-      const sNum = collected.length + 1
-      const eNum = collected.length + size
-      const label = sNum === eNum ? `Generating question ${sNum} of ${total}` : `Generating questions ${sNum}–${eNum} of ${total}`
-      setProgress({
-        active: true, percent: Math.round((collected.length / total) * 100),
-        statusText: isRetry ? `${label} (Retrying…)` : label, isRetrying: isRetry, errorMessage: null,
-        onCancel: () => { cancelRef.current = true; setBusy(false); setProgress({ active: false }) },
-      })
       try {
         const { data } = await api.post('/interviews/batch', {
           mode, role: role.trim() || 'Software Engineer', category: finalTopic,
           experience: difficulty, difficulty: DIFFICULTY_MAP[difficulty] || 'medium',
-          count: size, excludePrompts: collected.map((q) => q.prompt),
+          count: size,
+          batchIndex: idx,
         })
-        return data.questions || []
+        const qs = data.questions || []
+        completedCount += qs.length
+        const pct = Math.min(95, Math.round((completedCount / total) * 100))
+        const nextStart = Math.min(total, completedCount + 1)
+        const nextEnd = Math.min(total, nextStart + (batches[idx + 1] || 1) - 1)
+        const label = completedCount >= total
+          ? 'Assessment ready ✓'
+          : (nextStart === nextEnd ? `Generating question ${nextStart} of ${total}` : `Generating questions ${nextStart}–${nextEnd} of ${total}`)
+
+        setProgress((prev) => ({ ...prev, percent: pct, statusText: label }))
+        return qs
       } catch (err) {
         if (!isRetry) return runBatch(idx, true)
         throw err
       }
     }
 
-    for (let i = 0; i < batches.length; i++) {
+    try {
+      const results = await Promise.all(batches.map((_, i) => runBatch(i, false)))
       if (cancelRef.current) { setBusy(false); setProgress({ active: false }); return }
-      try {
-        const res = await runBatch(i, false)
-        if (cancelRef.current) return
-        collected.push(...res)
-      } catch (err) {
-        setBusy(false)
-        setProgress((p) => ({ ...p, errorMessage: `Unable to generate questions batch ${i + 1}.`, onRetry: () => createSession() }))
-        return toast.error(apiError(err, 'Question generation failed'))
-      }
+      collected.push(...results.flat())
+    } catch (err) {
+      setBusy(false)
+      setProgress((p) => ({ ...p, errorMessage: 'Unable to generate questions batch.', onRetry: () => createSession() }))
+      return toast.error(apiError(err, 'Question generation failed'))
     }
 
     setProgress({ active: true, percent: 100, statusText: 'Assessment ready ✓' })

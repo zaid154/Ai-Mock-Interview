@@ -1,5 +1,6 @@
 import { Check, Copy, Bookmark, FileText, RotateCcw, Edit3 } from 'lucide-react'
 import { formatGeneratedText } from '../../lib/text'
+import FormattedPrompt from '../FormattedPrompt'
 
 export default function QuestionWorkbench({
   question,
@@ -16,23 +17,22 @@ export default function QuestionWorkbench({
   onCopyPrompt,
   onBookmark,
 }) {
-  return (
-    <div className="panel interview-workbench-panel">
-      {/* Header bar: Question index badge + action buttons */}
-      <div className="interview-workbench-head">
-        <span className="tag-soft" style={{ fontFamily: 'var(--font-mono)' }}>
-          QUESTION {current + 1} OF {total}
-        </span>
+  if (!question) return null
 
-        <div className="interview-workbench-actions">
+  return (
+    <div className="interview-workbench">
+      {/* Question Header */}
+      <div className="interview-workbench-head">
+        <span className="mono bold interview-q-badge">Question {current + 1} of {total}</span>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           <button
             type="button"
             className="btn btn-ghost btn-sm"
             onClick={() => onCopyPrompt(question.prompt)}
-            title="Copy question prompt"
+            title="Copy question text"
           >
             {copiedPrompt ? <Check size={14} style={{ color: 'var(--good)' }} /> : <Copy size={14} />}
-            <span>{copiedPrompt ? 'Copied' : 'Copy Question'}</span>
+            <span>{copiedPrompt ? 'Copied' : 'Copy'}</span>
           </button>
 
           <button
@@ -52,9 +52,9 @@ export default function QuestionWorkbench({
       </div>
 
       {/* Question Text */}
-      <p className="question-text interview-question-text">
-        {formatGeneratedText(question.prompt)}
-      </p>
+      <div className="question-text interview-question-text">
+        <FormattedPrompt text={question.prompt} />
+      </div>
 
       {/* Answer Input Area */}
       <div style={{ position: 'relative', width: '100%' }}>
