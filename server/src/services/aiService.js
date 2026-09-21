@@ -9,23 +9,117 @@ let currentKeyIndex = 0
 
 // Fetches and deduplicates Gemini API keys from admin DB settings and environment variables
 async function getKeys() {
-  const keys = []
-  try {
-    const doc = await Setting.findOne({ key: 'gemini_api_keys' }).lean()
-    if (doc && Array.isArray(doc.value)) keys.push(...doc.value)
-  } catch (_) {}
-  if (process.env.GEMINI_API_KEYS) keys.push(...process.env.GEMINI_API_KEYS.split(','))
-  if (process.env.GEMINI_API_KEY) keys.push(process.env.GEMINI_API_KEY)
-  return [
-    ...new Set(
-      keys
-        .map((k) => (typeof k === 'object' && k !== null && k.key ? k.key : String(k || '')).trim())
-        .filter(Boolean)
-    ),
-  ]
+  const pool = await getKeyPoolDetails()
+  return pool.map((item) => item._rawKey)
 }
 
-const modelName = () => process.env.GEMINI_MODEL || 'gemini-1.5-flash'
+// Mask key for secure admin inspection
+const maskKey = (k) => (k && k.length > 10 ? `${k.slice(0, 6)}••••••••${k.slice(-4)}` : '••••••••')
+
+// Tests a single Gemini API key with a minimal ping prompt
+async function testSingleKey(rawKey) {
+  const start = Date.now()
+  try {
+    const model = new GoogleGenerativeAI(rawKey).getGenerativeModel({ model: modelName() })
+    const res = await model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: 'respond with OK' }] }],
+    })
+    const _ = res.response.text()
+    const latencyMs = Date.now() - start
+    lastFailedAt.delete(rawKey)
+    return { ok: true, latencyMs, status: 'healthy', message: 'Active and responding' }
+  } catch (err) {
+    const latencyMs = Date.now() - start
+    const msg = err.message || String(err)
+    const isQuota = msg.includes('429') || msg.toLowerCase().includes('quota') || msg.toLowerCase().includes('resource_exhausted')
+    const isInvalid = msg.includes('API_KEY_INVALID') || msg.toLowerCase().includes('invalid api key') || msg.includes('400') || msg.includes('403')
+
+    lastFailedAt.set(rawKey, Date.now())
+    if (isQuota) {
+      return { ok: false, latencyMs, status: 'cooldown', errorType: 'quota', message: 'Quota / Rate limit reached (429)' }
+    }
+    if (isInvalid) {
+      return { ok: false, latencyMs, status: 'invalid', errorType: 'invalid_key', message: 'Invalid or unauthorized API key' }
+    }
+    return { ok: false, latencyMs, status: 'error', errorType: 'unknown', message: msg.slice(0, 80) }
+  }
+}
+
+// Retrieves metadata for all keys across .env and dynamic DB settings
+async function getKeyPoolDetails() {
+  const pool = []
+  const seenKeys = new Set()
+
+  const envSingle = (process.env.GEMINI_API_KEY || '').trim()
+  if (envSingle && !seenKeys.has(envSingle)) {
+    seenKeys.add(envSingle)
+    pool.push({ id: 'env_primary', rawKey: envSingle, source: 'env', label: '.env Primary Key', maskedKey: maskKey(envSingle) })
+  }
+
+  const envMulti = (process.env.GEMINI_API_KEYS || '').split(',').map((k) => k.trim()).filter(Boolean)
+  envMulti.forEach((k, idx) => {
+    if (!seenKeys.has(k)) {
+      seenKeys.add(k)
+      pool.push({ id: `env_${idx + 1}`, rawKey: k, source: 'env', label: `.env Key #${idx + 1}`, maskedKey: maskKey(k) })
+    }
+  })
+
+  try {
+    const doc = await Setting.findOne({ key: 'gemini_api_keys' }).lean()
+    if (doc && Array.isArray(doc.value)) {
+      doc.value.forEach((item, idx) => {
+        const rawKey = (typeof item === 'object' && item?.key ? item.key : String(item || '')).trim()
+        const label = (typeof item === 'object' && item?.label ? item.label : `Custom DB Key #${idx + 1}`).trim()
+        if (rawKey && !seenKeys.has(rawKey)) {
+          seenKeys.add(rawKey)
+          pool.push({ id: `db_${idx}`, rawKey, source: 'db', dbIndex: idx, label, maskedKey: maskKey(rawKey) })
+        }
+      })
+    }
+  } catch (_) {}
+
+  const now = Date.now()
+  return pool.map((item) => {
+    const failedAt = lastFailedAt.get(item.rawKey)
+    const isCooling = Boolean(failedAt && now - failedAt < COOLDOWN_MS)
+    const cooldownRemainingSec = isCooling ? Math.max(0, Math.ceil((COOLDOWN_MS - (now - failedAt)) / 1000)) : 0
+    return {
+      id: item.id,
+      source: item.source,
+      dbIndex: item.dbIndex,
+      label: item.label,
+      maskedKey: item.maskedKey,
+      status: isCooling ? 'cooldown' : 'ready',
+      cooldownRemainingSec,
+      _rawKey: item.rawKey,
+    }
+  })
+}
+
+async function getKeyPoolStatus() {
+  const pool = await getKeyPoolDetails()
+  return pool.map(({ _rawKey, ...publicData }) => publicData)
+}
+
+async function testAllKeyPool() {
+  const pool = await getKeyPoolDetails()
+  return Promise.all(
+    pool.map(async (item) => {
+      const res = await testSingleKey(item._rawKey)
+      return { id: item.id, label: item.label, source: item.source, maskedKey: item.maskedKey, ...res }
+    })
+  )
+}
+
+async function testKeyById(id) {
+  const pool = await getKeyPoolDetails()
+  const target = pool.find((k) => k.id === id)
+  if (!target) throw new Error('API Key not found in pool')
+  const res = await testSingleKey(target._rawKey)
+  return { id: target.id, label: target.label, source: target.source, maskedKey: target.maskedKey, ...res }
+}
+
+const modelName = () => process.env.GEMINI_MODEL || 'gemini-3.7-flash'
 const clamp = (n, min, max) => Math.max(min, Math.min(max, n))
 
 // Cleans JSON string escape artifacts from AI responses
@@ -195,4 +289,11 @@ function fallbackEvaluation(items) {
   }
 }
 
-module.exports = { generateQuestions, generateQuiz, evaluateInterview }
+module.exports = {
+  generateQuestions,
+  generateQuiz,
+  evaluateInterview,
+  getKeyPoolStatus,
+  testAllKeyPool,
+  testKeyById,
+}

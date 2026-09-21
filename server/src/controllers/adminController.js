@@ -1,5 +1,6 @@
 const User = require('../models/userModel')
 const Setting = require('../models/settingModel')
+const { getKeyPoolStatus, testAllKeyPool, testKeyById } = require('../services/aiService')
 
 // All handlers here run behind requireAuth + requireAdmin (see adminRoutes.js).
 
@@ -103,6 +104,23 @@ async function deleteSetting(req, res) {
   res.json({ ok: true })
 }
 
+// GET /api/admin/ai-keys/status — Live rotation pool state with masked keys
+async function getAiKeysStatus(_req, res) {
+  const keys = await getKeyPoolStatus()
+  res.json({ keys })
+}
+
+// POST /api/admin/ai-keys/test — Pings all keys or a targeted key in the pool
+async function testAiKeys(req, res) {
+  const { keyId } = req.body || {}
+  if (keyId) {
+    const result = await testKeyById(keyId)
+    return res.json({ result })
+  }
+  const results = await testAllKeyPool()
+  res.json({ results })
+}
+
 module.exports = {
   listUsers,
   setUserVerified,
@@ -112,4 +130,6 @@ module.exports = {
   upsertSetting,
   renameSetting,
   deleteSetting,
+  getAiKeysStatus,
+  testAiKeys,
 }

@@ -56,4 +56,8 @@ router.put('/settings', validate(settingSchema), wrap(admin.upsertSetting))
 router.patch('/settings/:key/rename', validate(renameSchema), wrap(admin.renameSetting))
 router.delete('/settings/:key', wrap(admin.deleteSetting))
 
+// AI Key Pool & Live Health Verification
+router.get('/ai-keys/status', wrap(admin.getAiKeysStatus))
+router.post('/ai-keys/test', wrap(admin.testAiKeys))
+
 module.exports = router

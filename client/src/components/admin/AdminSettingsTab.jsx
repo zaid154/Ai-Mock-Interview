@@ -1,4 +1,5 @@
-import { Trash2, Save, Plus, KeyRound, Upload, Cpu } from 'lucide-react'
+import { Trash2, Save, Plus, KeyRound, Upload } from 'lucide-react'
+import ApiKeyManager from './ApiKeyManager'
 
 function formatDisplay(val, valueToText) {
   const txt = valueToText(val)
@@ -21,79 +22,20 @@ export default function AdminSettingsTab({
   settings, valueToText, renameKey, editValue, deleteSetting,
 }) {
   const customSettings = settings.filter((s) => !MANAGED_KEYS.includes(s.key))
-  const totalKeys = (geminiKeys?.length || 0) + (envKeysCount || 0)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      {/* 1. AI API Load Balancer */}
-      <div className="panel" style={{ padding: '1.5rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.75rem' }}>
-          <div>
-            <h3 className="panel-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 0.25rem' }}>
-              <Cpu size={18} style={{ color: '#c084fc' }} /> AI API Load Balancer &amp; Key Rotation
-            </h3>
-            <p className="muted small" style={{ margin: 0 }}>
-              Round-Robin request balancing and 60-second cooldown failover across multi-key pool.
-            </p>
-          </div>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', padding: '0.3rem 0.75rem', background: 'rgba(34, 197, 94, 0.12)', border: '1px solid rgba(34, 197, 94, 0.28)', borderRadius: '20px', color: '#4ade80', fontSize: '0.74rem', fontWeight: 600 }}>
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#4ade80' }} />
-            Load Balancer Active ({totalKeys} {totalKeys === 1 ? 'Key' : 'Keys'} in Pool)
-          </div>
-        </div>
-
-        {envKeysCount > 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.9rem', fontSize: '0.78rem', color: 'rgba(239, 237, 253, 0.75)' }}>
-            <span style={{ padding: '0.12rem 0.45rem', borderRadius: '4px', background: 'rgba(168, 85, 247, 0.15)', color: '#c084fc', border: '1px solid rgba(168, 85, 247, 0.3)', fontWeight: 600 }}>
-              {envKeysCount} in .env
-            </span>
-            <span>+ {geminiKeys.length} Custom DB = <strong>{totalKeys} keys in rotation pool</strong></span>
-          </div>
-        )}
-
-        <form onSubmit={(e) => { e.preventDefault(); addGeminiKey(); }} style={{ display: 'flex', gap: '0.6rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-          <input
-            value={newKeyLabel} onChange={(e) => setNewKeyLabel(e.target.value)}
-            placeholder="Key Name (e.g. Primary Account, Personal Key)" style={{ flex: 1, minWidth: '180px' }}
-          />
-          <input
-            value={newGeminiKey} onChange={(e) => setNewGeminiKey(e.target.value)}
-            placeholder="Gemini API Key (AIzaSy...)" style={{ flex: 2, minWidth: '220px', fontFamily: 'var(--font-mono)' }} required
-          />
-          <button type="submit" className="btn btn-primary btn-sm"><Plus size={14} /> Add Key</button>
-        </form>
-
-        {geminiKeys.length === 0 ? (
-          <p className="muted small" style={{ margin: 0 }}>
-            {envKeysCount > 0
-              ? `System is actively load balancing across ${envKeysCount} key(s) from .env. Add custom keys above to increase capacity.`
-              : 'No custom API keys added. System uses .env fallback key in load balancer.'}
-          </p>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
-            {geminiKeys.map((item, i) => {
-              const label = typeof item === 'object' && item?.label ? item.label : `API Key #${i + 1}`
-              const keyVal = typeof item === 'object' && item?.key ? item.key : String(item || '')
-              return (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 0.9rem', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.06)', borderRadius: '8px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-                    <span style={{ fontWeight: 600, color: '#f8fafc', fontSize: '0.86rem' }}>{label}</span>
-                    <span className="mono small" style={{ color: 'rgba(239, 237, 253, 0.55)', fontSize: '0.78rem' }}>
-                      {keyVal.slice(0, 8)}••••••••{keyVal.slice(-4)}
-                    </span>
-                    <span style={{ fontSize: '0.68rem', padding: '0.12rem 0.45rem', borderRadius: '4px', background: 'rgba(34, 197, 94, 0.1)', color: '#4ade80', border: '1px solid rgba(34, 197, 94, 0.2)' }}>
-                      In Pool
-                    </span>
-                  </div>
-                  <button type="button" className="admin-delete-btn" onClick={() => removeGeminiKey(i)} title="Remove API Key">
-                    <Trash2 size={13} />
-                  </button>
-                </div>
-              )
-            })}
-          </div>
-        )}
-      </div>
+      {/* 1. AI API Load Balancer & Live Health Monitor */}
+      <ApiKeyManager
+        geminiKeys={geminiKeys}
+        newGeminiKey={newGeminiKey}
+        setNewGeminiKey={setNewGeminiKey}
+        newKeyLabel={newKeyLabel}
+        setNewKeyLabel={setNewKeyLabel}
+        addGeminiKey={addGeminiKey}
+        removeGeminiKey={removeGeminiKey}
+        envKeysCount={envKeysCount}
+      />
 
       {/* 2. Verification Gate */}
       <div className="panel" style={{ padding: '1.25rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
