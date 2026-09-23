@@ -43,7 +43,7 @@ export default function Login() {
 
   function fillDemoAdmin() {
     setEmail('zaidm1323@gmail.com')
-    setPassword('ChangeMe123!')
+    setPassword('123456')
     toast.success('Demo credentials loaded!')
   }
 

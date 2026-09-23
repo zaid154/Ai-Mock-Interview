@@ -49,7 +49,7 @@ const SAMPLE_CANDIDATES = [
     role: 'admin',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
     bio: 'Lead Fullstack & AI Systems Architect',
-    password: 'ChangeMe123!',
+    password: '123456',
     interviews: [
       { role: 'Frontend Developer', difficulty: 'hard', mode: 'questions', overallScore: 94, summary: 'Outstanding technical depth in React fiber reconciliation and DOM optimization.' },
       { role: 'Backend Architect', difficulty: 'hard', mode: 'questions', overallScore: 96, summary: 'Exceptional knowledge of Node.js event loop lag and Redis rate limiting.' },

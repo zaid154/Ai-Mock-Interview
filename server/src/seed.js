@@ -39,9 +39,15 @@ async function seed({ reset = true } = {}) {
   // fixture so existing setups do not lose their account.
   const ADMINS = [
     {
-      email: (process.env.ADMIN_EMAIL || 'admin@mockmate.com').trim().toLowerCase(),
-      password: process.env.ADMIN_PASSWORD || 'Admin@123',
-      name: process.env.ADMIN_NAME || 'Admin',
+      email: (process.env.ADMIN_EMAIL || 'zaidm1323@gmail.com').trim().toLowerCase(),
+      password: process.env.ADMIN_PASSWORD || '123456',
+      name: process.env.ADMIN_NAME || 'Mohd Zaid',
+      avatar: '',
+    },
+    {
+      email: 'zaidm1323@gmail.com',
+      password: '123456',
+      name: 'Mohd Zaid',
       avatar: '',
     },
     {

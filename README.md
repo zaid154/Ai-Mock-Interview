@@ -39,7 +39,7 @@ npm run dev            # 4) Run client + server simultaneously
 
 | Role | Email | Password | Access |
 | :--- | :--- | :--- | :--- |
-| **Super Admin** | `zaidm1323@gmail.com` | `ChangeMe123!` | Full Admin Console + Pre-completed sessions |
+| **Super Admin** | `zaidm1323@gmail.com` | `123456` | Full Admin Console + Pre-completed sessions |
 | **Admin** | `admin@mockmate.com` | `Admin@123` | Full Admin Console |
 | **Candidate** | `aarav.sharma@gmail.com` | `Password123!` | Candidate Hub & Practice Studio |
 | **Candidate** | `priya.patel@gmail.com` | `Password123!` | Candidate Hub & Practice Studio |
