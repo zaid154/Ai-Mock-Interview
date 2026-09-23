@@ -41,6 +41,15 @@ export default function Interview() {
         navigate('/dashboard')
       })
       .finally(() => setLoading(false))
+
+    api
+      .get('/bookmarks')
+      .then((res) => {
+        const map = {}
+        ;(res.data.bookmarks || []).forEach((b) => { map[b.prompt] = true })
+        setBookmarkedMap(map)
+      })
+      .catch(() => {})
   }, [id, navigate])
 
   const total = interview?.questions?.length ?? 0
@@ -74,23 +83,18 @@ export default function Interview() {
   }
 
   async function handleBookmark(prompt) {
-    if (bookmarkedMap[current]) {
-      toast.success('Question already bookmarked!')
-      return
-    }
-
     try {
-      await api.post('/bookmarks', {
+      const { data } = await api.post('/bookmarks/toggle', {
         prompt,
         role: interview.role,
         category: interview.category,
         answer: answers[current],
         notes: notes[current],
       })
-      setBookmarkedMap((prev) => ({ ...prev, [current]: true }))
-      toast.success('Question bookmarked!')
+      setBookmarkedMap((prev) => ({ ...prev, [prompt]: data.bookmarked }))
+      toast.success(data.bookmarked ? 'Question bookmarked!' : 'Bookmark removed')
     } catch (err) {
-      toast.error(apiError(err, 'Could not bookmark question'))
+      toast.error(apiError(err, 'Could not update bookmark'))
     }
   }
 
@@ -140,7 +144,7 @@ export default function Interview() {
         answer={answers[current] || ''}
         note={notes[current] || ''}
         wordCount={wordCount}
-        isBookmarked={Boolean(bookmarkedMap[current])}
+        isBookmarked={Boolean(bookmarkedMap[question?.prompt])}
         copiedPrompt={copiedPrompt}
         onUpdateAnswer={updateAnswer}
         onUpdateNote={updateNote}

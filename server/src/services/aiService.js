@@ -135,7 +135,7 @@ function sanitizePromptText(val) {
 }
 
 // Executes Gemini API call with automatic key rotation and cooldown tracking
-async function generateJson(prompt) {
+async function generateJson(prompt, timeoutMs = 12000) {
   const keys = await getKeys()
   if (!keys.length) throw new Error('no-keys')
 
@@ -154,7 +154,7 @@ async function generateJson(prompt) {
     try {
       const model = new GoogleGenerativeAI(key).getGenerativeModel({ model: modelName() })
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('AI latency timeout (2200ms)')), 2200)
+        setTimeout(() => reject(new Error(`AI latency timeout (${timeoutMs}ms)`)), timeoutMs)
       )
       const res = await Promise.race([
         model.generateContent({
@@ -377,7 +377,7 @@ async function evaluateInterview(role, items) {
   const prompt = `You are grading a mock interview for a "${role}" role. For every question give a score from 0 to 10 and constructive feedback. Then give overall score 0-100 and a 2-sentence summary of strengths and areas to improve.\n\nTranscript:\n${transcript}\n\nRespond as JSON: { "perQuestion": [{ "score": number, "feedback": string }], "overallScore": number, "summary": string }.`
 
   try {
-    const data = await generateJson(prompt)
+    const data = await generateJson(prompt, 18000)
     const perQuestion = items.map((it, i) => {
       const hasAnswer = Boolean((it.answer || '').trim())
       if (!hasAnswer) {
@@ -434,15 +434,40 @@ async function fallbackQuestions(role, difficulty, count, excludePrompts = []) {
   return selection
 }
 
+function isGibberish(text) {
+  const trimmed = (text || '').trim()
+  if (trimmed.length < 8) return true
+  const words = trimmed.split(/\s+/).filter(Boolean)
+  if (words.length < 2) return true
+  const vowels = trimmed.match(/[aeiou]/gi)
+  if (!vowels || vowels.length < 2) return true
+  return false
+}
+
 // Heuristic offline scoring fallback based on candidate answer depth and structure
 function fallbackEvaluation(items) {
   const perQuestion = items.map(({ answer }) => {
-    const words = (answer || '').trim().split(/\s+/).filter(Boolean).length
-    if (!words) return { score: 0, feedback: 'No answer was given for this question.' }
-    const score = clamp(Math.round(words / 12) + 3, 2, 9)
-    const feedback = words < 20
-      ? 'A reasonable start — back it up with a concrete example and go one level deeper.'
-      : 'Good detail. Lead with your main point and keep the structure tight.'
+    const text = (answer || '').trim()
+    const words = text.split(/\s+/).filter(Boolean).length
+    if (!words || text.length < 3) {
+      return { score: 0, feedback: 'No answer was given for this question.' }
+    }
+    if (isGibberish(text)) {
+      return {
+        score: 0,
+        feedback: 'The response provided contains placeholder or non-technical characters. Provide a comprehensive, example-driven technical explanation.',
+      }
+    }
+    if (words < 12) {
+      return {
+        score: 2,
+        feedback: 'Very brief answer. A strong technical interview response should clearly define the core concept, compare alternatives, and detail production trade-offs.',
+      }
+    }
+    const score = clamp(Math.round(words / 15) + 2, 2, 8)
+    const feedback = words < 35
+      ? 'A reasonable outline, but lacks technical depth. Back it up with concrete production examples, edge cases, and architectural trade-offs.'
+      : 'Good technical depth and structure. To achieve full marks, detail system constraints, performance metrics, and production troubleshooting.'
     return { score, feedback }
   })
 

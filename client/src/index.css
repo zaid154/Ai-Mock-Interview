@@ -3995,6 +3995,8 @@ body:has(.reflect-canvas) .navbar .nav-link.active,
   gap: 0.6rem;
   text-decoration: none;
   z-index: 2;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .reflect-brand-icon {
@@ -4027,12 +4029,16 @@ body:has(.reflect-canvas) .navbar .nav-link.active,
   font-weight: 600;
   letter-spacing: -0.02em;
   color: #ffffff;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
 }
 
 .reflect-brand-badge {
   color: #c084fc;
   font-size: 0.85rem;
   margin-left: 2px;
+  white-space: nowrap;
 }
 
 /* Floating Glass Pill Navigation */
@@ -4199,6 +4205,30 @@ body:has(.reflect-canvas) .navbar .nav-link.active,
   }
   .reflect-mobile-toggle {
     display: block;
+  }
+}
+
+@media (max-width: 640px) {
+  .reflect-header-inner {
+    padding: 0 0.85rem;
+  }
+  .reflect-brand {
+    gap: 0.45rem;
+  }
+  .reflect-brand-title {
+    font-size: 0.96rem;
+  }
+  .reflect-header-actions {
+    gap: 0.5rem;
+  }
+  .reflect-user-btn {
+    padding: 2px;
+    border: none;
+    background: transparent;
+  }
+  .reflect-user-name,
+  .reflect-user-chevron {
+    display: none !important;
   }
 }
 

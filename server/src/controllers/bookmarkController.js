@@ -35,6 +35,36 @@ async function addBookmark(req, res) {
   res.status(201).json({ bookmark })
 }
 
+// POST /api/bookmarks/toggle — Toggle bookmark (add if absent, remove if already present)
+async function toggleBookmark(req, res) {
+  const { prompt, role, category, answer, feedback, options, correctIndex, notes } = req.body
+
+  if (!prompt || !prompt.trim()) {
+    return res.status(400).json({ error: 'Question prompt is required' })
+  }
+
+  const cleanPrompt = prompt.trim()
+  const existing = await Bookmark.findOne({ user: req.userId, prompt: cleanPrompt })
+  if (existing) {
+    await Bookmark.deleteOne({ _id: existing._id })
+    return res.json({ ok: true, bookmarked: false, message: 'Bookmark removed' })
+  }
+
+  const bookmark = await Bookmark.create({
+    user: req.userId,
+    prompt: cleanPrompt,
+    role: role || 'General',
+    category: category || 'General',
+    answer: answer || '',
+    feedback: feedback || '',
+    options,
+    correctIndex,
+    notes: notes || '',
+  })
+
+  return res.status(201).json({ ok: true, bookmarked: true, bookmark, message: 'Question saved to Bookmarks' })
+}
+
 // PATCH /api/bookmarks/:id/notes — update notes on a bookmark
 async function updateBookmarkNotes(req, res) {
   const { notes } = req.body
@@ -58,6 +88,7 @@ async function removeBookmark(req, res) {
 module.exports = {
   listBookmarks,
   addBookmark,
+  toggleBookmark,
   updateBookmarkNotes,
   removeBookmark,
 }

@@ -42,6 +42,15 @@ export default function Quiz() {
         navigate('/dashboard')
       })
       .finally(() => setLoading(false))
+
+    api
+      .get('/bookmarks')
+      .then((res) => {
+        const map = {}
+        ;(res.data.bookmarks || []).forEach((b) => { map[b.prompt] = true })
+        setBookmarkedMap(map)
+      })
+      .catch(() => {})
   }, [id, navigate])
 
   const total = quiz?.questions?.length ?? 0
@@ -57,23 +66,18 @@ export default function Quiz() {
   }
 
   async function handleBookmark(prompt, options) {
-    if (bookmarkedMap[current]) {
-      toast.success('Question already bookmarked!')
-      return
-    }
-
     try {
-      await api.post('/bookmarks', {
+      const { data } = await api.post('/bookmarks/toggle', {
         prompt,
         role: quiz.role,
         category: quiz.category,
         options,
         notes: notes[current],
       })
-      setBookmarkedMap((prev) => ({ ...prev, [current]: true }))
-      toast.success('Quiz question bookmarked!')
+      setBookmarkedMap((prev) => ({ ...prev, [prompt]: data.bookmarked }))
+      toast.success(data.bookmarked ? 'Quiz question bookmarked!' : 'Bookmark removed')
     } catch (err) {
-      toast.error(apiError(err, 'Could not bookmark question'))
+      toast.error(apiError(err, 'Could not update bookmark'))
     }
   }
 
@@ -122,10 +126,10 @@ export default function Quiz() {
           <button
             className="btn btn-ghost btn-sm"
             onClick={() => handleBookmark(question.prompt, question.options)}
-            title="Bookmark this question"
+            title={bookmarkedMap[question.prompt] ? 'Remove bookmark' : 'Bookmark this question'}
           >
-            <Bookmark size={15} fill={bookmarkedMap[current] ? 'currentColor' : 'none'} />
-            {bookmarkedMap[current] ? 'Bookmarked' : 'Bookmark'}
+            <Bookmark size={15} fill={bookmarkedMap[question.prompt] ? 'currentColor' : 'none'} />
+            {bookmarkedMap[question.prompt] ? 'Bookmarked' : 'Bookmark'}
           </button>
         </div>
 

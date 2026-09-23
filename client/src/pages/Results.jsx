@@ -32,11 +32,20 @@ export default function Results() {
       })
       .catch((err) => toast.error(apiError(err, 'Could not load results')))
       .finally(() => setLoading(false))
+
+    api
+      .get('/bookmarks')
+      .then((res) => {
+        const map = {}
+        ;(res.data.bookmarks || []).forEach((b) => { map[b.prompt] = true })
+        setBookmarkedMap(map)
+      })
+      .catch(() => {})
   }, [id])
 
   async function handleBookmarkQuestion(q) {
     try {
-      await api.post('/bookmarks', {
+      const { data } = await api.post('/bookmarks/toggle', {
         prompt: q.prompt,
         role: interview.role,
         category: interview.category,
@@ -46,10 +55,10 @@ export default function Results() {
         correctIndex: q.correctIndex,
         notes: q.notes,
       })
-      setBookmarkedMap((prev) => ({ ...prev, [q.prompt]: true }))
-      toast.success('Question saved to Bookmarks!')
+      setBookmarkedMap((prev) => ({ ...prev, [q.prompt]: data.bookmarked }))
+      toast.success(data.bookmarked ? 'Question saved to Bookmarks!' : 'Bookmark removed')
     } catch (err) {
-      toast.error(apiError(err, 'Could not bookmark question'))
+      toast.error(apiError(err, 'Could not update bookmark'))
     }
   }
 

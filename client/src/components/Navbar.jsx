@@ -118,7 +118,7 @@ export default function Navbar() {
               >
                 <Avatar src={user.avatar} name={user.name} size={26} />
                 <span className="reflect-user-name">{user.name?.split(' ')[0]}</span>
-                <ChevronDown size={14} style={{ opacity: 0.6 }} />
+                <ChevronDown size={14} className="reflect-user-chevron" style={{ opacity: 0.6 }} />
               </button>
 
               {userMenuOpen && (

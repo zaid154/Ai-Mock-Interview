@@ -8,6 +8,7 @@ router.use(requireAuth)
 
 router.get('/', wrap(bookmark.listBookmarks))
 router.post('/', wrap(bookmark.addBookmark))
+router.post('/toggle', wrap(bookmark.toggleBookmark))
 router.patch('/:id/notes', wrap(bookmark.updateBookmarkNotes))
 router.delete('/:id', wrap(bookmark.removeBookmark))
 
