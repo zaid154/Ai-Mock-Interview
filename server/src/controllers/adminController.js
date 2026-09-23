@@ -1,6 +1,7 @@
 const User = require('../models/userModel')
 const Setting = require('../models/settingModel')
 const { getKeyPoolStatus, testAllKeyPool, testKeyById } = require('../services/aiService')
+const emailService = require('../services/emailService')
 
 // All handlers here run behind requireAuth + requireAdmin (see adminRoutes.js).
 
@@ -121,6 +122,20 @@ async function testAiKeys(req, res) {
   res.json({ results })
 }
 
+// GET /api/admin/email/status — Provider states and masked credentials
+async function getEmailStatus(_req, res) {
+  const status = await emailService.getEmailStatus()
+  res.json({ status })
+}
+
+// POST /api/admin/email/test — Live test email delivery to specified recipient
+async function testEmailDelivery(req, res) {
+  const { to } = req.body || {}
+  const target = (to || req.user?.email || 'trendykart.app@gmail.com').trim()
+  const result = await emailService.testEmailDelivery(target)
+  res.json({ result })
+}
+
 module.exports = {
   listUsers,
   setUserVerified,
@@ -132,4 +147,6 @@ module.exports = {
   deleteSetting,
   getAiKeysStatus,
   testAiKeys,
+  getEmailStatus,
+  testEmailDelivery,
 }

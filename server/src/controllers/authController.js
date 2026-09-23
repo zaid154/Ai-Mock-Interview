@@ -153,8 +153,12 @@ async function completeRegistration(req, res) {
 async function resendOtp(req, res) {
   const email = (req.body.email || '').toLowerCase().trim()
   const user = await User.findOne({ email })
-  if (!user) return res.json({ ok: true })
-  if (emailVerified(user)) return res.json({ ok: true, alreadyVerified: true })
+  if (!user) {
+    return res.status(404).json({ error: 'No account found with this email address. Please sign up.' })
+  }
+  if (emailVerified(user)) {
+    return res.json({ ok: true, alreadyVerified: true, message: 'Your email is already verified.' })
+  }
   await issueOtp(user, 'verify')
   return res.json({ ok: true, cooldownSeconds: OTP_RESEND_COOLDOWN_SECONDS })
 }

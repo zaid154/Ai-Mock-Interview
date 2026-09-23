@@ -1,5 +1,6 @@
 import { Trash2, Save, Plus, KeyRound, Upload } from 'lucide-react'
 import ApiKeyManager from './ApiKeyManager'
+import EmailManager from './EmailManager'
 
 function formatDisplay(val, valueToText) {
   const txt = valueToText(val)
@@ -36,6 +37,9 @@ export default function AdminSettingsTab({
         removeGeminiKey={removeGeminiKey}
         envKeysCount={envKeysCount}
       />
+
+      {/* 2. Email Delivery Channels & Live Diagnostic Testing */}
+      <EmailManager />
 
       {/* 2. Verification Gate */}
       <div className="panel" style={{ padding: '1.25rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>

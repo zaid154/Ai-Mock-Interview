@@ -60,4 +60,8 @@ router.delete('/settings/:key', wrap(admin.deleteSetting))
 router.get('/ai-keys/status', wrap(admin.getAiKeysStatus))
 router.post('/ai-keys/test', wrap(admin.testAiKeys))
 
+// Email System & Delivery Diagnostics
+router.get('/email/status', wrap(admin.getEmailStatus))
+router.post('/email/test', wrap(admin.testEmailDelivery))
+
 module.exports = router
