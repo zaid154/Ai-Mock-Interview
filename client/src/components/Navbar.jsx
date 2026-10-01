@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { goToSection } from '../lib/scrollToSection'
 import Avatar from './Avatar'
 import NavDrawer from './NavDrawer'
-import { Zap, User, LogOut, Shield, Menu, ChevronDown } from 'lucide-react'
+import { User, LogOut, Shield, Menu, ChevronDown } from 'lucide-react'
 
 export default function Navbar() {
   const { user, logout } = useAuth()
@@ -13,6 +13,26 @@ export default function Navbar() {
 
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const menuRef = useRef(null)
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setUserMenuOpen(false)
+      }
+    }
+    function handleKeyDown(e) {
+      if (e.key === 'Escape') setUserMenuOpen(false)
+    }
+    if (userMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      window.addEventListener('keydown', handleKeyDown)
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [userMenuOpen])
 
   function handleLogout() {
     setUserMenuOpen(false)
@@ -40,7 +60,7 @@ export default function Navbar() {
 
   return (
     <header className="reflect-header">
-      <div className="reflect-header-inner">
+      <div className="container reflect-header-inner">
         {/* Brand */}
         <Link to={user ? '/dashboard' : '/'} className="reflect-brand">
           <div className="reflect-brand-icon">
@@ -52,7 +72,7 @@ export default function Navbar() {
         </Link>
 
         {/* Floating Glass Pill Navigation */}
-        <nav className="reflect-nav-pill">
+        <nav className="reflect-nav-pill" aria-label="Main Navigation">
           {user ? (
             <>
               <Link to="/dashboard" className={`reflect-nav-link ${isDashboardActive ? 'active' : ''}`}>
@@ -80,26 +100,14 @@ export default function Navbar() {
               >
                 Overview
               </button>
-              <button
-                type="button"
-                onClick={() => scrollToSection('benefits')}
-                className="reflect-nav-link"
-              >
-                Benefits
+              <button type="button" onClick={() => scrollToSection('benefits')} className="reflect-nav-link">
+                Features
               </button>
-              <button
-                type="button"
-                onClick={() => scrollToSection('specifications')}
-                className="reflect-nav-link"
-              >
-                Specifications
+              <button type="button" onClick={() => scrollToSection('specifications')} className="reflect-nav-link">
+                Curriculum
               </button>
-              <button
-                type="button"
-                onClick={() => scrollToSection('how-it-works')}
-                className="reflect-nav-link"
-              >
-                How-to
+              <button type="button" onClick={() => scrollToSection('how-it-works')} className="reflect-nav-link">
+                How It Works
               </button>
               <Link to="/leaderboard" className={`reflect-nav-link ${isLeaderboardActive ? 'active' : ''}`}>
                 Leaderboard
@@ -111,18 +119,21 @@ export default function Navbar() {
         {/* Right Actions */}
         <div className="reflect-header-actions">
           {user ? (
-            <div style={{ position: 'relative' }}>
+            <div style={{ position: 'relative' }} ref={menuRef}>
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
                 className="reflect-user-btn"
+                aria-haspopup="menu"
+                aria-expanded={userMenuOpen}
+                aria-label="User account menu"
               >
                 <Avatar src={user.avatar} name={user.name} size={26} />
                 <span className="reflect-user-name">{user.name?.split(' ')[0]}</span>
-                <ChevronDown size={14} className="reflect-user-chevron" style={{ opacity: 0.6 }} />
+                <ChevronDown size={14} className="reflect-user-chevron" style={{ opacity: 0.6 }} aria-hidden="true" />
               </button>
 
               {userMenuOpen && (
-                <div className="reflect-dropdown">
+                <div className="reflect-dropdown" role="menu">
                   <div className="reflect-dropdown-header">
                     <div style={{ fontWeight: 600, fontSize: '0.86rem', color: '#f8fafc' }}>{user.name}</div>
                     <div style={{ fontSize: '0.74rem', color: 'rgba(239, 237, 253, 0.55)', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -130,21 +141,22 @@ export default function Navbar() {
                     </div>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                    <Link to="/profile" className="reflect-dropdown-item" onClick={() => setUserMenuOpen(false)}>
-                      <User size={14} /> Profile &amp; Settings
+                    <Link to="/profile" role="menuitem" className="reflect-dropdown-item" onClick={() => setUserMenuOpen(false)}>
+                      <User size={14} aria-hidden="true" /> Profile &amp; Settings
                     </Link>
                     {user.role === 'admin' && (
-                      <Link to="/admin" className="reflect-dropdown-item" onClick={() => setUserMenuOpen(false)}>
-                        <Shield size={14} /> Admin Settings
+                      <Link to="/admin" role="menuitem" className="reflect-dropdown-item" onClick={() => setUserMenuOpen(false)}>
+                        <Shield size={14} aria-hidden="true" /> Admin Settings
                       </Link>
                     )}
                     <button
                       type="button"
+                      role="menuitem"
                       onClick={handleLogout}
                       className="reflect-dropdown-item"
                       style={{ color: '#fb7185' }}
                     >
-                      <LogOut size={14} /> Sign out
+                      <LogOut size={14} aria-hidden="true" /> Sign out
                     </button>
                   </div>
                 </div>
@@ -164,7 +176,8 @@ export default function Navbar() {
           <button
             className="reflect-mobile-toggle"
             onClick={() => setDrawerOpen(true)}
-            aria-label="Open menu"
+            aria-label="Open navigation menu"
+            aria-expanded={drawerOpen}
           >
             <Menu size={22} />
           </button>

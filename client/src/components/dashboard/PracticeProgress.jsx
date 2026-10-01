@@ -34,7 +34,7 @@ export default function PracticeProgress({
           ) : (
             <Loader2 size={18} className="animate-spin" style={{ color: '#c084fc' }} />
           )}
-          <span style={{ fontSize: '0.88rem', fontWeight: 600, color: '#f8fafc' }}>
+          <span style={{ fontSize: '0.88rem', fontWeight: 600, color: '#f8fafc' }} aria-live="polite">
             {isComplete ? 'Assessment Ready ✓' : 'Preparing Assessment…'}
           </span>
         </div>
@@ -53,8 +53,13 @@ export default function PracticeProgress({
         </span>
       </div>
 
-      {/* Animated Glowing Progress Bar */}
+      {/* Animated Progress Bar */}
       <div
+        role="progressbar"
+        aria-valuenow={percent}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label="Question generation progress"
         style={{
           height: '7px',
           background: 'rgba(255, 255, 255, 0.08)',

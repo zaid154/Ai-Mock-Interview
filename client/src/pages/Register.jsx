@@ -3,7 +3,7 @@ import { Link, useNavigate, Navigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { useAuth } from '../context/AuthContext'
 import { apiError } from '../lib/api'
-import { Eye, EyeOff, User, Mail, Lock, Zap, ArrowRight, CheckCircle2, ShieldCheck } from 'lucide-react'
+import { Eye, EyeOff, User, Mail, Lock, ArrowRight, CheckCircle2, ShieldCheck } from 'lucide-react'
 
 export default function Register() {
   const { user, register } = useAuth()
@@ -73,8 +73,8 @@ export default function Register() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(255, 255, 255, 0.08)', color: 'rgba(239, 237, 253, 0.6)', fontSize: '0.78rem' }}>
-            <ShieldCheck size={16} style={{ color: '#c084fc' }} />
-            <span>256-bit Secure Candidate Encryption</span>
+            <ShieldCheck size={16} style={{ color: '#c084fc' }} aria-hidden="true" />
+            <span>Encrypted passwords &amp; secure session tokens</span>
           </div>
         </div>
 
@@ -91,13 +91,14 @@ export default function Register() {
 
           <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
             <div>
-              <label className="reflect-field-label">Full Name</label>
+              <label htmlFor="register-name" className="reflect-field-label">Full Name</label>
               <div className="reflect-input-wrap">
-                <User size={16} className="reflect-input-icon" />
+                <User size={16} className="reflect-input-icon" aria-hidden="true" />
                 <input
+                  id="register-name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Mohd Zaid"
+                  placeholder="e.g. Alex Morgan"
                   autoComplete="name"
                   required
                   className="reflect-input"
@@ -106,10 +107,11 @@ export default function Register() {
             </div>
 
             <div>
-              <label className="reflect-field-label">Email Address</label>
+              <label htmlFor="register-email" className="reflect-field-label">Email Address</label>
               <div className="reflect-input-wrap">
-                <Mail size={16} className="reflect-input-icon" />
+                <Mail size={16} className="reflect-input-icon" aria-hidden="true" />
                 <input
+                  id="register-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -122,10 +124,11 @@ export default function Register() {
             </div>
 
             <div>
-              <label className="reflect-field-label">Password</label>
+              <label htmlFor="register-password" className="reflect-field-label">Password</label>
               <div className="reflect-input-wrap">
-                <Lock size={16} className="reflect-input-icon" />
+                <Lock size={16} className="reflect-input-icon" aria-hidden="true" />
                 <input
+                  id="register-password"
                   type={showPw ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}

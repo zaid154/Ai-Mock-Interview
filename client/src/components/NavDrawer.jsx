@@ -1,6 +1,7 @@
+import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
-import { X, LogOut, Zap } from 'lucide-react'
+import { X, LogOut } from 'lucide-react'
 
 export default function NavDrawer({
   isOpen,
@@ -9,6 +10,20 @@ export default function NavDrawer({
   onLogout,
   onSectionClick
 }) {
+  useEffect(() => {
+    if (!isOpen) return
+    function handleKeyDown(e) {
+      if (e.key === 'Escape') onClose()
+    }
+    const originalOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.body.style.overflow = originalOverflow
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isOpen, onClose])
+
   if (!isOpen || typeof document === 'undefined') return null
 
   return createPortal(
@@ -16,6 +31,7 @@ export default function NavDrawer({
       <div
         className="mobile-drawer-overlay"
         onClick={onClose}
+        aria-hidden="true"
         style={{
           position: 'fixed',
           inset: 0,
@@ -27,6 +43,9 @@ export default function NavDrawer({
       />
       <div
         className="mobile-drawer open"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Navigation menu"
         style={{
           position: 'fixed',
           top: 0,
@@ -66,21 +85,21 @@ export default function NavDrawer({
             {user ? (
               <>
                 <Link to="/dashboard" className="reflect-nav-link-mobile" onClick={onClose}>Dashboard</Link>
-                <Link to="/practice" className="reflect-nav-link-mobile" onClick={onClose}>Practice Studio</Link>
+                <Link to="/practice" className="reflect-nav-link-mobile" onClick={onClose}>Practice</Link>
                 <Link to="/bookmarks" className="reflect-nav-link-mobile" onClick={onClose}>Bookmarks</Link>
                 <Link to="/leaderboard" className="reflect-nav-link-mobile" onClick={onClose}>Leaderboard</Link>
                 <Link to="/certificates" className="reflect-nav-link-mobile" onClick={onClose}>Certificates</Link>
-                <Link to="/profile" className="reflect-nav-link-mobile" onClick={onClose}>Profile</Link>
+                <Link to="/profile" className="reflect-nav-link-mobile" onClick={onClose}>Profile &amp; Settings</Link>
                 {user.role === 'admin' && (
-                  <Link to="/admin" className="reflect-nav-link-mobile" onClick={onClose}>Admin Dashboard</Link>
+                  <Link to="/admin" className="reflect-nav-link-mobile" onClick={onClose}>Admin Settings</Link>
                 )}
               </>
             ) : (
               <>
                 <button type="button" onClick={() => onSectionClick('overview')} className="reflect-nav-link-mobile">Overview</button>
-                <button type="button" onClick={() => onSectionClick('benefits')} className="reflect-nav-link-mobile">Benefits</button>
-                <button type="button" onClick={() => onSectionClick('specifications')} className="reflect-nav-link-mobile">Specifications</button>
-                <button type="button" onClick={() => onSectionClick('how-it-works')} className="reflect-nav-link-mobile">How-to</button>
+                <button type="button" onClick={() => onSectionClick('benefits')} className="reflect-nav-link-mobile">Features</button>
+                <button type="button" onClick={() => onSectionClick('specifications')} className="reflect-nav-link-mobile">Curriculum</button>
+                <button type="button" onClick={() => onSectionClick('how-it-works')} className="reflect-nav-link-mobile">How It Works</button>
                 <Link to="/leaderboard" className="reflect-nav-link-mobile" onClick={onClose}>Leaderboard</Link>
               </>
             )}

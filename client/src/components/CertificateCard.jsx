@@ -1,13 +1,7 @@
 import { Zap, ShieldCheck, ExternalLink } from 'lucide-react'
 
-// One certificate renderer, three layouts. The design comes from the template the
-// admin picked, so switching it is purely presentational — every layout reads the
-// same fields and the same verification id.
-//
-// The root keeps the `.official-cert-card` class in every design on purpose:
-// Certificates.jsx rasterises `document.querySelector('.official-cert-card')` for
-// the PDF, and the @media print block in index.css isolates that same selector.
-// Renaming it would silently break both.
+// Multi-layout certificate renderer (classic, modern, elegant).
+// Retains .official-cert-card root selector for rasterization and print CSS.
 
 function Signature({ signatureImage, signatoryName, signatoryTitle }) {
   return (
@@ -91,9 +85,9 @@ export default function CertificateCard({
             <Signature {...sign} />
             <div className="cert-modern-verify">
               <Qr verifyUrl={verifyUrl} size={66} />
-              <span className="cert-code mono">
-                {certId} <ExternalLink size={10} />
-              </span>
+              <a href={verifyUrl} target="_blank" rel="noreferrer" className="cert-code mono" style={{ textDecoration: 'none' }} title="Verify this certificate">
+                {certId} <ExternalLink size={10} aria-hidden="true" />
+              </a>
             </div>
           </footer>
         </div>

@@ -4,7 +4,7 @@ import toast from 'react-hot-toast'
 import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
 import { apiError } from '../lib/api'
-import { Eye, EyeOff, Mail, Lock, Zap, ArrowRight, CheckCircle2 } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock, ArrowRight, CheckCircle2 } from 'lucide-react'
 
 export default function Login() {
   const { user, login } = useAuth()
@@ -111,10 +111,11 @@ export default function Login() {
 
           <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
             <div>
-              <label className="reflect-field-label">Email Address</label>
+              <label htmlFor="login-email" className="reflect-field-label">Email Address</label>
               <div className="reflect-input-wrap">
-                <Mail size={16} className="reflect-input-icon" />
+                <Mail size={16} className="reflect-input-icon" aria-hidden="true" />
                 <input
+                  id="login-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -128,14 +129,15 @@ export default function Login() {
 
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
-                <label className="reflect-field-label" style={{ marginBottom: 0 }}>Password</label>
+                <label htmlFor="login-password" className="reflect-field-label" style={{ marginBottom: 0 }}>Password</label>
                 <Link to="/forgot-password" style={{ fontSize: '0.78rem', color: '#c084fc', textDecoration: 'none' }}>
                   Forgot?
                 </Link>
               </div>
               <div className="reflect-input-wrap">
-                <Lock size={16} className="reflect-input-icon" />
+                <Lock size={16} className="reflect-input-icon" aria-hidden="true" />
                 <input
+                  id="login-password"
                   type={showPw ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}

@@ -1,67 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Trophy, Award, Crown, CheckCircle2, User, Medal, Star } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Trophy } from 'lucide-react'
 import api, { apiError } from '../lib/api'
 import Avatar from '../components/Avatar'
 import toast from 'react-hot-toast'
-
-// Thin adapter over the shared component so the leaderboard keeps its own
-// prop name while rendering identically to the navbar and the profile page.
-function CandidateAvatar({ avatar, name, size = 42 }) {
-  return <Avatar src={avatar} name={name} size={size} />
-}
-
-const SAMPLE_LEADERBOARD = [
-  {
-    userId: 'mock-1',
-    rank: 1,
-    name: 'Mohd Zaid',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
-    bio: 'Staff Frontend Architect',
-    totalCompleted: 18,
-    avgScore: 95.0,
-    highestScore: 98.0,
-  },
-  {
-    userId: 'mock-2',
-    rank: 2,
-    name: 'Aarav Sharma',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=250&q=80',
-    bio: 'Senior Backend Engineer',
-    totalCompleted: 14,
-    avgScore: 91.2,
-    highestScore: 94.0,
-  },
-  {
-    userId: 'mock-3',
-    rank: 3,
-    name: 'Priya Patel',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=250&q=80',
-    bio: 'Frontend UI/UX Specialist',
-    totalCompleted: 12,
-    avgScore: 89.0,
-    highestScore: 92.0,
-  },
-  {
-    userId: 'mock-4',
-    rank: 4,
-    name: 'Rohan Verma',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=250&q=80',
-    bio: 'Fullstack Developer',
-    totalCompleted: 9,
-    avgScore: 82.0,
-    highestScore: 84.0,
-  },
-  {
-    userId: 'mock-5',
-    rank: 5,
-    name: 'Ananya Gupta',
-    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=250&q=80',
-    bio: 'DevOps & Kubernetes Lead',
-    totalCompleted: 7,
-    avgScore: 78.0,
-    highestScore: 82.0,
-  },
-]
 
 export default function Leaderboard() {
   const [leaderboard, setLeaderboard] = useState([])
@@ -75,123 +17,129 @@ export default function Leaderboard() {
     try {
       setLoading(true)
       const res = await api.get('/interviews/leaderboard')
-      const data = res.data?.leaderboard || []
-      setLeaderboard(data.length > 0 ? data : SAMPLE_LEADERBOARD)
+      setLeaderboard(res.data?.leaderboard || [])
     } catch (err) {
-      setLeaderboard(SAMPLE_LEADERBOARD)
+      toast.error(apiError(err, 'Could not load leaderboard'))
+      setLeaderboard([])
     } finally {
       setLoading(false)
     }
   }
 
-  const displayList = leaderboard.length > 0 ? leaderboard : SAMPLE_LEADERBOARD
-  const first = displayList.find((item) => item.rank === 1) || displayList[0]
-  const second = displayList.find((item) => item.rank === 2) || displayList[1]
-  const third = displayList.find((item) => item.rank === 3) || displayList[2]
+  const top3 = leaderboard.slice(0, 3)
 
   return (
-    <main className="container">
-      {/* Clean Section Head */}
-      <div className="section-head">
-        <h2>Global Leaderboard</h2>
-        <p>Top candidate practitioners ranked by interview evaluations and completed sessions.</p>
+    <main className="container" style={{ paddingBottom: '4rem' }}>
+      {/* Section Header */}
+      <div className="section-head" style={{ marginBottom: '1.75rem' }}>
+        <div className="reflect-badge" style={{ marginBottom: '0.4rem' }}>
+          <Trophy size={12} style={{ color: '#c084fc' }} aria-hidden="true" />
+          <span className="reflect-badge-text">Candidate Rankings</span>
+        </div>
+        <h1 style={{ fontSize: '1.85rem', fontWeight: 700, margin: '0 0 0.35rem', color: '#f8fafc' }}>
+          Leaderboard
+        </h1>
+        <p style={{ color: 'rgba(239, 237, 253, 0.7)', fontSize: '0.9rem', maxWidth: '60ch', margin: 0 }}>
+          Candidate practitioners ranked by completed interview sessions and average evaluation scores.
+        </p>
       </div>
 
       {loading ? (
-        <div className="panel page-center muted" style={{ minHeight: '220px' }}>
-          Loading leaderboard...
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="panel" style={{ padding: '1.5rem', minHeight: '110px', background: 'var(--surface-2)', opacity: 0.6 }}>
+                <div style={{ width: '40%', height: '12px', background: 'rgba(255,255,255,0.08)', borderRadius: '4px', marginBottom: '0.8rem' }} />
+                <div style={{ width: '70%', height: '16px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px' }} />
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : leaderboard.length === 0 ? (
+        <div className="panel page-center" style={{ minHeight: '260px', textAlign: 'center', padding: '3.5rem 1.5rem' }}>
+          <Trophy size={36} style={{ color: 'var(--text-subtle)', marginBottom: '0.85rem', opacity: 0.6 }} aria-hidden="true" />
+          <h2 style={{ fontSize: '1.25rem', marginBottom: '0.35rem', color: '#f8fafc' }}>No rankings recorded yet</h2>
+          <p className="muted small" style={{ maxWidth: '440px', margin: '0 auto 1.5rem', lineHeight: 1.6 }}>
+            Complete your first technical practice session or quiz to establish your standing on the leaderboard.
+          </p>
+          <Link to="/practice" className="reflect-btn-primary" style={{ padding: '0.55rem 1.4rem', fontSize: '0.85rem' }}>
+            Start a Session
+          </Link>
         </div>
       ) : (
         <>
           {/* Top 3 Champion Cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
-            {/* 1st Place Champion */}
-            {first && (
-              <div className="panel" style={{ border: '1px solid var(--accent-primary)', background: 'var(--surface-elevated)', padding: '1.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.8rem' }}>
-                  <span className="tag" style={{ background: 'var(--accent-primary)', color: '#ffffff' }}>1st Rank</span>
-                  <span className="mono" style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--good)' }}>{first.avgScore}%</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-                  <CandidateAvatar avatar={first.avatar} name={first.name} size={46} />
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: '1.05rem' }}>{first.name}</div>
-                    <div className="muted small" style={{ fontSize: '0.8rem' }}>{first.bio}</div>
+          {top3.length > 0 && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
+              {top3.map((item, idx) => (
+                <div
+                  key={item.userId || idx}
+                  className="panel"
+                  style={{
+                    padding: '1.4rem',
+                    border: idx === 0 ? '1px solid rgba(168, 85, 247, 0.4)' : '1px solid var(--border)',
+                    background: idx === 0 ? 'rgba(168, 85, 247, 0.05)' : 'var(--surface)',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.8rem' }}>
+                    <span className={idx === 0 ? 'tag' : 'tag-soft'} style={{ fontSize: '0.72rem' }}>
+                      {idx === 0 ? '1st Place' : idx === 1 ? '2nd Place' : '3rd Place'}
+                    </span>
+                    <span className="mono" style={{ fontSize: '1.05rem', fontWeight: 700, color: idx === 0 ? '#4ade80' : 'var(--text)' }}>
+                      {item.avgScore}%
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                    <Avatar src={item.avatar} name={item.name} size={idx === 0 ? 44 : 38} />
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontWeight: 600, fontSize: '0.96rem', color: '#f8fafc', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {item.name}
+                      </div>
+                      <div className="muted small" style={{ fontSize: '0.78rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {item.bio || `${item.totalCompleted} sessions completed`}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              ))}
+            </div>
+          )}
 
-            {/* 2nd Place */}
-            {second && (
-              <div className="panel" style={{ padding: '1.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.8rem' }}>
-                  <span className="tag-soft">2nd Rank</span>
-                  <span className="mono" style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text)' }}>{second.avgScore}%</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-                  <CandidateAvatar avatar={second.avatar} name={second.name} size={42} />
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: '1rem' }}>{second.name}</div>
-                    <div className="muted small" style={{ fontSize: '0.8rem' }}>{second.bio}</div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* 3rd Place */}
-            {third && (
-              <div className="panel" style={{ padding: '1.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.8rem' }}>
-                  <span className="tag-soft">3rd Rank</span>
-                  <span className="mono" style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text)' }}>{third.avgScore}%</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-                  <CandidateAvatar avatar={third.avatar} name={third.name} size={42} />
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: '1rem' }}>{third.name}</div>
-                    <div className="muted small" style={{ fontSize: '0.8rem' }}>{third.bio}</div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Standings Table */}
-          <div className="panel" style={{ padding: '0.5rem', overflowX: 'auto' }}>
-            <table className="leaderboard-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+          {/* Full Standings Table */}
+          <div className="panel" style={{ padding: '0.5rem', overflowX: 'auto' }} tabIndex={0} role="region" aria-label="Candidate standings table">
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.88rem' }}>
               <thead>
-                <tr style={{ color: 'var(--text-muted)', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid var(--border)' }}>
-                  <th style={{ padding: '0.85rem 1rem', textAlign: 'center', width: '80px' }}>Rank</th>
-                  <th style={{ padding: '0.85rem 1rem', textAlign: 'left' }}>Candidate</th>
-                  <th style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>Completed</th>
-                  <th style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>Avg Score</th>
-                  <th style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>Highest</th>
+                <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-muted)' }}>
+                  <th scope="col" style={{ padding: '0.75rem 1rem', width: '70px', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Rank</th>
+                  <th scope="col" style={{ padding: '0.75rem 1rem', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Candidate</th>
+                  <th scope="col" style={{ padding: '0.75rem 1rem', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Sessions</th>
+                  <th scope="col" style={{ padding: '0.75rem 1rem', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Avg Score</th>
+                  <th scope="col" style={{ padding: '0.75rem 1rem', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Best Score</th>
                 </tr>
               </thead>
               <tbody>
-                {displayList.map((item) => (
-                  <tr key={String(item.userId)} style={{ borderBottom: '1px solid var(--border-soft)' }}>
-                    <td style={{ padding: '0.85rem 1rem', textAlign: 'center', fontWeight: 700 }}>
-                      #{item.rank}
+                {leaderboard.map((item, i) => (
+                  <tr key={item.userId || i} style={{ borderBottom: '1px solid var(--border-soft)' }}>
+                    <td style={{ padding: '0.85rem 1rem', fontWeight: 700 }} className="mono">
+                      #{item.rank || i + 1}
                     </td>
                     <td style={{ padding: '0.85rem 1rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        <CandidateAvatar avatar={item.avatar} name={item.name} size={38} />
+                        <Avatar src={item.avatar} name={item.name} size={30} />
                         <div>
-                          <div style={{ fontWeight: 600, fontSize: '0.92rem' }}>{item.name}</div>
-                          {item.bio && <div className="muted small" style={{ fontSize: '0.78rem' }}>{item.bio}</div>}
+                          <div style={{ fontWeight: 600, color: 'var(--text)' }}>{item.name}</div>
+                          {item.bio && <div className="muted small" style={{ fontSize: '0.75rem' }}>{item.bio}</div>}
                         </div>
                       </div>
                     </td>
-                    <td style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>
-                      <span className="tag-soft">{item.totalCompleted} sessions</span>
+                    <td style={{ padding: '0.85rem 1rem', color: 'var(--text-muted)' }}>
+                      {item.totalCompleted}
                     </td>
-                    <td style={{ padding: '0.85rem 1rem', textAlign: 'center', fontWeight: 700, color: 'var(--good)' }}>
+                    <td style={{ padding: '0.85rem 1rem' }} className="mono bold">
                       {item.avgScore}%
                     </td>
-                    <td style={{ padding: '0.85rem 1rem', textAlign: 'center', fontWeight: 700, color: 'var(--text)' }}>
-                      {item.highestScore}%
+                    <td style={{ padding: '0.85rem 1rem', color: 'var(--accent-primary)' }} className="mono bold">
+                      {item.highestScore ? `${item.highestScore}%` : '—'}
                     </td>
                   </tr>
                 ))}

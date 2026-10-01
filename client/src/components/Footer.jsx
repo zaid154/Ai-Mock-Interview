@@ -72,22 +72,24 @@ export default function Footer() {
 
           {/* Navigation Columns */}
           <div className="footer-links-col">
-            <h4>Platform</h4>
+            <h4>Platform &amp; Legal</h4>
             {user ? (
               <>
                 <Link to="/dashboard">Dashboard</Link>
                 <Link to="/bookmarks">Bookmarks</Link>
                 <Link to="/leaderboard">Leaderboard</Link>
                 <Link to="/certificates">Certificates</Link>
-                <Link to="/profile">Profile Settings</Link>
+                <Link to="/privacy">Privacy Policy</Link>
+                <Link to="/terms">Terms of Service</Link>
               </>
             ) : (
               <>
                 <button type="button" onClick={() => scrollToSection('overview')} style={{ background: 'none', border: 'none', color: 'inherit', padding: 0, font: 'inherit', cursor: 'pointer', textAlign: 'left' }}>Overview</button>
-                <button type="button" onClick={() => scrollToSection('benefits')} style={{ background: 'none', border: 'none', color: 'inherit', padding: 0, font: 'inherit', cursor: 'pointer', textAlign: 'left' }}>Benefits</button>
-                <button type="button" onClick={() => scrollToSection('specifications')} style={{ background: 'none', border: 'none', color: 'inherit', padding: 0, font: 'inherit', cursor: 'pointer', textAlign: 'left' }}>Specifications</button>
-                <button type="button" onClick={() => scrollToSection('how-it-works')} style={{ background: 'none', border: 'none', color: 'inherit', padding: 0, font: 'inherit', cursor: 'pointer', textAlign: 'left' }}>How-to</button>
-                <Link to="/leaderboard">Leaderboard</Link>
+                <button type="button" onClick={() => scrollToSection('benefits')} style={{ background: 'none', border: 'none', color: 'inherit', padding: 0, font: 'inherit', cursor: 'pointer', textAlign: 'left' }}>Features</button>
+                <button type="button" onClick={() => scrollToSection('specifications')} style={{ background: 'none', border: 'none', color: 'inherit', padding: 0, font: 'inherit', cursor: 'pointer', textAlign: 'left' }}>Curriculum</button>
+                <button type="button" onClick={() => scrollToSection('how-it-works')} style={{ background: 'none', border: 'none', color: 'inherit', padding: 0, font: 'inherit', cursor: 'pointer', textAlign: 'left' }}>How It Works</button>
+                <Link to="/privacy">Privacy Policy</Link>
+                <Link to="/terms">Terms of Service</Link>
               </>
             )}
           </div>
@@ -120,11 +122,17 @@ export default function Footer() {
 
       <div className="footer-bottom-bar">
         <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.8rem', paddingTop: 0, paddingBottom: 0 }}>
-          <p style={{ margin: 0, fontSize: '0.8rem', color: 'rgba(239, 237, 253, 0.55)' }}>
-            © {year} MockMate AI. Built by <a href="https://portfolio-zeta-drab-97.vercel.app/" target="_blank" rel="noreferrer" style={{ fontWeight: 600, color: '#f8fafc' }}>Mohd Zaid</a> (<a href="mailto:zaidm1323@gmail.com" style={{ color: '#c084fc', textDecoration: 'none' }}>zaidm1323@gmail.com</a>).
-          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+            <p style={{ margin: 0, fontSize: '0.8rem', color: 'rgba(239, 237, 253, 0.55)' }}>
+              © {year} MockMate AI. Built by <a href="https://portfolio-zeta-drab-97.vercel.app/" target="_blank" rel="noreferrer" style={{ fontWeight: 600, color: '#f8fafc' }}>Mohd Zaid</a>.
+            </p>
+            <div style={{ display: 'flex', gap: '0.65rem', fontSize: '0.78rem' }}>
+              <Link to="/privacy" style={{ color: 'rgba(239, 237, 253, 0.65)' }}>Privacy</Link>
+              <span style={{ color: 'rgba(255, 255, 255, 0.2)' }}>•</span>
+              <Link to="/terms" style={{ color: 'rgba(239, 237, 253, 0.65)' }}>Terms</Link>
+            </div>
+          </div>
           <div className="reflect-badge" style={{ fontSize: '0.74rem', padding: '0.2rem 0.65rem', margin: 0 }}>
-            <Sparkles size={12} style={{ color: '#e59cff' }} />
             <span className="reflect-badge-text">Powered by Google Gemini AI</span>
           </div>
         </div>

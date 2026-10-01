@@ -48,18 +48,26 @@ export default function TrackExplorer({ user }) {
   return (
     <div className="reflect-card" style={{ padding: '2rem' }}>
       {/* Track Selector Tabs */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: '0.75rem',
-        marginBottom: '1.75rem'
-      }}>
+      <div
+        role="tablist"
+        aria-label="Engineering Tracks"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '0.75rem',
+          marginBottom: '1.75rem'
+        }}
+      >
         {TRACKS.map((track) => {
           const Icon = track.icon
           const isActive = selectedTrack === track.id
           return (
             <button
               key={track.id}
+              role="tab"
+              id={`track-tab-${track.id}`}
+              aria-selected={isActive}
+              aria-controls="track-tabpanel"
               onClick={() => setSelectedTrack(track.id)}
               style={{
                 display: 'flex',
@@ -87,7 +95,7 @@ export default function TrackExplorer({ user }) {
                 color: isActive ? '#e59cff' : 'rgba(239, 237, 253, 0.6)',
                 flexShrink: 0
               }}>
-                <Icon size={16} />
+                <Icon size={16} aria-hidden="true" />
               </div>
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: '0.85rem', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -103,12 +111,17 @@ export default function TrackExplorer({ user }) {
       </div>
 
       {/* Selected Track Detail Glass Surface */}
-      <div style={{
-        borderRadius: '16px',
-        padding: '1.5rem',
-        background: 'rgba(0, 0, 0, 0.25)',
-        border: '1px solid rgba(255, 255, 255, 0.06)'
-      }}>
+      <div
+        role="tabpanel"
+        id="track-tabpanel"
+        aria-labelledby={`track-tab-${selectedTrack}`}
+        style={{
+          borderRadius: '16px',
+          padding: '1.5rem',
+          background: 'rgba(0, 0, 0, 0.25)',
+          border: '1px solid rgba(255, 255, 255, 0.06)'
+        }}
+      >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1rem' }}>
           <div className="glass-pill" style={{ borderColor: 'rgba(186, 156, 255, 0.3)', color: '#d8b4fe' }}>
             {current.badge}
@@ -125,7 +138,7 @@ export default function TrackExplorer({ user }) {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.75rem', marginBottom: '1.5rem' }}>
           {current.criteria.map((item, idx) => (
             <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.82rem', color: 'rgba(239, 237, 253, 0.75)' }}>
-              <CheckCircle2 size={15} style={{ color: '#34d399', marginTop: '2px', flexShrink: 0 }} />
+              <CheckCircle2 size={15} style={{ color: '#34d399', marginTop: '2px', flexShrink: 0 }} aria-hidden="true" />
               <span>{item}</span>
             </div>
           ))}
@@ -133,7 +146,7 @@ export default function TrackExplorer({ user }) {
 
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <Link to={user ? '/dashboard' : '/register'} className="reflect-btn-primary" style={{ padding: '0.55rem 1.4rem', fontSize: '0.85rem' }}>
-            Practice This Track <ArrowRight size={15} />
+            Practice This Track <ArrowRight size={15} aria-hidden="true" />
           </Link>
         </div>
       </div>

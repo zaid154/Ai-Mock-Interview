@@ -9,16 +9,16 @@ import TrackExplorer from '../components/landing/TrackExplorer'
 import GlassBentoGrid from '../components/landing/GlassBentoGrid'
 
 const METRICS = [
-  { value: '15,000+', label: 'Sessions Completed', icon: Gauge },
-  { value: '94.8%', label: 'Candidate Confidence', icon: CheckCircle2 },
-  { value: '<650ms', label: 'AI Scoring Latency', icon: Zap },
-  { value: 'SHA-256', label: 'Verifiable Credentials', icon: Award }
+  { value: '4 Tracks', label: 'Frontend, Backend, System Design, Cloud', icon: Gauge },
+  { value: '2 Modes', label: 'Technical Q&A & Speed MCQ Drills', icon: CheckCircle2 },
+  { value: 'Contextual', label: 'PDF Resume-Tailored Questions', icon: Zap },
+  { value: 'SHA-256', label: 'Verifiable Milestone Diplomas', icon: Award }
 ]
 
 const PIPELINE_STEPS = [
-  { step: '01', title: 'Pick Track or Upload Resume', desc: 'Choose Full Stack, Distributed Systems, or upload resume PDF to synthesize stack-targeted scenarios.' },
-  { step: '02', title: 'Real-Time Interactive HUD', desc: 'Synthesize architecture, respond via speech or text, and receive instant feedback on Big-O.' },
-  { step: '03', title: 'Milestone Certification', desc: 'Benchmark against global engineers, inspect score telemetry, and publish verifiable SHA-256 diplomas.' }
+  { step: '01', title: 'Pick Track or Upload Resume', desc: 'Choose Full Stack, Distributed Systems, or upload your PDF resume to generate role-targeted interview scenarios.' },
+  { step: '02', title: 'Complete Interactive Session', desc: 'Answer technical scenario questions and receive structured feedback on system design and algorithmic trade-offs.' },
+  { step: '03', title: 'Milestone Certification', desc: 'Track your score progression over time, review revision notes, and unlock verifiable SHA-256 certificates.' }
 ]
 
 export default function Landing() {
@@ -130,13 +130,13 @@ export default function Landing() {
       <section className="container" id="benefits" style={{ padding: '3.5rem 0', position: 'relative', zIndex: 1 }}>
         <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
           <div className="reflect-badge" style={{ marginBottom: '0.75rem' }}>
-            <span className="reflect-badge-text">Diagnostic Telemetry</span>
+            <span className="reflect-badge-text">Platform Capabilities</span>
           </div>
           <h2 style={{ fontSize: '2.4rem', fontWeight: 600, letterSpacing: '-0.025em', margin: '0.5rem 0', background: 'linear-gradient(180deg, #fff 0%, rgba(255,255,255,0.7) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            Bespoke Evaluation Suite
+            Engineered for Practice Depth
           </h2>
           <p style={{ maxWidth: '54ch', margin: '0 auto', fontSize: '0.95rem', color: 'rgba(239, 237, 253, 0.7)' }}>
-            Engineered with deep resume parsing, Big-O computational checks, and tamper-proof diplomas.
+            Resume context parsing, algorithmic reasoning checks, and cryptographically verifiable credentials.
           </p>
         </div>
         <GlassBentoGrid />
@@ -146,7 +146,7 @@ export default function Landing() {
       <section className="container" id="how-it-works" style={{ padding: '3.5rem 0 5rem', position: 'relative', zIndex: 1 }}>
         <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
           <div className="reflect-badge" style={{ marginBottom: '0.75rem' }}>
-            <span className="reflect-badge-text">Execution Pipeline</span>
+            <span className="reflect-badge-text">Getting Started</span>
           </div>
           <h2 style={{ fontSize: '2.4rem', fontWeight: 600, letterSpacing: '-0.025em', margin: '0.5rem 0', background: 'linear-gradient(180deg, #fff 0%, rgba(255,255,255,0.7) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             How It Works
@@ -172,10 +172,10 @@ export default function Landing() {
               <ShieldCheck size={26} />
             </div>
             <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.5rem)', fontWeight: 600, letterSpacing: '-0.025em', marginBottom: '0.75rem', color: '#f8fafc' }}>
-              Ready to Benchmark Your Engineering Depth?
+              Ready to Practice Your Next Interview?
             </h2>
             <p style={{ maxWidth: '52ch', margin: '0 auto 2rem', fontSize: '1rem', lineHeight: 1.6, color: 'rgba(239, 237, 253, 0.72)' }}>
-              Join thousands of software engineers practicing high-signal system design and algorithmic interviews.
+              Practice realistic system design and engineering scenarios with structured AI feedback and verifiable diplomas.
             </p>
             <Link to={user ? '/dashboard' : '/register'} className="reflect-btn-primary" style={{ padding: '0.85rem 2.5rem' }}>
               <Zap size={18} /> {user ? 'Go to Dashboard' : 'Get Started for Free'} <ArrowRight size={18} />

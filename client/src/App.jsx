@@ -22,6 +22,9 @@ import Bookmarks from './pages/Bookmarks'
 import Leaderboard from './pages/Leaderboard'
 import Certificates from './pages/Certificates'
 import VerifyCertificate from './pages/VerifyCertificate'
+import PrivacyPolicy from './pages/PrivacyPolicy'
+import TermsOfService from './pages/TermsOfService'
+import CookieBanner from './components/CookieBanner'
 
 // Route table. Public auth pages, then protected app pages, then admin panel.
 export default function App() {
@@ -36,6 +39,8 @@ export default function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/verify" element={<OtpVerify />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsOfService />} />
           <Route path="/verify-certificate/:certId" element={<VerifyCertificate />} />
           <Route path="/verify-certificate" element={<VerifyCertificate />} />
 
@@ -148,6 +153,7 @@ export default function App() {
         </Routes>
       </div>
       <Footer />
+      <CookieBanner />
     </div>
   )
 }

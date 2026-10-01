@@ -26,7 +26,7 @@ export default function Certificates() {
   const [selectedKey, setSelectedKey] = useState(null)
 
   const [signatoryName, setSignatoryName] = useState('Mohd Zaid')
-  const [signatoryTitle, setSignatoryTitle] = useState('Global Director of Candidate Assessments, MockMate AI')
+  const [signatoryTitle, setSignatoryTitle] = useState('Assessment Director, MockMate AI')
   const [signatureImage, setSignatureImage] = useState('')
 
   useEffect(() => {
