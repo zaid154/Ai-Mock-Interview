@@ -71,7 +71,7 @@ export default function Navbar() {
           </span>
         </Link>
 
-        {/* Floating Glass Pill Navigation */}
+        {/* Floating Pill Navigation */}
         <nav className="reflect-nav-pill" aria-label="Main Navigation">
           {user ? (
             <>
@@ -93,22 +93,9 @@ export default function Navbar() {
             </>
           ) : (
             <>
-              <button
-                type="button"
-                onClick={() => scrollToSection('overview')}
-                className={`reflect-nav-link ${location.pathname === '/' ? 'active' : ''}`}
-              >
-                Overview
-              </button>
-              <button type="button" onClick={() => scrollToSection('benefits')} className="reflect-nav-link">
-                Features
-              </button>
-              <button type="button" onClick={() => scrollToSection('specifications')} className="reflect-nav-link">
-                Curriculum
-              </button>
-              <button type="button" onClick={() => scrollToSection('how-it-works')} className="reflect-nav-link">
-                How It Works
-              </button>
+              <Link to="/" className={`reflect-nav-link ${location.pathname === '/' ? 'active' : ''}`}>
+                Home
+              </Link>
               <Link to="/leaderboard" className={`reflect-nav-link ${isLeaderboardActive ? 'active' : ''}`}>
                 Leaderboard
               </Link>

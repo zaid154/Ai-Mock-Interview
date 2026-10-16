@@ -96,10 +96,7 @@ export default function NavDrawer({
               </>
             ) : (
               <>
-                <button type="button" onClick={() => onSectionClick('overview')} className="reflect-nav-link-mobile">Overview</button>
-                <button type="button" onClick={() => onSectionClick('benefits')} className="reflect-nav-link-mobile">Features</button>
-                <button type="button" onClick={() => onSectionClick('specifications')} className="reflect-nav-link-mobile">Curriculum</button>
-                <button type="button" onClick={() => onSectionClick('how-it-works')} className="reflect-nav-link-mobile">How It Works</button>
+                <Link to="/" className="reflect-nav-link-mobile" onClick={onClose}>Home</Link>
                 <Link to="/leaderboard" className="reflect-nav-link-mobile" onClick={onClose}>Leaderboard</Link>
               </>
             )}

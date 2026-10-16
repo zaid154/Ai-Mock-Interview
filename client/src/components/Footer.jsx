@@ -84,10 +84,8 @@ export default function Footer() {
               </>
             ) : (
               <>
-                <button type="button" onClick={() => scrollToSection('overview')} style={{ background: 'none', border: 'none', color: 'inherit', padding: 0, font: 'inherit', cursor: 'pointer', textAlign: 'left' }}>Overview</button>
-                <button type="button" onClick={() => scrollToSection('benefits')} style={{ background: 'none', border: 'none', color: 'inherit', padding: 0, font: 'inherit', cursor: 'pointer', textAlign: 'left' }}>Features</button>
-                <button type="button" onClick={() => scrollToSection('specifications')} style={{ background: 'none', border: 'none', color: 'inherit', padding: 0, font: 'inherit', cursor: 'pointer', textAlign: 'left' }}>Curriculum</button>
-                <button type="button" onClick={() => scrollToSection('how-it-works')} style={{ background: 'none', border: 'none', color: 'inherit', padding: 0, font: 'inherit', cursor: 'pointer', textAlign: 'left' }}>How It Works</button>
+                <Link to="/">Home</Link>
+                <Link to="/leaderboard">Leaderboard</Link>
                 <Link to="/privacy">Privacy Policy</Link>
                 <Link to="/terms">Terms of Service</Link>
               </>
