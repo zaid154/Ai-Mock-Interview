@@ -12,8 +12,19 @@ const bookmarkSchema = new Schema(
     options: { type: [String], default: undefined },
     correctIndex: { type: Number, default: null },
     notes: { type: String, default: '' },
+    modelAnswer: { type: String, default: '' },
+    rubric: {
+      technicalAccuracy: { type: Number, default: 0 },
+      depthAndTradeoffs: { type: Number, default: 0 },
+      structureAndFlow: { type: Number, default: 0 },
+      communication: { type: Number, default: 0 },
+    },
+    talkingPoints: { type: [String], default: [] },
   },
   { timestamps: true },
 )
+
+bookmarkSchema.index({ user: 1, prompt: 1 })
+
 
 module.exports = mongoose.models.Bookmark || mongoose.model('Bookmark', bookmarkSchema)

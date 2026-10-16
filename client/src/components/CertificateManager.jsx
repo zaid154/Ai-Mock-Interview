@@ -30,14 +30,12 @@ export default function CertificateManager() {
   const { confirm } = useConfirm()
   const [templates, setTemplates] = useState([])
   const [loading, setLoading] = useState(true)
-  const [editing, setEditing] = useState(null) // null | { ...template } | BLANK for new
+  const [editing, setEditing] = useState(null)
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => {
-    load()
-  }, [])
+  const setField = (key, val) => setEditing((prev) => ({ ...prev, [key]: val }))
 
-  async function load() {
+  const load = async () => {
     try {
       setLoading(true)
       const { data } = await api.get('/admin/certificate-templates')
@@ -49,15 +47,9 @@ export default function CertificateManager() {
     }
   }
 
-  function startNew() {
-    setEditing({ ...BLANK })
-  }
+  useEffect(() => { load() }, [])
 
-  function startEdit(t) {
-    setEditing({ ...t, reqScore: t.reqScore ?? '' })
-  }
-
-  async function save(e) {
+  const save = async (e) => {
     e.preventDefault()
     if (!editing.title?.trim()) return toast.error('A title is required')
 
@@ -71,8 +63,8 @@ export default function CertificateManager() {
       design: editing.design,
       accent: editing.accent,
       enabled: Boolean(editing.enabled),
+      ...(editing.key?.trim() ? { key: editing.key.trim() } : {}),
     }
-    if (editing.key?.trim()) payload.key = editing.key.trim()
 
     setSaving(true)
     try {
@@ -92,7 +84,7 @@ export default function CertificateManager() {
     }
   }
 
-  async function toggleEnabled(t) {
+  const toggleEnabled = async (t) => {
     try {
       await api.patch(`/admin/certificate-templates/${t._id}`, { enabled: !t.enabled })
       setTemplates((prev) => prev.map((x) => (x._id === t._id ? { ...x, enabled: !x.enabled } : x)))
@@ -101,7 +93,7 @@ export default function CertificateManager() {
     }
   }
 
-  async function remove(t) {
+  const remove = async (t) => {
     const ok = await confirm({
       title: 'Delete milestone?',
       message: `"${t.title}" will no longer be offered to candidates. Certificates already downloaded are unaffected.`,
@@ -119,7 +111,7 @@ export default function CertificateManager() {
     }
   }
 
-  async function resetAll() {
+  const resetAll = async () => {
     const ok = await confirm({
       title: 'Restore the default milestones?',
       message: 'Every milestone you have added or edited is replaced by the four shipped credentials.',
@@ -142,26 +134,18 @@ export default function CertificateManager() {
       <div className="admin-section-head">
         <div>
           <h3 className="panel-title"><Award size={17} /> Certificate milestones</h3>
-          <p className="muted small" style={{ margin: 0 }}>
-            Create credentials, tune what earns them, and pick the layout each one prints in.
-          </p>
+          <p className="muted small" style={{ margin: 0 }}>Create credentials, tune what earns them, and pick the layout each one prints in.</p>
         </div>
         <div className="admin-row-actions">
-          <button className="btn btn-ghost btn-sm" onClick={resetAll}>
-            <RotateCcw size={14} /> Defaults
-          </button>
-          <button className="btn btn-primary btn-sm" onClick={startNew}>
-            <Plus size={14} /> New milestone
-          </button>
+          <button className="btn btn-ghost btn-sm" onClick={resetAll}><RotateCcw size={14} /> Defaults</button>
+          <button className="btn btn-primary btn-sm" onClick={() => setEditing({ ...BLANK })}><Plus size={14} /> New milestone</button>
         </div>
       </div>
 
       {loading ? (
         <p className="muted small" style={{ margin: '1rem 0 0' }}>Loading milestones…</p>
       ) : templates.length === 0 ? (
-        <p className="muted small" style={{ margin: '1rem 0 0' }}>
-          No milestones yet. Create one, or restore the defaults.
-        </p>
+        <p className="muted small" style={{ margin: '1rem 0 0' }}>No milestones yet. Create one, or restore the defaults.</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', marginTop: '1.1rem' }}>
           {templates.map((t) => (
@@ -175,31 +159,17 @@ export default function CertificateManager() {
                     {!t.enabled && <span className="pill pill-bad">Hidden</span>}
                   </strong>
                   <span className="admin-row-email">
-                    {t.reqScore != null
-                      ? `Any session at ${t.reqScore}% or above`
-                      : `${t.reqCount} session${t.reqCount === 1 ? '' : 's'} at ${t.reqMinScore}% or above`}
-                    {' · '}
-                    <code className="mono">{t.key}</code>
+                    {t.reqScore != null ? `Any session at ${t.reqScore}% or above` : `${t.reqCount} session${t.reqCount === 1 ? '' : 's'} at ${t.reqMinScore}% or above`}
+                    {' · '}<code className="mono">{t.key}</code>
                   </span>
                 </div>
               </div>
-
               <div className="admin-row-actions">
-                <button
-                  className="icon-btn"
-                  onClick={() => toggleEnabled(t)}
-                  title={t.enabled ? 'Hide from candidates' : 'Show to candidates'}
-                  aria-label={t.enabled ? 'Hide milestone' : 'Show milestone'}
-                >
+                <button className="icon-btn" onClick={() => toggleEnabled(t)} title={t.enabled ? 'Hide' : 'Show'} aria-label={t.enabled ? 'Hide milestone' : 'Show milestone'}>
                   {t.enabled ? <Eye size={15} /> : <EyeOff size={15} />}
                 </button>
-                <button className="btn btn-secondary btn-sm" onClick={() => startEdit(t)}>Edit</button>
-                <button
-                  className="icon-btn icon-btn-danger"
-                  onClick={() => remove(t)}
-                  title="Delete milestone"
-                  aria-label={`Delete ${t.title}`}
-                >
+                <button className="btn btn-secondary btn-sm" onClick={() => setEditing({ ...t, reqScore: t.reqScore ?? '' })}>Edit</button>
+                <button className="icon-btn icon-btn-danger" onClick={() => remove(t)} title="Delete milestone" aria-label={`Delete ${t.title}`}>
                   <Trash2 size={15} />
                 </button>
               </div>
@@ -212,88 +182,42 @@ export default function CertificateManager() {
         <div className="cert-editor">
           <div className="cert-editor-head">
             <h4>{editing._id ? 'Edit milestone' : 'New milestone'}</h4>
-            <button className="icon-btn" onClick={() => setEditing(null)} aria-label="Close editor">
-              <X size={15} />
-            </button>
+            <button className="icon-btn" onClick={() => setEditing(null)} aria-label="Close editor"><X size={15} /></button>
           </div>
 
           <div className="cert-editor-grid">
             <form onSubmit={save}>
               <div className="field">
                 <span className="field-label">Title</span>
-                <input
-                  value={editing.title}
-                  onChange={(e) => setEditing({ ...editing, title: e.target.value })}
-                  placeholder="Interview Specialist Certificate"
-                  required
-                />
+                <input value={editing.title} onChange={(e) => setField('title', e.target.value)} placeholder="Interview Specialist Certificate" required />
               </div>
-
               <div className="field">
                 <span className="field-label">Description shown in the picker</span>
-                <textarea
-                  rows={2}
-                  value={editing.description}
-                  onChange={(e) => setEditing({ ...editing, description: e.target.value })}
-                  placeholder="Complete 3 sessions with a score of 70% or higher."
-                />
+                <textarea rows={2} value={editing.description} onChange={(e) => setField('description', e.target.value)} placeholder="Complete 3 sessions with a score of 70% or higher." />
               </div>
-
               <div className="field">
                 <span className="field-label">Line printed above the milestone name</span>
-                <input
-                  value={editing.subtitle}
-                  onChange={(e) => setEditing({ ...editing, subtitle: e.target.value })}
-                />
+                <input value={editing.subtitle} onChange={(e) => setField('subtitle', e.target.value)} />
               </div>
-
               <div className="field-row">
                 <div className="field">
                   <span className="field-label">Sessions required</span>
-                  <input
-                    type="number"
-                    min="1"
-                    max="500"
-                    value={editing.reqCount}
-                    onChange={(e) => setEditing({ ...editing, reqCount: e.target.value })}
-                    disabled={editing.reqScore !== '' && editing.reqScore !== null}
-                  />
+                  <input type="number" min="1" max="500" value={editing.reqCount} onChange={(e) => setField('reqCount', e.target.value)} disabled={editing.reqScore !== '' && editing.reqScore !== null} />
                 </div>
                 <div className="field">
                   <span className="field-label">Minimum score each</span>
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={editing.reqMinScore}
-                    onChange={(e) => setEditing({ ...editing, reqMinScore: e.target.value })}
-                    disabled={editing.reqScore !== '' && editing.reqScore !== null}
-                  />
+                  <input type="number" min="0" max="100" value={editing.reqMinScore} onChange={(e) => setField('reqMinScore', e.target.value)} disabled={editing.reqScore !== '' && editing.reqScore !== null} />
                 </div>
               </div>
-
               <div className="field">
                 <span className="field-label">Or award on a single score (leave blank to use the rule above)</span>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={editing.reqScore}
-                  onChange={(e) => setEditing({ ...editing, reqScore: e.target.value })}
-                  placeholder="e.g. 85"
-                />
+                <input type="number" min="0" max="100" value={editing.reqScore} onChange={(e) => setField('reqScore', e.target.value)} placeholder="e.g. 85" />
               </div>
-
               <div className="field">
                 <span className="field-label">Layout</span>
                 <div className="design-picker">
                   {DESIGNS.map((d) => (
-                    <button
-                      type="button"
-                      key={d.id}
-                      className={`design-option ${editing.design === d.id ? 'selected' : ''}`}
-                      onClick={() => setEditing({ ...editing, design: d.id })}
-                    >
+                    <button type="button" key={d.id} className={`design-option ${editing.design === d.id ? 'selected' : ''}`} onClick={() => setField('design', d.id)}>
                       <span className={`design-thumb design-thumb-${d.id}`} style={{ '--cert-accent': editing.accent }} />
                       <strong>{d.label}</strong>
                       <span className="subtle small">{d.hint}</span>
@@ -301,37 +225,18 @@ export default function CertificateManager() {
                   ))}
                 </div>
               </div>
-
               <div className="field">
                 <span className="field-label">Accent colour</span>
                 <div className="swatch-row">
                   {SWATCHES.map((c) => (
-                    <button
-                      type="button"
-                      key={c}
-                      className={`swatch ${editing.accent === c ? 'selected' : ''}`}
-                      style={{ background: c }}
-                      onClick={() => setEditing({ ...editing, accent: c })}
-                      aria-label={`Use ${c}`}
-                    />
+                    <button type="button" key={c} className={`swatch ${editing.accent === c ? 'selected' : ''}`} style={{ background: c }} onClick={() => setField('accent', c)} aria-label={`Use ${c}`} />
                   ))}
-                  <input
-                    type="color"
-                    className="swatch-custom"
-                    value={editing.accent}
-                    onChange={(e) => setEditing({ ...editing, accent: e.target.value })}
-                    aria-label="Custom accent colour"
-                  />
+                  <input type="color" className="swatch-custom" value={editing.accent} onChange={(e) => setField('accent', e.target.value)} aria-label="Custom accent colour" />
                 </div>
               </div>
-
               <label className="switch-row" style={{ marginBottom: '1.1rem' }}>
                 <span className="switch">
-                  <input
-                    type="checkbox"
-                    checked={Boolean(editing.enabled)}
-                    onChange={(e) => setEditing({ ...editing, enabled: e.target.checked })}
-                  />
+                  <input type="checkbox" checked={Boolean(editing.enabled)} onChange={(e) => setField('enabled', e.target.checked)} />
                   <span className="switch-track" />
                 </span>
                 <span className="switch-copy">
@@ -339,19 +244,14 @@ export default function CertificateManager() {
                   <span className="muted small">Turn off to retire a credential without deleting it.</span>
                 </span>
               </label>
-
               <div className="admin-row-actions">
                 <button type="submit" className="btn btn-primary" disabled={saving}>
                   <Save size={15} /> {saving ? 'Saving…' : editing._id ? 'Save changes' : 'Create milestone'}
                 </button>
-                <button type="button" className="btn btn-ghost" onClick={() => setEditing(null)}>
-                  Cancel
-                </button>
+                <button type="button" className="btn btn-ghost" onClick={() => setEditing(null)}>Cancel</button>
               </div>
             </form>
 
-            {/* Renders the real component, so what the admin sees here is exactly
-                what a candidate downloads. */}
             <div className="cert-preview-pane">
               <span className="field-label">Live preview</span>
               <div className="cert-preview-scaler">

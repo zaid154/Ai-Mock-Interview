@@ -15,6 +15,17 @@ const questionSchema = new Schema(
     correctIndex: { type: Number, default: null },
     selectedIndex: { type: Number, default: null },
     notes: { type: String, default: '' },
+    // 4-pillar rubric breakdown & educational feedback
+    rubric: {
+      technicalAccuracy: { type: Number, default: 0 },
+      depthAndTradeoffs: { type: Number, default: 0 },
+      structureAndFlow: { type: Number, default: 0 },
+      communication: { type: Number, default: 0 },
+    },
+    talkingPoints: { type: [String], default: [] },
+    modelAnswer: { type: String, default: '' },
+    followUpPrompt: { type: String, default: '' },
+    followUpAnswer: { type: String, default: '' },
   },
   { _id: false },
 )

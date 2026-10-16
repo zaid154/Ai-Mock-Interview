@@ -6,3 +6,12 @@ export function formatGeneratedText(value) {
     .replaceAll('\\n', '\n')
     .replaceAll('\\t', '\t')
 }
+
+export function normalizePrompt(value) {
+  if (!value) return ''
+  return String(value)
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .replace(/[ \t]+/g, ' ')
+    .trim()
+}

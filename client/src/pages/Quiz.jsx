@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { ChevronLeft, ChevronRight, Bookmark, Edit3, CheckCircle2 } from 'lucide-react'
 import api, { apiError } from '../lib/api'
+import { normalizePrompt } from '../lib/text'
 import QuizHud from '../components/quiz/QuizHud'
 import FormattedPrompt from '../components/FormattedPrompt'
 
@@ -47,7 +48,9 @@ export default function Quiz() {
       .get('/bookmarks')
       .then((res) => {
         const map = {}
-        ;(res.data.bookmarks || []).forEach((b) => { map[b.prompt] = true })
+        ;(res.data.bookmarks || []).forEach((b) => {
+          map[normalizePrompt(b.prompt)] = true
+        })
         setBookmarkedMap(map)
       })
       .catch(() => {})
@@ -66,6 +69,10 @@ export default function Quiz() {
   }
 
   async function handleBookmark(prompt, options) {
+    const key = normalizePrompt(prompt)
+    const currentStatus = Boolean(bookmarkedMap[key])
+    setBookmarkedMap((prev) => ({ ...prev, [key]: !currentStatus }))
+
     try {
       const { data } = await api.post('/bookmarks/toggle', {
         prompt,
@@ -74,9 +81,10 @@ export default function Quiz() {
         options,
         notes: notes[current],
       })
-      setBookmarkedMap((prev) => ({ ...prev, [prompt]: data.bookmarked }))
+      setBookmarkedMap((prev) => ({ ...prev, [key]: data.bookmarked }))
       toast.success(data.bookmarked ? 'Quiz question bookmarked!' : 'Bookmark removed')
     } catch (err) {
+      setBookmarkedMap((prev) => ({ ...prev, [key]: currentStatus }))
       toast.error(apiError(err, 'Could not update bookmark'))
     }
   }
@@ -126,10 +134,10 @@ export default function Quiz() {
           <button
             className="btn btn-ghost btn-sm"
             onClick={() => handleBookmark(question.prompt, question.options)}
-            title={bookmarkedMap[question.prompt] ? 'Remove bookmark' : 'Bookmark this question'}
+            title={bookmarkedMap[normalizePrompt(question.prompt)] ? 'Remove bookmark' : 'Bookmark this question'}
           >
-            <Bookmark size={15} fill={bookmarkedMap[question.prompt] ? 'currentColor' : 'none'} />
-            {bookmarkedMap[question.prompt] ? 'Bookmarked' : 'Bookmark'}
+            <Bookmark size={15} fill={bookmarkedMap[normalizePrompt(question.prompt)] ? 'currentColor' : 'none'} />
+            {bookmarkedMap[normalizePrompt(question.prompt)] ? 'Bookmarked' : 'Bookmark'}
           </button>
         </div>
 

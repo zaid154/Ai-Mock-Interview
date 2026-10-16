@@ -8,17 +8,6 @@ import PracticeStudio from '../components/dashboard/PracticeStudio'
 
 const DIFFICULTY_MAP = { Junior: 'easy', Intermediate: 'medium', Senior: 'hard' }
 
-function getBatchSizes(total) {
-  const batches = []
-  let remaining = total
-  while (remaining > 0) {
-    const size = remaining >= 2 ? 2 : 1
-    batches.push(size)
-    remaining -= size
-  }
-  return batches
-}
-
 export default function Practice() {
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -82,69 +71,43 @@ export default function Practice() {
     cancelRef.current = false
     setBusy(true)
     const total = Number(numQuestions)
-    const batches = getBatchSizes(total)
-    const collected = []
-    let completedCount = 0
 
     setProgress({
       active: true,
-      percent: 25,
-      statusText: `Generating questions 1–${batches[0]} of ${total}`,
+      percent: 45,
+      statusText: 'Connecting studio & curating questions…',
       isRetrying: false,
       errorMessage: null,
       onCancel: () => { cancelRef.current = true; setBusy(false); setProgress({ active: false }) },
     })
 
-    const runBatch = async (idx, isRetry = false) => {
-      if (cancelRef.current) return []
-      const size = batches[idx]
-      try {
-        const { data } = await api.post('/interviews/batch', {
-          mode, role: role.trim() || 'Software Engineer', category: finalTopic,
-          experience: difficulty, difficulty: DIFFICULTY_MAP[difficulty] || 'medium',
-          count: size,
-          batchIndex: idx,
-        })
-        const qs = data.questions || []
-        completedCount += qs.length
-        const pct = Math.min(95, Math.round((completedCount / total) * 100))
-        const nextStart = Math.min(total, completedCount + 1)
-        const nextEnd = Math.min(total, nextStart + (batches[idx + 1] || 1) - 1)
-        const label = completedCount >= total
-          ? 'Assessment ready ✓'
-          : (nextStart === nextEnd ? `Generating question ${nextStart} of ${total}` : `Generating questions ${nextStart}–${nextEnd} of ${total}`)
-
-        setProgress((prev) => ({ ...prev, percent: pct, statusText: label }))
-        return qs
-      } catch (err) {
-        if (!isRetry) return runBatch(idx, true)
-        throw err
-      }
-    }
-
-    try {
-      const results = await Promise.all(batches.map((_, i) => runBatch(i, false)))
-      if (cancelRef.current) { setBusy(false); setProgress({ active: false }); return }
-      collected.push(...results.flat())
-    } catch (err) {
-      setBusy(false)
-      setProgress((p) => ({ ...p, errorMessage: 'Unable to generate questions batch.', onRetry: () => createSession() }))
-      return toast.error(apiError(err, 'Question generation failed'))
-    }
-
-    setProgress({ active: true, percent: 100, statusText: 'Assessment ready ✓' })
     try {
       const payload = {
-        mode, role: role.trim() || 'Software Engineer', category: finalTopic,
-        experience: difficulty, difficulty: DIFFICULTY_MAP[difficulty] || 'medium',
-        count: total, timerMinutes: Number(timerMinutes), questions: collected,
+        mode,
+        role: role.trim() || 'Software Engineer',
+        category: finalTopic,
+        experience: difficulty,
+        difficulty: DIFFICULTY_MAP[difficulty] || 'medium',
+        count: total,
+        timerMinutes: Number(timerMinutes),
       }
+
+      setProgress((p) => ({ ...p, percent: 85, statusText: 'Curating targeted interview scenario…' }))
       const { data } = await api.post('/interviews', payload)
+
+      if (cancelRef.current) {
+        setBusy(false)
+        setProgress({ active: false })
+        return
+      }
+
+      setProgress({ active: true, percent: 100, statusText: 'Assessment ready ✓' })
       const session = data.interview || data.session
       navigate(session.mode === 'quiz' ? `/quiz/${session._id}` : `/interview/${session._id}`)
     } catch (err) {
+      setBusy(false)
+      setProgress((p) => ({ ...p, errorMessage: 'Unable to start assessment.', onRetry: () => createSession() }))
       toast.error(apiError(err, 'Could not start session'))
-      setBusy(false); setProgress({ active: false })
     }
   }
 

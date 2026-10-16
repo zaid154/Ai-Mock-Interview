@@ -91,14 +91,35 @@ export default function BookmarkCard({
       {/* Revealed Answer Content */}
       {isRevealed && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', marginBottom: '1rem' }}>
-          {b.answer && (
+          {b.modelAnswer && (
+            <div style={{ background: 'var(--surface-2)', border: '1px solid rgba(168, 85, 247, 0.3)', borderRadius: '10px', padding: '1rem' }}>
+              <span className="muted small" style={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.72rem', display: 'block', marginBottom: '0.4rem', color: '#c084fc' }}>
+                Senior Engineer Reference Answer:
+              </span>
+              <div style={{ margin: 0, fontSize: '0.94rem', lineHeight: 1.6, color: '#f1f5f9' }}>
+                <FormattedPrompt text={b.modelAnswer} />
+              </div>
+            </div>
+          )}
+
+          {b.answer && (!b.modelAnswer || b.answer !== b.modelAnswer) && (
             <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: '10px', padding: '1rem' }}>
               <span className="muted small" style={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.72rem', display: 'block', marginBottom: '0.4rem', color: 'var(--accent-primary)' }}>
-                Model / Candidate Response:
+                Your Practice Response:
               </span>
               <div style={{ margin: 0, fontSize: '0.94rem', lineHeight: 1.6, color: 'var(--text)' }}>
                 <FormattedPrompt text={b.answer} />
               </div>
+            </div>
+          )}
+
+          {Array.isArray(b.talkingPoints) && b.talkingPoints.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+              {b.talkingPoints.map((tp, tpIdx) => (
+                <span key={tpIdx} style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem', borderRadius: '6px', background: 'rgba(255, 255, 255, 0.05)', color: '#cbd5e1', border: '1px solid var(--border-soft)' }}>
+                  {tp}
+                </span>
+              ))}
             </div>
           )}
 

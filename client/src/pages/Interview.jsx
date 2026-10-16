@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react'
 import api, { apiError } from '../lib/api'
+import { normalizePrompt } from '../lib/text'
 import InterviewHUD from '../components/interview/InterviewHUD'
 import QuestionWorkbench from '../components/interview/QuestionWorkbench'
 
@@ -18,6 +19,8 @@ export default function Interview() {
   const [submitting, setSubmitting] = useState(false)
   const [bookmarkedMap, setBookmarkedMap] = useState({})
   const [copiedPrompt, setCopiedPrompt] = useState(false)
+  const [probing, setProbing] = useState(false)
+  const [followUpMap, setFollowUpMap] = useState({})
 
   useEffect(() => {
     api
@@ -35,6 +38,11 @@ export default function Interview() {
         setInterview(data)
         setAnswers(data.questions.map((q) => q.answer || ''))
         setNotes(data.questions.map((q) => q.notes || ''))
+        const existingProbes = {}
+        data.questions.forEach((q, idx) => {
+          if (q.followUpPrompt) existingProbes[idx] = q.followUpPrompt
+        })
+        setFollowUpMap(existingProbes)
       })
       .catch((err) => {
         toast.error(apiError(err, 'Could not load the interview'))
@@ -46,7 +54,9 @@ export default function Interview() {
       .get('/bookmarks')
       .then((res) => {
         const map = {}
-        ;(res.data.bookmarks || []).forEach((b) => { map[b.prompt] = true })
+        ;(res.data.bookmarks || []).forEach((b) => {
+          map[normalizePrompt(b.prompt)] = true
+        })
         setBookmarkedMap(map)
       })
       .catch(() => {})
@@ -63,7 +73,7 @@ export default function Interview() {
   }, [currentAnswer])
 
   function updateAnswer(value) {
-    setAnswers((prev) => prev.map((a, i) => (i === current ? value : a)))
+    setAnswers((prev) => prev.map((a, i) => (i === current ? (typeof value === 'function' ? value(a) : value) : a)))
   }
 
   function updateNote(value) {
@@ -83,6 +93,11 @@ export default function Interview() {
   }
 
   async function handleBookmark(prompt) {
+    const key = normalizePrompt(prompt)
+    // Optimistic toggle
+    const currentStatus = Boolean(bookmarkedMap[key])
+    setBookmarkedMap((prev) => ({ ...prev, [key]: !currentStatus }))
+
     try {
       const { data } = await api.post('/bookmarks/toggle', {
         prompt,
@@ -91,10 +106,27 @@ export default function Interview() {
         answer: answers[current],
         notes: notes[current],
       })
-      setBookmarkedMap((prev) => ({ ...prev, [prompt]: data.bookmarked }))
+      setBookmarkedMap((prev) => ({ ...prev, [key]: data.bookmarked }))
       toast.success(data.bookmarked ? 'Question bookmarked!' : 'Bookmark removed')
     } catch (err) {
+      setBookmarkedMap((prev) => ({ ...prev, [key]: currentStatus })) // rollback
       toast.error(apiError(err, 'Could not update bookmark'))
+    }
+  }
+
+  async function handleProbeFollowUp() {
+    setProbing(true)
+    try {
+      const { data } = await api.post(`/interviews/${id}/probe`, {
+        questionIndex: current,
+        answer: answers[current],
+      })
+      setFollowUpMap((prev) => ({ ...prev, [current]: data.followUpPrompt }))
+      toast.success('Interviewer follow-up received!')
+    } catch (err) {
+      toast.error(apiError(err, 'Could not generate follow-up probe'))
+    } finally {
+      setProbing(false)
     }
   }
 
@@ -144,13 +176,16 @@ export default function Interview() {
         answer={answers[current] || ''}
         note={notes[current] || ''}
         wordCount={wordCount}
-        isBookmarked={Boolean(bookmarkedMap[question?.prompt])}
+        isBookmarked={Boolean(bookmarkedMap[normalizePrompt(question?.prompt)])}
         copiedPrompt={copiedPrompt}
         onUpdateAnswer={updateAnswer}
         onUpdateNote={updateNote}
         onClearAnswer={clearCurrentAnswer}
         onCopyPrompt={copyQuestionPrompt}
         onBookmark={handleBookmark}
+        onProbeFollowUp={handleProbeFollowUp}
+        probing={probing}
+        followUpPrompt={followUpMap[current] || ''}
       />
 
       {/* ── Bottom Navigation Controls ── */}

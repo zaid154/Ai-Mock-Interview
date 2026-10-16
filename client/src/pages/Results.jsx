@@ -5,7 +5,7 @@ import { RotateCcw, Award, Edit3, Save, Sparkles } from 'lucide-react'
 import api, { apiError } from '../lib/api'
 import ScoreChart from '../components/ScoreChart'
 import QuestionEvaluationList from '../components/QuestionEvaluationList'
-import { formatGeneratedText } from '../lib/text'
+import { formatGeneratedText, normalizePrompt } from '../lib/text'
 
 function verdict(score) {
   if (score >= 80) return { label: 'Strong Candidate', className: 'score-chip', desc: 'Ready for real-world interviews!' }
@@ -37,13 +37,19 @@ export default function Results() {
       .get('/bookmarks')
       .then((res) => {
         const map = {}
-        ;(res.data.bookmarks || []).forEach((b) => { map[b.prompt] = true })
+        ;(res.data.bookmarks || []).forEach((b) => {
+          map[normalizePrompt(b.prompt)] = true
+        })
         setBookmarkedMap(map)
       })
       .catch(() => {})
   }, [id])
 
   async function handleBookmarkQuestion(q) {
+    const key = normalizePrompt(q.prompt)
+    const currentStatus = Boolean(bookmarkedMap[key])
+    setBookmarkedMap((prev) => ({ ...prev, [key]: !currentStatus }))
+
     try {
       const { data } = await api.post('/bookmarks/toggle', {
         prompt: q.prompt,
@@ -54,10 +60,14 @@ export default function Results() {
         options: q.options,
         correctIndex: q.correctIndex,
         notes: q.notes,
+        modelAnswer: q.modelAnswer,
+        rubric: q.rubric,
+        talkingPoints: q.talkingPoints,
       })
-      setBookmarkedMap((prev) => ({ ...prev, [q.prompt]: data.bookmarked }))
+      setBookmarkedMap((prev) => ({ ...prev, [key]: data.bookmarked }))
       toast.success(data.bookmarked ? 'Question saved to Bookmarks!' : 'Bookmark removed')
     } catch (err) {
+      setBookmarkedMap((prev) => ({ ...prev, [key]: currentStatus }))
       toast.error(apiError(err, 'Could not update bookmark'))
     }
   }
