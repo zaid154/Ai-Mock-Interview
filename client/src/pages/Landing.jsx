@@ -3,7 +3,6 @@ import { Link, useLocation } from 'react-router-dom'
 import { Zap, ArrowRight, Trophy, CheckCircle2, ShieldCheck, Gauge, Award } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { scrollToSectionId } from '../lib/scrollToSection'
-import ReflectBlackHole from '../components/landing/ReflectBlackHole'
 import HeroHUD from '../components/landing/HeroHUD'
 import TrackExplorer from '../components/landing/TrackExplorer'
 import GlassBentoGrid from '../components/landing/GlassBentoGrid'
@@ -36,18 +35,17 @@ export default function Landing() {
     <div className="reflect-canvas" style={{ minHeight: '100dvh' }}>
       <div className="reflect-ambient-glow" />
 
-      {/* Hero Section with Authentic Reflect Black Hole Animation */}
+      {/* Hero Section with Product-First Interactive Simulation Preview */}
       <section className="container reflect-hero-stage" id="overview">
         <div className="reflect-hero-inner">
-
           <h1 style={{
-            fontSize: 'clamp(1.95rem, 4.4vw, 3.5rem)',
-            fontWeight: 500,
-            letterSpacing: '-0.03em',
+            fontSize: 'clamp(2.1rem, 4.4vw, 3.6rem)',
+            fontWeight: 600,
+            letterSpacing: '-0.035em',
             lineHeight: 1.15,
             maxWidth: '22ch',
-            margin: '0 auto 0.6rem',
-            background: 'linear-gradient(180deg, #ffffff 0%, rgba(255, 255, 255, 0.72) 100%)',
+            margin: '0 auto 0.75rem',
+            background: 'linear-gradient(180deg, #ffffff 0%, rgba(255, 255, 255, 0.78) 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent'
           }}>
@@ -55,37 +53,34 @@ export default function Landing() {
           </h1>
 
           <p style={{
-            color: 'rgba(239, 237, 253, 0.72)',
-            fontSize: 'clamp(0.88rem, 1.6vw, 1.05rem)',
-            maxWidth: '50ch',
-            margin: '0 auto 1.15rem',
-            lineHeight: 1.5,
+            color: 'rgba(239, 237, 253, 0.75)',
+            fontSize: 'clamp(0.95rem, 1.8vw, 1.1rem)',
+            maxWidth: '52ch',
+            margin: '0 auto 1.5rem',
+            lineHeight: 1.6,
             fontWeight: 400
           }}>
             Real-time AI evaluation, distributed systems critique, and verified diplomas.
           </p>
 
-          <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '0.85rem', position: 'relative', zIndex: 3 }}>
-            <Link to={user ? '/dashboard' : '/register'} className="reflect-btn-primary" style={{ padding: '0.6rem 1.5rem', fontSize: '0.86rem' }}>
+          <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '2.5rem', position: 'relative', zIndex: 3 }}>
+            <Link to={user ? '/dashboard' : '/register'} className="reflect-btn-primary" style={{ padding: '0.65rem 1.6rem', fontSize: '0.88rem' }}>
               <Zap size={15} /> Start Free Session <ArrowRight size={15} />
             </Link>
-            <Link to="/leaderboard" className="reflect-btn-secondary" style={{ padding: '0.6rem 1.4rem', fontSize: '0.86rem' }}>
+            <Link to="/leaderboard" className="reflect-btn-secondary" style={{ padding: '0.65rem 1.5rem', fontSize: '0.88rem' }}>
               <Trophy size={15} /> Global Standings
             </Link>
           </div>
 
-          {/* Authentic Animated Reflect Black Hole Video & Concentric Orbital Rings */}
-          <ReflectBlackHole />
+          {/* Interactive Live Simulation Preview — Product Front & Center */}
+          <div style={{ position: 'relative', zIndex: 2, margin: '1rem auto 2.5rem' }}>
+            <HeroHUD />
+          </div>
         </div>
       </section>
 
-      {/* Interactive Double-Border Glass HUD Showcase */}
-      <section className="container" style={{ position: 'relative', zIndex: 2, padding: '2.5rem 0 1.5rem' }}>
-        <HeroHUD />
-      </section>
-
       {/* Reflect Divider */}
-      <div className="container"><hr className="reflect-gridline-h" style={{ margin: '2rem 0' }} /></div>
+      <div className="container"><hr className="reflect-gridline-h" style={{ margin: '1rem 0 2rem' }} /></div>
 
       {/* Metric Telemetry Ribbon */}
       <section className="container" style={{ padding: '1rem 0 2rem', position: 'relative', zIndex: 1 }}>
@@ -163,7 +158,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Final Glass Conversion Banner */}
+      {/* Final Conversion Banner */}
       <section className="container" style={{ paddingBottom: '6rem', position: 'relative', zIndex: 1 }}>
         <div className="reflect-showcase-outer" style={{ maxWidth: '840px', margin: '0 auto' }}>
           <div className="reflect-starlight-h" style={{ top: '-1px', left: '30%' }} />
