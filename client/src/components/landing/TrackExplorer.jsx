@@ -5,39 +5,39 @@ import { Code2, Server, Network, TerminalSquare, ArrowRight, CheckCircle2 } from
 const TRACKS = [
   {
     id: 'frontend',
-    title: 'Full Stack & Frontend',
+    title: 'Frontend & Full Stack',
     icon: Code2,
-    badge: 'React 19 • Next.js • Web Vitals',
-    roles: 'Staff UI Engineer / Full-Stack Lead',
-    question: 'How does React 19 Actions and useTransition mitigate race conditions in optimistic UI updates? Explain reconciliation and microtask queuing.',
-    criteria: ['Concurrent rendering & fiber trees', 'SSR hydration mismatches & boundaries', 'INP / LCP optimization techniques']
+    badge: 'React • Next.js • TypeScript',
+    roles: 'Senior Frontend / Full Stack Engineer',
+    question: 'How would you implement an optimistic UI update in React (such as liking a post or submitting a comment) so the UI updates immediately, while ensuring server errors roll back cleanly without race conditions?',
+    criteria: ['Optimistic state rollbacks', 'Race condition mitigation with abort signals', 'Graceful error handling & user feedback']
   },
   {
     id: 'backend',
-    title: 'Distributed Backend',
+    title: 'Backend & APIs',
     icon: Server,
-    badge: 'Node.js • Redis • Kafka • Go',
-    roles: 'Senior Backend Engineer / Architect',
-    question: 'Prevent cascading failures and handle thread pool exhaustion in Node.js when downstream microservices experience p99 latency spikes.',
-    criteria: ['Circuit breaker patterns (Hystrix/Resilience4j)', 'Worker threads vs. cluster module', 'Backpressure streams & queue backlogs']
+    badge: 'Node.js • PostgreSQL • Redis',
+    roles: 'Backend Engineer / Microservices Lead',
+    question: 'Suppose your API depends on a downstream third-party service that suddenly starts taking 10+ seconds to respond. How do you prevent your server from exhausting connection pools and cascading failures across your application?',
+    criteria: ['Timeouts & circuit breaker patterns', 'Connection pool tuning & backpressure', 'Fallback responses & graceful degradation']
   },
   {
     id: 'system-design',
-    title: 'System Design & HLD',
+    title: 'System Design & Architecture',
     icon: Network,
-    badge: 'High Scale • Sharding • Event-Driven',
-    roles: 'Principal Architect / Engineering Director',
-    question: 'Architect a globally distributed notification service handling 100M daily pushes with regional deduplication, failover, and strict p95 SLAs.',
-    criteria: ['Multi-region active-active database replication', 'Idempotent delivery keys & deduplication', 'Kafka partition keys & consumer rebalancing']
+    badge: 'Distributed Systems • Scalability',
+    roles: 'Senior / Staff Systems Architect',
+    question: 'Design a notification service that reliably sends millions of push, email, and SMS notifications daily. How do you guarantee exactly-once or at-least-once delivery without sending duplicate alerts to users?',
+    criteria: ['Event queues (Kafka/RabbitMQ) & worker pools', 'Idempotency keys & database deduplication', 'Rate limiting & retry exponential backoff']
   },
   {
     id: 'devops',
-    title: 'Cloud & DevOps',
+    title: 'DevOps & Infrastructure',
     icon: TerminalSquare,
-    badge: 'Kubernetes • Docker • CI/CD • AWS',
-    roles: 'DevOps Lead / SRE Specialist',
-    question: 'Troubleshoot an intermittent CrashLoopBackOff in a Kubernetes Pod caused by memory leaks vs. JVM cgroup memory limit misalignment.',
-    criteria: ['cgroups v1 vs v2 OOM killer semantics', 'Zero-downtime canary deployments via Argo', 'Prometheus custom metrics & HPA scaling']
+    badge: 'Docker • Kubernetes • CI/CD',
+    roles: 'DevOps Engineer / Site Reliability Engineer',
+    question: 'Walk me through how you would troubleshoot a production service in Kubernetes that is intermittently crashing with an OOMKilled (Exit Code 137) status, and how you configure container resource requests vs limits safely.',
+    criteria: ['Log inspection & container crash analytics', 'Resource requests vs limit configurations', 'Health probes (liveness vs readiness) & rollbacks']
   }
 ]
 
@@ -74,34 +74,33 @@ export default function TrackExplorer({ user }) {
                 alignItems: 'center',
                 gap: '0.75rem',
                 padding: '0.85rem 1rem',
-                borderRadius: '12px',
-                border: isActive ? '1px solid rgba(186, 156, 255, 0.4)' : '1px solid rgba(255, 255, 255, 0.08)',
-                background: isActive ? 'linear-gradient(180deg, rgba(147, 100, 255, 0.15) 0%, rgba(147, 100, 255, 0.05) 100%)' : 'rgba(255, 255, 255, 0.02)',
-                color: isActive ? '#ffffff' : 'rgba(239, 237, 253, 0.65)',
+                borderRadius: '8px',
+                border: isActive ? '1px solid #58a6ff' : '1px solid #30363d',
+                background: isActive ? '#161b22' : 'transparent',
+                color: isActive ? '#f0f6fc' : '#8b949e',
                 cursor: 'pointer',
                 textAlign: 'left',
-                transition: 'all 0.25s ease',
-                boxShadow: isActive ? '0 0 20px rgba(147, 100, 255, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15)' : 'none'
+                transition: 'all 0.15s ease'
               }}
             >
               <div style={{
                 width: '32px',
                 height: '32px',
-                borderRadius: '8px',
-                background: isActive ? 'rgba(168, 85, 247, 0.3)' : 'rgba(255, 255, 255, 0.05)',
-                border: isActive ? '1px solid rgba(192, 132, 252, 0.4)' : '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: '6px',
+                background: isActive ? 'rgba(88, 166, 255, 0.15)' : '#21262d',
+                border: isActive ? '1px solid rgba(88, 166, 255, 0.3)' : '1px solid #30363d',
                 display: 'grid',
                 placeItems: 'center',
-                color: isActive ? '#e59cff' : 'rgba(239, 237, 253, 0.6)',
+                color: isActive ? '#58a6ff' : '#8b949e',
                 flexShrink: 0
               }}>
                 <Icon size={16} aria-hidden="true" />
               </div>
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: '0.85rem', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {track.title}
                 </div>
-                <div style={{ fontSize: '0.7rem', color: 'rgba(239, 237, 253, 0.5)' }}>
+                <div style={{ fontSize: '0.7rem', color: '#8b949e' }}>
                   {track.roles.split('/')[0]}
                 </div>
               </div>
@@ -110,34 +109,34 @@ export default function TrackExplorer({ user }) {
         })}
       </div>
 
-      {/* Selected Track Detail Glass Surface */}
+      {/* Selected Track Detail Surface */}
       <div
         role="tabpanel"
         id="track-tabpanel"
         aria-labelledby={`track-tab-${selectedTrack}`}
         style={{
-          borderRadius: '16px',
+          borderRadius: '8px',
           padding: '1.5rem',
-          background: 'rgba(0, 0, 0, 0.25)',
-          border: '1px solid rgba(255, 255, 255, 0.06)'
+          background: '#161b22',
+          border: '1px solid #30363d'
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1rem' }}>
-          <div className="glass-pill" style={{ borderColor: 'rgba(186, 156, 255, 0.3)', color: '#d8b4fe' }}>
+          <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.6rem', borderRadius: '999px', background: 'rgba(88, 166, 255, 0.1)', border: '1px solid rgba(88, 166, 255, 0.25)', color: '#58a6ff', fontFamily: 'var(--font-mono)' }}>
             {current.badge}
-          </div>
-          <span className="mono" style={{ fontSize: '0.75rem', color: 'rgba(239, 237, 253, 0.6)' }}>
+          </span>
+          <span style={{ fontSize: '0.75rem', color: '#8b949e' }}>
             Target: {current.roles}
           </span>
         </div>
 
-        <h4 style={{ fontSize: '1.05rem', fontWeight: 600, lineHeight: 1.55, marginBottom: '1.25rem', color: '#f8fafc' }}>
+        <h4 style={{ fontSize: '1rem', fontWeight: 600, lineHeight: 1.6, marginBottom: '1.25rem', color: '#f0f6fc' }}>
           &ldquo;{current.question}&rdquo;
         </h4>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.75rem', marginBottom: '1.5rem' }}>
           {current.criteria.map((item, idx) => (
-            <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.82rem', color: 'rgba(239, 237, 253, 0.75)' }}>
+            <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.82rem', color: '#c9d1d9' }}>
               <CheckCircle2 size={15} style={{ color: '#34d399', marginTop: '2px', flexShrink: 0 }} aria-hidden="true" />
               <span>{item}</span>
             </div>

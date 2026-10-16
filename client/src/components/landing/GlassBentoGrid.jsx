@@ -1,40 +1,51 @@
-import { Brain, FileText, Award, BarChart3, ArrowUpRight } from 'lucide-react'
+import { Brain, FileText, Award, BarChart3, ArrowUpRight, Copy, Check } from 'lucide-react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
 export default function GlassBentoGrid() {
+  const [copied, setCopied] = useState(false)
+
+  function handleCopy() {
+    navigator.clipboard?.writeText('https://mockmate.dev/verify/cert_89f2a')
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
   return (
     <div className="bento-grid">
-      {/* Bento 1: AI Evaluation Engine */}
+      {/* Bento 1: Detailed Skill Analysis */}
       <div className="reflect-card bento-span-7" style={{ padding: '1.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-              <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'rgba(168, 85, 247, 0.15)', border: '1px solid rgba(168, 85, 247, 0.3)', display: 'grid', placeItems: 'center', color: '#c084fc' }}>
+              <div style={{ width: '34px', height: '34px', borderRadius: '8px', background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.25)', display: 'grid', placeItems: 'center', color: '#38bdf8' }}>
                 <Brain size={18} aria-hidden="true" />
               </div>
-              <span className="mono" style={{ fontSize: '0.78rem', color: '#c084fc', fontWeight: 700 }}>
-                AI EVALUATION ENGINE
+              <span className="mono" style={{ fontSize: '0.75rem', color: '#38bdf8', fontWeight: 700, letterSpacing: '0.04em' }}>
+                EVALUATION BREAKDOWN
               </span>
             </div>
-            <span className="glass-pill" style={{ color: '#34d399', fontSize: '0.72rem', border: '1px solid rgba(52, 211, 153, 0.25)' }}>Real-Time Scoring</span>
+            <span style={{ fontSize: '0.72rem', color: '#34d399', background: 'rgba(52, 211, 153, 0.1)', border: '1px solid rgba(52, 211, 153, 0.25)', borderRadius: '999px', padding: '0.2rem 0.6rem' }}>
+              Instant Scoring
+            </span>
           </div>
-          <h3 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.5rem', letterSpacing: '-0.02em', color: '#f8fafc' }}>
-            Multi-Dimensional Diagnostics
+          <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.4rem', color: '#f0f6fc' }}>
+            Detailed Skill Analysis
           </h3>
-          <p style={{ fontSize: '0.88rem', lineHeight: '1.5', margin: '0 0 1.25rem', color: 'rgba(239, 237, 253, 0.7)' }}>
-            Evaluated on architectural reasoning, algorithmic trade-offs, and production edge cases.
+          <p style={{ fontSize: '0.86rem', lineHeight: '1.55', margin: '0 0 1.25rem', color: '#8b949e' }}>
+            Clear evaluation across system design, algorithmic efficiency, and edge case coverage after every session.
           </p>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.75rem' }}>
           {[
-            { label: 'Architecture', score: 92, color: '#a855f7' },
-            { label: 'Complexity', score: 86, color: '#34d399' },
-            { label: 'Edge Cases', score: 89, color: '#fbbf24' },
+            { label: 'System Design', score: 92, color: '#38bdf8' },
+            { label: 'Problem Solving', score: 86, color: '#34d399' },
+            { label: 'Edge Cases', score: 89, color: '#a855f7' },
           ].map((bar, i) => (
-            <div key={i} style={{ padding: '0.75rem', borderRadius: '10px', background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(255,255,255,0.05)' }}>
+            <div key={i} style={{ padding: '0.75rem', borderRadius: '8px', background: '#161b22', border: '1px solid #30363d' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '0.35rem' }}>
-                <span style={{ color: 'rgba(239, 237, 253, 0.6)' }}>{bar.label}</span>
+                <span style={{ color: '#8b949e' }}>{bar.label}</span>
                 <span className="mono" style={{ fontWeight: 700, color: bar.color }}>{bar.score}%</span>
               </div>
               <div
@@ -43,81 +54,133 @@ export default function GlassBentoGrid() {
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-label={`${bar.label} score`}
-                style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.08)', borderRadius: '999px', overflow: 'hidden' }}
+                style={{ width: '100%', height: '4px', background: '#21262d', borderRadius: '2px', overflow: 'hidden' }}
               >
-                <div style={{ width: `${bar.score}%`, height: '100%', background: bar.color, borderRadius: '999px' }} />
+                <div style={{ width: `${bar.score}%`, height: '100%', background: bar.color, borderRadius: '2px' }} />
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Bento 2: Resume PDF Deep-Parser */}
+      {/* Bento 2: Tailored to Your Stack */}
       <div className="reflect-card bento-span-5" style={{ padding: '1.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1rem' }}>
-            <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'rgba(245, 158, 11, 0.15)', border: '1px solid rgba(245, 158, 11, 0.3)', display: 'grid', placeItems: 'center', color: '#fbbf24' }}>
+            <div style={{ width: '34px', height: '34px', borderRadius: '8px', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.25)', display: 'grid', placeItems: 'center', color: '#fbbf24' }}>
               <FileText size={18} aria-hidden="true" />
             </div>
-            <span className="mono" style={{ fontSize: '0.78rem', color: '#fbbf24', fontWeight: 700 }}>RESUME CONTEXT PARSER</span>
+            <span className="mono" style={{ fontSize: '0.75rem', color: '#fbbf24', fontWeight: 700, letterSpacing: '0.04em' }}>
+              RESUME MATCHING
+            </span>
           </div>
-          <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.5rem', color: '#f8fafc' }}>Tailored to Your Stack</h3>
-          <p style={{ fontSize: '0.86rem', lineHeight: '1.5', margin: '0 0 1.25rem', color: 'rgba(239, 237, 253, 0.7)' }}>
-            Extracts frameworks and project highlights from your PDF resume to generate tailored interview questions.
+          <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.4rem', color: '#f0f6fc' }}>
+            Tailored to Your Stack
+          </h3>
+          <p style={{ fontSize: '0.86rem', lineHeight: '1.55', margin: '0 0 1.25rem', color: '#8b949e' }}>
+            Upload your PDF resume to generate role-specific questions tailored to your actual skills and projects.
           </p>
         </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
-          {['React 19', 'Node.js', 'PostgreSQL', 'Redis', 'Kafka', 'Docker'].map((tech) => (
-            <span key={tech} className="glass-pill" style={{ fontSize: '0.7rem', padding: '0.2rem 0.55rem', border: '1px solid rgba(255,255,255,0.08)' }}>{tech}</span>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+          {['React', 'Node.js', 'PostgreSQL', 'Redis', 'Docker', 'TypeScript'].map((tech) => (
+            <span key={tech} style={{ fontSize: '0.72rem', padding: '0.25rem 0.6rem', borderRadius: '6px', background: '#161b22', border: '1px solid #30363d', color: '#c9d1d9', fontFamily: 'var(--font-mono)' }}>
+              {tech}
+            </span>
           ))}
         </div>
       </div>
 
-      {/* Bento 3: Cryptographic Certificate */}
+      {/* Bento 3: Shareable Certificates */}
       <div className="reflect-card bento-span-6" style={{ padding: '1.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1rem' }}>
-            <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)', display: 'grid', placeItems: 'center', color: '#34d399' }}>
+            <div style={{ width: '34px', height: '34px', borderRadius: '8px', background: 'rgba(52, 211, 153, 0.1)', border: '1px solid rgba(52, 211, 153, 0.25)', display: 'grid', placeItems: 'center', color: '#34d399' }}>
               <Award size={18} aria-hidden="true" />
             </div>
-            <span className="mono" style={{ fontSize: '0.78rem', color: '#34d399', fontWeight: 700 }}>VERIFIABLE CREDENTIALS</span>
+            <span className="mono" style={{ fontSize: '0.75rem', color: '#34d399', fontWeight: 700, letterSpacing: '0.04em' }}>
+              VERIFIED CREDENTIALS
+            </span>
           </div>
-          <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.5rem', color: '#f8fafc' }}>Tamper-Evident Diplomas</h3>
-          <p style={{ fontSize: '0.86rem', lineHeight: '1.5', margin: '0 0 1.25rem', color: 'rgba(239, 237, 253, 0.7)' }}>
-            Completed milestones generate verified digital certificates with SHA-256 hashes and scannable verification links.
+          <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.4rem', color: '#f0f6fc' }}>
+            Shareable Certificates
+          </h3>
+          <p style={{ fontSize: '0.86rem', lineHeight: '1.55', margin: '0 0 1.25rem', color: '#8b949e' }}>
+            Complete milestone interviews to earn shareable certificates with public verification links for your resume and LinkedIn.
           </p>
         </div>
-        <div style={{ padding: '0.65rem 0.9rem', borderRadius: '10px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(16, 185, 129, 0.25)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <div className="mono" style={{ fontSize: '0.72rem', color: '#34d399', fontWeight: 700 }}>CERTIFICATE PREVIEW</div>
-            <div style={{ fontSize: '0.68rem', color: 'rgba(239, 237, 253, 0.6)' }}>MockMate Milestone Certification</div>
+
+        {/* Realistic Shareable Link Preview Card */}
+        <div style={{
+          padding: '0.75rem 1rem',
+          borderRadius: '8px',
+          background: '#161b22',
+          border: '1px solid #30363d',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '0.75rem'
+        }}>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: '0.72rem', color: '#34d399', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#34d399' }} /> Verified Certificate
+            </div>
+            <div className="mono" style={{ fontSize: '0.76rem', color: '#8b949e', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              mockmate.dev/verify/cert_89f2a
+            </div>
           </div>
-          <span className="mono" style={{ fontSize: '0.68rem', color: 'rgba(239, 237, 253, 0.5)' }}>SHA-256</span>
+          <button
+            onClick={handleCopy}
+            type="button"
+            title="Copy verification link"
+            style={{
+              padding: '0.35rem 0.65rem',
+              borderRadius: '6px',
+              background: '#21262d',
+              border: '1px solid #30363d',
+              color: copied ? '#34d399' : '#c9d1d9',
+              fontSize: '0.72rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              cursor: 'pointer'
+            }}
+          >
+            {copied ? <Check size={12} /> : <Copy size={12} />}
+            {copied ? 'Copied' : 'Copy'}
+          </button>
         </div>
       </div>
 
-      {/* Bento 4: Global Standings */}
+      {/* Bento 4: Progress & Leaderboard */}
       <div className="reflect-card bento-span-6" style={{ padding: '1.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-              <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'rgba(168, 85, 247, 0.15)', border: '1px solid rgba(168, 85, 247, 0.3)', display: 'grid', placeItems: 'center', color: '#c084fc' }}>
+              <div style={{ width: '34px', height: '34px', borderRadius: '8px', background: 'rgba(168, 85, 247, 0.1)', border: '1px solid rgba(168, 85, 247, 0.25)', display: 'grid', placeItems: 'center', color: '#a855f7' }}>
                 <BarChart3 size={18} aria-hidden="true" />
               </div>
-              <span className="mono" style={{ fontSize: '0.78rem', color: '#c084fc', fontWeight: 700 }}>CANDIDATE STANDINGS</span>
+              <span className="mono" style={{ fontSize: '0.75rem', color: '#a855f7', fontWeight: 700, letterSpacing: '0.04em' }}>
+                BENCHMARKING
+              </span>
             </div>
-            <Link to="/leaderboard" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: '#c084fc' }}>
+            <Link to="/leaderboard" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: '#58a6ff' }}>
               Leaderboard <ArrowUpRight size={13} aria-hidden="true" />
             </Link>
           </div>
-          <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.5rem', color: '#f8fafc' }}>Benchmark Progression</h3>
-          <p style={{ fontSize: '0.86rem', lineHeight: '1.5', margin: '0 0 1.25rem', color: 'rgba(239, 237, 253, 0.7)' }}>
-            Track practice scores and compare session performance across frontend, backend, and systems tracks.
+          <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.4rem', color: '#f0f6fc' }}>
+            Track Your Progression
+          </h3>
+          <p style={{ fontSize: '0.86rem', lineHeight: '1.55', margin: '0 0 1.25rem', color: '#8b949e' }}>
+            Compare your scores across sessions, identify weak technical domains, and watch your rank climb on the global leaderboard.
           </p>
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-          <span className="glass-pill" style={{ borderColor: 'rgba(168, 85, 247, 0.35)', color: '#d8b4fe' }}>Track Rankings</span>
-          <span className="glass-pill" style={{ color: 'rgba(239, 237, 253, 0.8)' }}>Public Verification</span>
+          <span style={{ fontSize: '0.72rem', padding: '0.25rem 0.65rem', borderRadius: '6px', background: '#161b22', border: '1px solid #30363d', color: '#c9d1d9' }}>
+            Global Standings
+          </span>
+          <span style={{ fontSize: '0.72rem', padding: '0.25rem 0.65rem', borderRadius: '6px', background: '#161b22', border: '1px solid #30363d', color: '#c9d1d9' }}>
+            Track Percentiles
+          </span>
         </div>
       </div>
     </div>
