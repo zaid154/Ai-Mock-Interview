@@ -638,8 +638,6 @@ input::placeholder, textarea::placeholder { color: var(--text-subtle); }
   background: #090a0f !important;
 }
 
-.reflect-auth-ambient { display: none; }
-
 .reflect-auth-card {
   width: min(840px, 100%);
   display: grid;

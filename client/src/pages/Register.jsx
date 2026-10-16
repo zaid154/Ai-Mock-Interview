@@ -34,8 +34,6 @@ export default function Register() {
 
   return (
     <div className="reflect-auth-page">
-      <div className="reflect-auth-ambient" />
-
       <div className="reflect-auth-card">
         {/* Left Pane: Brand & Value Props */}
         <div className="reflect-auth-left">
@@ -58,22 +56,22 @@ export default function Register() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontSize: '0.84rem', color: 'rgba(239, 237, 253, 0.85)' }}>
-                <CheckCircle2 size={16} style={{ color: '#c084fc', flexShrink: 0 }} />
+                <CheckCircle2 size={16} style={{ color: '#38bdf8', flexShrink: 0 }} />
                 <span>Unlimited mock practice sessions</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontSize: '0.84rem', color: 'rgba(239, 237, 253, 0.85)' }}>
-                <CheckCircle2 size={16} style={{ color: '#c084fc', flexShrink: 0 }} />
+                <CheckCircle2 size={16} style={{ color: '#38bdf8', flexShrink: 0 }} />
                 <span>Revision bookmarks bank &amp; study notes</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontSize: '0.84rem', color: 'rgba(239, 237, 253, 0.85)' }}>
-                <CheckCircle2 size={16} style={{ color: '#c084fc', flexShrink: 0 }} />
-                <span>Verified SHA-256 milestone diplomas</span>
+                <CheckCircle2 size={16} style={{ color: '#38bdf8', flexShrink: 0 }} />
+                <span>Shareable verified certificates</span>
               </div>
             </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(255, 255, 255, 0.08)', color: 'rgba(239, 237, 253, 0.6)', fontSize: '0.78rem' }}>
-            <ShieldCheck size={16} style={{ color: '#c084fc' }} aria-hidden="true" />
+            <ShieldCheck size={16} style={{ color: '#38bdf8' }} aria-hidden="true" />
             <span>Encrypted passwords &amp; secure session tokens</span>
           </div>
         </div>
@@ -162,7 +160,7 @@ export default function Register() {
             <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', marginTop: '0.4rem', paddingTop: '1rem', textAlign: 'center' }}>
               <p style={{ margin: 0, fontSize: '0.84rem', color: 'rgba(239, 237, 253, 0.65)' }}>
                 Already have an account?{' '}
-                <Link to="/login" style={{ fontWeight: 600, color: '#c084fc' }}>
+                <Link to="/login" style={{ fontWeight: 600, color: '#38bdf8' }}>
                   Sign in
                 </Link>
               </p>

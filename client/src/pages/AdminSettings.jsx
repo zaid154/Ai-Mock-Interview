@@ -23,7 +23,7 @@ export default function AdminSettings() {
   const [newKeyLabel, setNewKeyLabel] = useState('')
   const [newGeminiKey, setNewGeminiKey] = useState('')
   const [certSignatoryName, setCertSignatoryName] = useState('Mohd Zaid')
-  const [certSignatoryTitle, setCertSignatoryTitle] = useState('Global Director of Candidate Assessments, MockMate AI')
+  const [certSignatoryTitle, setCertSignatoryTitle] = useState('Director of Candidate Assessments, MockMate AI')
   const [certSignatureImage, setCertSignatureImage] = useState('')
   const [newKey, setNewKey] = useState('')
   const [newValue, setNewValue] = useState('')

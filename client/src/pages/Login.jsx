@@ -49,10 +49,8 @@ export default function Login() {
 
   return (
     <div className="reflect-auth-page">
-      <div className="reflect-auth-ambient" />
-
       <div className="reflect-auth-card">
-        {/* Left Pane: Cosmic Showcase */}
+        {/* Left Pane: Product Highlights */}
         <div className="reflect-auth-left">
           <div>
             <Link to="/" className="reflect-brand" style={{ marginBottom: '1.25rem', display: 'inline-flex' }}>
@@ -65,24 +63,24 @@ export default function Login() {
             </Link>
 
             <h2 style={{ fontSize: '1.35rem', lineHeight: '1.25', marginBottom: '0.5rem', fontWeight: 600, color: '#f8fafc', letterSpacing: '-0.025em' }}>
-              Prepare for high-stakes technical interviews.
+              Prepare for your next technical interview.
             </h2>
             <p style={{ color: 'rgba(239, 237, 253, 0.65)', fontSize: '0.84rem', lineHeight: '1.5', marginBottom: '0.85rem' }}>
-              Real-time architectural feedback, Big-O computational checks, and tamper-proof milestone credentials.
+              Practice realistic coding and system design questions with instant AI feedback and shareable milestone certificates.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontSize: '0.84rem', color: 'rgba(239, 237, 253, 0.85)' }}>
-                <CheckCircle2 size={16} style={{ color: '#c084fc', flexShrink: 0 }} />
+                <CheckCircle2 size={16} style={{ color: '#38bdf8', flexShrink: 0 }} />
                 <span>Role-specific technical questions</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontSize: '0.84rem', color: 'rgba(239, 237, 253, 0.85)' }}>
-                <CheckCircle2 size={16} style={{ color: '#c084fc', flexShrink: 0 }} />
-                <span>Instant PDF resume parsing</span>
+                <CheckCircle2 size={16} style={{ color: '#38bdf8', flexShrink: 0 }} />
+                <span>Questions tailored to your resume</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontSize: '0.84rem', color: 'rgba(239, 237, 253, 0.85)' }}>
-                <CheckCircle2 size={16} style={{ color: '#c084fc', flexShrink: 0 }} />
-                <span>Verifiable SHA-256 diplomas</span>
+                <CheckCircle2 size={16} style={{ color: '#38bdf8', flexShrink: 0 }} />
+                <span>Shareable verified certificates</span>
               </div>
             </div>
           </div>

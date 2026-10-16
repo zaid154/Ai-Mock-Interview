@@ -45,6 +45,9 @@ export default function VerifyCertificate() {
 
   const currentUrl = typeof window !== 'undefined' ? window.location.href : `https://ai-mock-interview-three-pi.vercel.app/verify-certificate/${formattedId}`
   const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(currentUrl)}&size=200x200&margin=2`
+  const dateStr = certData?.issueDate
+    ? new Date(certData.issueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    : new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 
   function copyVerificationLink() {
     navigator.clipboard.writeText(currentUrl)
@@ -185,7 +188,7 @@ export default function VerifyCertificate() {
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-soft)', paddingBottom: '0.85rem' }}>
               <span className="muted small" style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Evaluation Engine</span>
-              <span style={{ fontWeight: 600, fontSize: '0.88rem' }}>Google Gemini 2.5 Technical Evaluator</span>
+              <span style={{ fontWeight: 600, fontSize: '0.88rem' }}>MockMate Technical Evaluator</span>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-soft)', paddingBottom: '0.85rem' }}>
@@ -232,9 +235,9 @@ export default function VerifyCertificate() {
                 }}
               />
               <div style={{ textAlign: 'left' }}>
-                <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text)' }}>Scannable ISO QR Code</div>
+                <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text)' }}>Scannable QR Verification</div>
                 <p className="muted small" style={{ margin: '0.1rem 0 0', fontSize: '0.8rem' }}>
-                  Scan with any phone camera to verify this record live.
+                  Scan with any camera to verify this record live.
                 </p>
               </div>
             </div>
@@ -253,7 +256,7 @@ export default function VerifyCertificate() {
           </div>
 
           <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-            Issued on {dateStr} • Official Record maintained by <strong style={{ color: 'var(--text)' }}>MockMate AI Global Assessment Authority</strong>.
+            Issued on {dateStr} • Verified by <strong style={{ color: 'var(--text)' }}>MockMate Assessment Platform</strong>.
           </div>
         </div>
       </div>

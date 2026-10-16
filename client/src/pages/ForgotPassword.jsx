@@ -46,7 +46,6 @@ export default function ForgotPassword() {
 
   return (
     <div className="reflect-auth-page">
-      <div className="reflect-auth-ambient" aria-hidden="true" />
       <div className="reflect-auth-card">
         {/* Left Pane: Info */}
         <div className="reflect-auth-left">
@@ -68,14 +67,14 @@ export default function ForgotPassword() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               {['6-digit email verification code', 'Encrypted password update', 'Automatic session invalidation'].map((text) => (
                 <div key={text} style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontSize: '0.84rem', color: 'rgba(239, 237, 253, 0.85)' }}>
-                  <CheckCircle2 size={16} style={{ color: '#c084fc', flexShrink: 0 }} aria-hidden="true" />
+                  <CheckCircle2 size={16} style={{ color: '#38bdf8', flexShrink: 0 }} aria-hidden="true" />
                   <span>{text}</span>
                 </div>
               ))}
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(255, 255, 255, 0.08)', color: 'rgba(239, 237, 253, 0.6)', fontSize: '0.78rem' }}>
-            <ShieldCheck size={16} style={{ color: '#c084fc' }} aria-hidden="true" />
+            <ShieldCheck size={16} style={{ color: '#38bdf8' }} aria-hidden="true" />
             <span>Secure identity verification</span>
           </div>
         </div>
@@ -164,7 +163,7 @@ export default function ForgotPassword() {
                 {busy ? 'Updating Password…' : <>Confirm &amp; Reset Password <ArrowRight size={16} /></>}
               </button>
               <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', marginTop: '0.5rem', paddingTop: '1rem', textAlign: 'center' }}>
-                <button type="button" onClick={() => setStep(1)} style={{ background: 'none', border: 'none', color: '#c084fc', fontSize: '0.84rem', fontWeight: 600, cursor: 'pointer' }}>
+                <button type="button" onClick={() => setStep(1)} style={{ background: 'none', border: 'none', color: '#38bdf8', fontSize: '0.84rem', fontWeight: 600, cursor: 'pointer' }}>
                   Change Email Address
                 </button>
               </div>

@@ -77,7 +77,6 @@ export default function OtpVerify() {
 
   return (
     <div className="reflect-auth-page">
-      <div className="reflect-auth-ambient" />
       <div className="reflect-card" style={{ width: 'min(440px, 100%)', padding: '2.5rem 2rem', position: 'relative', zIndex: 1 }}>
         <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
           <div className="reflect-brand-icon" style={{ width: '46px', height: '46px', margin: '0 auto 0.85rem' }}>
@@ -157,7 +156,7 @@ export default function OtpVerify() {
                 {cooldown > 0 ? (
                   <span style={{ fontSize: '0.82rem', color: 'rgba(239, 237, 253, 0.5)' }}>Resend available in {cooldown}s</span>
                 ) : (
-                  <button type="button" onClick={sendCode} disabled={busy || cooldown > 0} style={{ background: 'none', border: 'none', color: '#c084fc', fontSize: '0.84rem', cursor: 'pointer', fontWeight: 500 }}>
+                  <button type="button" onClick={sendCode} disabled={busy || cooldown > 0} style={{ background: 'none', border: 'none', color: '#38bdf8', fontSize: '0.84rem', cursor: 'pointer', fontWeight: 500 }}>
                     Resend Code
                   </button>
                 )}
