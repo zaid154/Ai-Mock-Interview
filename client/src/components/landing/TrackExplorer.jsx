@@ -46,107 +46,149 @@ export default function TrackExplorer({ user }) {
   const current = TRACKS.find((t) => t.id === selectedTrack) || TRACKS[0]
 
   return (
-    <div className="reflect-card" style={{ padding: '2rem' }}>
-      {/* Track Selector Tabs */}
-      <div
-        role="tablist"
-        aria-label="Engineering Tracks"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '0.75rem',
-          marginBottom: '1.75rem'
-        }}
-      >
-        {TRACKS.map((track) => {
-          const Icon = track.icon
-          const isActive = selectedTrack === track.id
-          return (
-            <button
-              key={track.id}
-              role="tab"
-              id={`track-tab-${track.id}`}
-              aria-selected={isActive}
-              aria-controls="track-tabpanel"
-              onClick={() => setSelectedTrack(track.id)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                padding: '0.85rem 1rem',
-                borderRadius: '8px',
-                border: isActive ? '1px solid #58a6ff' : '1px solid #30363d',
-                background: isActive ? '#161b22' : 'transparent',
-                color: isActive ? '#f0f6fc' : '#8b949e',
-                cursor: 'pointer',
-                textAlign: 'left',
-                transition: 'all 0.15s ease'
-              }}
-            >
-              <div style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '6px',
-                background: isActive ? 'rgba(88, 166, 255, 0.15)' : '#21262d',
-                border: isActive ? '1px solid rgba(88, 166, 255, 0.3)' : '1px solid #30363d',
-                display: 'grid',
-                placeItems: 'center',
-                color: isActive ? '#58a6ff' : '#8b949e',
-                flexShrink: 0
-              }}>
-                <Icon size={16} aria-hidden="true" />
-              </div>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: '0.85rem', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {track.title}
-                </div>
-                <div style={{ fontSize: '0.7rem', color: '#8b949e' }}>
-                  {track.roles.split('/')[0]}
-                </div>
-              </div>
-            </button>
-          )
-        })}
+    <div style={{
+      background: '#0d1117',
+      border: '1px solid #30363d',
+      borderRadius: '8px',
+      overflow: 'hidden'
+    }}>
+      {/* Workbench Header */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0.6rem 1rem',
+        background: '#161b22',
+        borderBottom: '1px solid #21262d',
+        fontSize: '0.76rem',
+        color: '#8b949e',
+        flexWrap: 'wrap',
+        gap: '0.5rem'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontFamily: 'var(--font-mono)' }}>
+          <span style={{ color: '#58a6ff' }}>curricula/</span>
+          <span style={{ color: '#f0f6fc', fontWeight: 600 }}>track_matrix.ts</span>
+        </div>
+        <span style={{ fontSize: '0.72rem', color: '#6e7681' }}>
+          4 Engineering Tracks • Calibrated Rubrics
+        </span>
       </div>
 
-      {/* Selected Track Detail Surface */}
-      <div
-        role="tabpanel"
-        id="track-tabpanel"
-        aria-labelledby={`track-tab-${selectedTrack}`}
-        style={{
-          borderRadius: '8px',
-          padding: '1.5rem',
-          background: '#161b22',
-          border: '1px solid #30363d'
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1rem' }}>
-          <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.6rem', borderRadius: '999px', background: 'rgba(88, 166, 255, 0.1)', border: '1px solid rgba(88, 166, 255, 0.25)', color: '#58a6ff', fontFamily: 'var(--font-mono)' }}>
-            {current.badge}
-          </span>
-          <span style={{ fontSize: '0.75rem', color: '#8b949e' }}>
-            Target: {current.roles}
-          </span>
+      {/* Split Body: Sidebar & Detail Viewport */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'minmax(240px, 310px) 1fr',
+        minHeight: '380px'
+      }}>
+        {/* Left Track Navigation Strip */}
+        <div
+          role="tablist"
+          aria-label="Engineering Tracks"
+          style={{
+            background: '#090d14',
+            borderRight: '1px solid #21262d',
+            display: 'flex',
+            flexDirection: 'column',
+            padding: '0.5rem'
+          }}
+        >
+          {TRACKS.map((track, idx) => {
+            const Icon = track.icon
+            const isActive = selectedTrack === track.id
+            const stepNum = String(idx + 1).padStart(2, '0')
+            return (
+              <button
+                key={track.id}
+                role="tab"
+                id={`track-tab-${track.id}`}
+                aria-selected={isActive}
+                aria-controls="track-tabpanel"
+                onClick={() => setSelectedTrack(track.id)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '0.75rem',
+                  padding: '0.8rem',
+                  borderRadius: '6px',
+                  border: isActive ? '1px solid #30363d' : '1px solid transparent',
+                  background: isActive ? '#161b22' : 'transparent',
+                  color: isActive ? '#f0f6fc' : '#8b949e',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  transition: 'all 0.15s ease',
+                  marginBottom: '0.25rem'
+                }}
+              >
+                <span className="mono" style={{ fontSize: '0.74rem', color: isActive ? '#58a6ff' : '#6e7681', fontWeight: 700, marginTop: '2px' }}>
+                  {stepNum}
+                </span>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: '0.84rem', fontWeight: 600, color: isActive ? '#f0f6fc' : '#c9d1d9', marginBottom: '0.2rem' }}>
+                    {track.title}
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: '#6e7681', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {track.badge}
+                  </div>
+                </div>
+              </button>
+            )
+          })}
         </div>
 
-        <h4 style={{ fontSize: '1rem', fontWeight: 600, lineHeight: 1.6, marginBottom: '1.25rem', color: '#f0f6fc' }}>
-          &ldquo;{current.question}&rdquo;
-        </h4>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.75rem', marginBottom: '1.5rem' }}>
-          {current.criteria.map((item, idx) => (
-            <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.82rem', color: '#c9d1d9' }}>
-              <CheckCircle2 size={15} style={{ color: '#34d399', marginTop: '2px', flexShrink: 0 }} aria-hidden="true" />
-              <span>{item}</span>
+        {/* Right Detail Viewport */}
+        <div
+          role="tabpanel"
+          id="track-tabpanel"
+          aria-labelledby={`track-tab-${selectedTrack}`}
+          style={{
+            padding: '1.75rem',
+            background: '#0d1117',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between'
+          }}
+        >
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ fontSize: '0.72rem', padding: '0.2rem 0.55rem', borderRadius: '4px', background: '#161b22', border: '1px solid #30363d', color: '#58a6ff', fontFamily: 'var(--font-mono)' }}>
+                  {current.badge}
+                </span>
+              </div>
+              <span style={{ fontSize: '0.75rem', color: '#8b949e', fontFamily: 'var(--font-mono)' }}>
+                Target: {current.roles}
+              </span>
             </div>
-          ))}
-        </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <Link to={user ? '/dashboard' : '/register'} className="reflect-btn-primary" style={{ padding: '0.55rem 1.4rem', fontSize: '0.85rem' }}>
-            Practice This Track <ArrowRight size={15} aria-hidden="true" />
-          </Link>
+            <div style={{ background: '#161b22', border: '1px solid #21262d', borderRadius: '6px', padding: '1.1rem', marginBottom: '1.5rem' }}>
+              <div style={{ fontSize: '0.72rem', color: '#8b949e', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: '0.4rem', fontFamily: 'var(--font-mono)' }}>
+                // SAMPLE INTERVIEW SCENARIO
+              </div>
+              <p style={{ margin: 0, fontSize: '0.92rem', color: '#f0f6fc', lineHeight: 1.6 }}>
+                &ldquo;{current.question}&rdquo;
+              </p>
+            </div>
+
+            <div style={{ marginBottom: '1.5rem' }}>
+              <div style={{ fontSize: '0.72rem', color: '#8b949e', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: '0.65rem', fontFamily: 'var(--font-mono)' }}>
+                // EVALUATION CRITERIA
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.65rem' }}>
+                {current.criteria.map((item, idx) => (
+                  <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.8rem', color: '#c9d1d9', background: '#090d14', border: '1px solid #21262d', padding: '0.55rem 0.75rem', borderRadius: '4px' }}>
+                    <CheckCircle2 size={14} style={{ color: '#34d399', marginTop: '2px', flexShrink: 0 }} aria-hidden="true" />
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '1rem', borderTop: '1px solid #21262d' }}>
+            <Link to={user ? '/dashboard' : '/register'} className="reflect-btn-primary" style={{ padding: '0.55rem 1.35rem', fontSize: '0.84rem' }}>
+              Start {current.title} Simulation <ArrowRight size={14} aria-hidden="true" />
+            </Link>
+          </div>
         </div>
       </div>
     </div>

@@ -1,6 +1,6 @@
-import { Brain, FileText, Award, BarChart3, ArrowUpRight, Copy, Check } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { FileText, Award, BarChart3, ArrowRight, Copy, Check, CheckCircle2, ShieldCheck, Cpu } from 'lucide-react'
 
 export default function GlassBentoGrid() {
   const [copied, setCopied] = useState(false)
@@ -12,175 +12,183 @@ export default function GlassBentoGrid() {
   }
 
   return (
-    <div className="bento-grid">
-      {/* Bento 1: Detailed Skill Analysis */}
-      <div className="reflect-card bento-span-7" style={{ padding: '1.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
+      {/* Feature 01: Resume Context Ingestion (Split Left/Right) */}
+      <div className="editorial-split">
+        {/* Left: Editorial Narrative */}
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-              <div style={{ width: '34px', height: '34px', borderRadius: '8px', background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.25)', display: 'grid', placeItems: 'center', color: '#38bdf8' }}>
-                <Brain size={18} aria-hidden="true" />
-              </div>
-              <span className="mono" style={{ fontSize: '0.75rem', color: '#38bdf8', fontWeight: 700, letterSpacing: '0.04em' }}>
-                EVALUATION BREAKDOWN
-              </span>
-            </div>
-            <span style={{ fontSize: '0.72rem', color: '#34d399', background: 'rgba(52, 211, 153, 0.1)', border: '1px solid rgba(52, 211, 153, 0.25)', borderRadius: '999px', padding: '0.2rem 0.6rem' }}>
-              Instant Scoring
-            </span>
-          </div>
-          <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.4rem', color: '#f0f6fc' }}>
-            Detailed Skill Analysis
+          <div className="section-mono-kicker">// 01 CONTEXT INGESTION</div>
+          <h3 className="section-headline">
+            Questions tailored to your actual code &amp; projects.
           </h3>
-          <p style={{ fontSize: '0.86rem', lineHeight: '1.55', margin: '0 0 1.25rem', color: '#8b949e' }}>
-            Clear evaluation across system design, algorithmic efficiency, and edge case coverage after every session.
+          <p className="section-desc" style={{ marginBottom: '1.25rem' }}>
+            Generic LeetCode platforms give every developer the same inversion-of-binary-tree question. MockMate extracts your actual technologies, past project scope, and system responsibilities directly from your PDF resume.
           </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.84rem', color: '#c9d1d9' }}>
+              <CheckCircle2 size={15} style={{ color: '#58a6ff' }} />
+              <span>AST-level PDF resume parsing (Node, Postgres, Kafka, React)</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.84rem', color: '#c9d1d9' }}>
+              <CheckCircle2 size={15} style={{ color: '#58a6ff' }} />
+              <span>Calibrated against the candidate&apos;s real claimed experience</span>
+            </div>
+          </div>
+          <Link to="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: '#58a6ff', fontSize: '0.85rem', fontWeight: 600 }}>
+            Upload resume to test drive <ArrowRight size={14} />
+          </Link>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.75rem' }}>
-          {[
-            { label: 'System Design', score: 92, color: '#38bdf8' },
-            { label: 'Problem Solving', score: 86, color: '#34d399' },
-            { label: 'Edge Cases', score: 89, color: '#a855f7' },
-          ].map((bar, i) => (
-            <div key={i} style={{ padding: '0.75rem', borderRadius: '8px', background: '#161b22', border: '1px solid #30363d' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '0.35rem' }}>
-                <span style={{ color: '#8b949e' }}>{bar.label}</span>
-                <span className="mono" style={{ fontWeight: 700, color: bar.color }}>{bar.score}%</span>
+        {/* Right: Realistic Ingestion Visualizer */}
+        <div style={{ background: '#0d1117', border: '1px solid #30363d', borderRadius: '8px', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.55rem 0.85rem', background: '#161b22', borderBottom: '1px solid #21262d', fontSize: '0.74rem', color: '#8b949e', fontFamily: 'var(--font-mono)' }}>
+            <span>resume_parser.worker</span>
+            <span style={{ color: '#34d399' }}>✓ 6 stack entities matched</span>
+          </div>
+          <div style={{ padding: '1.25rem' }}>
+            <div style={{ marginBottom: '0.85rem' }}>
+              <div style={{ fontSize: '0.72rem', color: '#8b949e', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.4rem', fontFamily: 'var(--font-mono)' }}>
+                EXTRACTED TECH STACK
               </div>
-              <div
-                role="progressbar"
-                aria-valuenow={bar.score}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-label={`${bar.label} score`}
-                style={{ width: '100%', height: '4px', background: '#21262d', borderRadius: '2px', overflow: 'hidden' }}
-              >
-                <div style={{ width: `${bar.score}%`, height: '100%', background: bar.color, borderRadius: '2px' }} />
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+                {['TypeScript', 'Node.js', 'PostgreSQL', 'Redis', 'Kafka', 'Docker'].map((tech) => (
+                  <span key={tech} style={{ fontSize: '0.74rem', padding: '0.2rem 0.55rem', borderRadius: '4px', background: '#161b22', border: '1px solid #30363d', color: '#f0f6fc', fontFamily: 'var(--font-mono)' }}>
+                    {tech}
+                  </span>
+                ))}
               </div>
             </div>
-          ))}
+
+            <div style={{ background: '#090d14', border: '1px solid #21262d', borderRadius: '6px', padding: '0.85rem' }}>
+              <div style={{ fontSize: '0.7rem', color: '#58a6ff', fontWeight: 600, marginBottom: '0.3rem', fontFamily: 'var(--font-mono)' }}>
+                SYNTHESIZED ARCHITECTURAL DRILL
+              </div>
+              <p style={{ margin: 0, fontSize: '0.84rem', color: '#c9d1d9', lineHeight: 1.5 }}>
+                &ldquo;You built an asynchronous transaction ledger with Kafka and PostgreSQL at your previous company. How did you prevent duplicate ledger entries during worker node crashes?&rdquo;
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Bento 2: Tailored to Your Stack */}
-      <div className="reflect-card bento-span-5" style={{ padding: '1.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1rem' }}>
-            <div style={{ width: '34px', height: '34px', borderRadius: '8px', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.25)', display: 'grid', placeItems: 'center', color: '#fbbf24' }}>
-              <FileText size={18} aria-hidden="true" />
-            </div>
-            <span className="mono" style={{ fontSize: '0.75rem', color: '#fbbf24', fontWeight: 700, letterSpacing: '0.04em' }}>
-              RESUME MATCHING
-            </span>
+      {/* Feature 02: Multi-Dimensional Engineering Rubric (Split Reversed) */}
+      <div className="editorial-split">
+        {/* Left: Realistic Rubric Scorecard */}
+        <div style={{ background: '#0d1117', border: '1px solid #30363d', borderRadius: '8px', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.55rem 0.85rem', background: '#161b22', borderBottom: '1px solid #21262d', fontSize: '0.74rem', color: '#8b949e', fontFamily: 'var(--font-mono)' }}>
+            <span>rubric_breakdown.json</span>
+            <span style={{ color: '#58a6ff', fontWeight: 600 }}>OVERALL: 91 / 100</span>
           </div>
-          <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.4rem', color: '#f0f6fc' }}>
-            Tailored to Your Stack
-          </h3>
-          <p style={{ fontSize: '0.86rem', lineHeight: '1.55', margin: '0 0 1.25rem', color: '#8b949e' }}>
-            Upload your PDF resume to generate role-specific questions tailored to your actual skills and projects.
-          </p>
+
+          <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+            {[
+              { dim: 'System Scalability', score: 94, note: 'Proper horizontal worker isolation' },
+              { dim: 'Concurrency & Locks', score: 90, note: 'Redis NX keys with 120s TTL' },
+              { dim: 'Edge-Case Recovery', score: 88, note: 'Addressed DB write timeouts' },
+              { dim: 'Communication', score: 92, note: 'Clear trade-off justification' }
+            ].map((row, i) => (
+              <div key={i} style={{ borderBottom: i < 3 ? '1px solid #21262d' : 'none', paddingBottom: i < 3 ? '0.65rem' : 0 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.2rem' }}>
+                  <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#f0f6fc' }}>{row.dim}</span>
+                  <span className="mono" style={{ fontSize: '0.82rem', fontWeight: 700, color: '#34d399' }}>{row.score}%</span>
+                </div>
+                <div style={{ fontSize: '0.74rem', color: '#8b949e' }}>
+                  {row.note}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
-          {['React', 'Node.js', 'PostgreSQL', 'Redis', 'Docker', 'TypeScript'].map((tech) => (
-            <span key={tech} style={{ fontSize: '0.72rem', padding: '0.25rem 0.6rem', borderRadius: '6px', background: '#161b22', border: '1px solid #30363d', color: '#c9d1d9', fontFamily: 'var(--font-mono)' }}>
-              {tech}
-            </span>
-          ))}
+
+        {/* Right: Editorial Narrative */}
+        <div>
+          <div className="section-mono-kicker">// 02 RIGOROUS RUBRICS</div>
+          <h3 className="section-headline">
+            Feedback that actually reflects hiring bar standards.
+          </h3>
+          <p className="section-desc" style={{ marginBottom: '1.25rem' }}>
+            Real engineering hiring committees don&apos;t evaluate candidates with vague percentages. MockMate grades your solutions across the exact dimensions senior interviewers look for: fault tolerance, latency implications, race condition handling, and clear communication.
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.84rem', color: '#c9d1d9' }}>
+              <CheckCircle2 size={15} style={{ color: '#34d399' }} />
+              <span>Multi-axis evaluation (Correctness, Edge Cases, Architecture)</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.84rem', color: '#34d399' }}>
+              <CheckCircle2 size={15} style={{ color: '#34d399' }} />
+              <span>Actionable diagnostic feedback rather than generic AI compliments</span>
+            </div>
+          </div>
+          <Link to="/leaderboard" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: '#58a6ff', fontSize: '0.85rem', fontWeight: 600 }}>
+            Inspect candidate benchmark scores <ArrowRight size={14} />
+          </Link>
         </div>
       </div>
 
-      {/* Bento 3: Shareable Certificates */}
-      <div className="reflect-card bento-span-6" style={{ padding: '1.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1rem' }}>
-            <div style={{ width: '34px', height: '34px', borderRadius: '8px', background: 'rgba(52, 211, 153, 0.1)', border: '1px solid rgba(52, 211, 153, 0.25)', display: 'grid', placeItems: 'center', color: '#34d399' }}>
-              <Award size={18} aria-hidden="true" />
-            </div>
-            <span className="mono" style={{ fontSize: '0.75rem', color: '#34d399', fontWeight: 700, letterSpacing: '0.04em' }}>
-              VERIFIED CREDENTIALS
+      {/* Feature 03: Verifiable Proof Console */}
+      <div style={{
+        background: '#0d1117',
+        border: '1px solid #30363d',
+        borderRadius: '8px',
+        padding: '1.75rem',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '1.5rem'
+      }}>
+        <div style={{ maxWidth: '48ch' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
+            <ShieldCheck size={16} style={{ color: '#34d399' }} />
+            <span className="mono" style={{ fontSize: '0.74rem', color: '#34d399', fontWeight: 700 }}>
+              VERIFIABLE CREDENTIALS
             </span>
           </div>
-          <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.4rem', color: '#f0f6fc' }}>
-            Shareable Certificates
-          </h3>
-          <p style={{ fontSize: '0.86rem', lineHeight: '1.55', margin: '0 0 1.25rem', color: '#8b949e' }}>
-            Complete milestone interviews to earn shareable certificates with public verification links for your resume and LinkedIn.
+          <h4 style={{ fontSize: '1.15rem', fontWeight: 600, color: '#f0f6fc', margin: '0 0 0.35rem' }}>
+            Shareable Milestone Certificates
+          </h4>
+          <p style={{ fontSize: '0.85rem', color: '#8b949e', margin: 0, lineHeight: 1.5 }}>
+            Complete milestone interview tracks to unlock public certificates with verified URLs and scannable QR codes for your resume and LinkedIn.
           </p>
         </div>
 
-        {/* Realistic Shareable Link Preview Card */}
         <div style={{
-          padding: '0.75rem 1rem',
-          borderRadius: '8px',
-          background: '#161b22',
-          border: '1px solid #30363d',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '0.75rem'
+          gap: '0.85rem',
+          background: '#161b22',
+          border: '1px solid #30363d',
+          borderRadius: '6px',
+          padding: '0.75rem 1rem'
         }}>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: '0.72rem', color: '#34d399', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#34d399' }} /> Verified Certificate
+          <div>
+            <div style={{ fontSize: '0.7rem', color: '#6e7681', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              PUBLIC RECORD PREVIEW
             </div>
-            <div className="mono" style={{ fontSize: '0.76rem', color: '#8b949e', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <div className="mono" style={{ fontSize: '0.8rem', color: '#c9d1d9', fontWeight: 600 }}>
               mockmate.dev/verify/cert_89f2a
             </div>
           </div>
           <button
             onClick={handleCopy}
             type="button"
-            title="Copy verification link"
             style={{
-              padding: '0.35rem 0.65rem',
-              borderRadius: '6px',
-              background: '#21262d',
-              border: '1px solid #30363d',
-              color: copied ? '#34d399' : '#c9d1d9',
-              fontSize: '0.72rem',
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
               gap: '0.35rem',
+              padding: '0.4rem 0.75rem',
+              borderRadius: '4px',
+              background: '#21262d',
+              border: '1px solid #30363d',
+              color: copied ? '#34d399' : '#f0f6fc',
+              fontSize: '0.74rem',
+              fontWeight: 500,
               cursor: 'pointer'
             }}
           >
-            {copied ? <Check size={12} /> : <Copy size={12} />}
-            {copied ? 'Copied' : 'Copy'}
+            {copied ? <Check size={13} /> : <Copy size={13} />}
+            {copied ? 'Copied' : 'Copy Link'}
           </button>
-        </div>
-      </div>
-
-      {/* Bento 4: Progress & Leaderboard */}
-      <div className="reflect-card bento-span-6" style={{ padding: '1.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-              <div style={{ width: '34px', height: '34px', borderRadius: '8px', background: 'rgba(168, 85, 247, 0.1)', border: '1px solid rgba(168, 85, 247, 0.25)', display: 'grid', placeItems: 'center', color: '#a855f7' }}>
-                <BarChart3 size={18} aria-hidden="true" />
-              </div>
-              <span className="mono" style={{ fontSize: '0.75rem', color: '#a855f7', fontWeight: 700, letterSpacing: '0.04em' }}>
-                BENCHMARKING
-              </span>
-            </div>
-            <Link to="/leaderboard" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: '#58a6ff' }}>
-              Leaderboard <ArrowUpRight size={13} aria-hidden="true" />
-            </Link>
-          </div>
-          <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.4rem', color: '#f0f6fc' }}>
-            Track Your Progression
-          </h3>
-          <p style={{ fontSize: '0.86rem', lineHeight: '1.55', margin: '0 0 1.25rem', color: '#8b949e' }}>
-            Compare your scores across sessions, identify weak technical domains, and watch your rank climb on the global leaderboard.
-          </p>
-        </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-          <span style={{ fontSize: '0.72rem', padding: '0.25rem 0.65rem', borderRadius: '6px', background: '#161b22', border: '1px solid #30363d', color: '#c9d1d9' }}>
-            Global Standings
-          </span>
-          <span style={{ fontSize: '0.72rem', padding: '0.25rem 0.65rem', borderRadius: '6px', background: '#161b22', border: '1px solid #30363d', color: '#c9d1d9' }}>
-            Track Percentiles
-          </span>
         </div>
       </div>
     </div>
