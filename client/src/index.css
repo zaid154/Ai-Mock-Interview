@@ -516,6 +516,27 @@ input::placeholder, textarea::placeholder { color: var(--text-subtle); }
 .landing-final { margin-top: 3.5rem; padding-top: 2rem; border-top: 1px solid #21262d; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
 .landing-final-text { font-size: 0.9rem; color: #8b949e; margin: 0; }
 
+/* Clean Legal Pages (Privacy Policy, Terms of Service) */
+.legal-page { background: var(--bg-deep); color: var(--text); min-height: calc(100dvh - 56px); padding: 3rem 1.5rem 6rem; }
+.legal-container { max-width: 760px; margin: 0 auto; }
+.legal-back-link { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--text-muted); font-size: 0.85rem; text-decoration: none; margin-bottom: 2rem; transition: color 0.15s ease; }
+.legal-back-link:hover { color: var(--text); }
+.legal-header { margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+.legal-title { font-size: clamp(2rem, 4vw, 2.75rem); font-weight: 800; letter-spacing: -0.03em; color: var(--text); margin: 0 0 0.5rem; }
+.legal-meta { font-size: 0.88rem; color: var(--text-muted); margin: 0; }
+.legal-body { display: flex; flex-direction: column; gap: 2.25rem; }
+.legal-body section h2 { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; color: var(--text); margin: 0 0 0.85rem; }
+.legal-body p { color: var(--text-muted); font-size: 0.94rem; line-height: 1.75; margin: 0 0 0.85rem; }
+.legal-body p:last-child { margin-bottom: 0; }
+.legal-body ul { margin: 0.5rem 0 1rem; padding-left: 1.4rem; color: var(--text-muted); font-size: 0.94rem; line-height: 1.75; }
+.legal-body li { margin-bottom: 0.5rem; }
+.legal-body li strong { color: var(--text); }
+.legal-link { color: var(--accent-secondary, #818cf8); text-decoration: underline; text-underline-offset: 3px; }
+.legal-link:hover { color: #a5b4fc; }
+.legal-contact-card { padding: 1.15rem 1.35rem; border-radius: 6px; background: var(--surface); border: 1px solid var(--border); margin-top: 0.75rem; }
+.legal-contact-card p { margin: 0 0 0.25rem; font-size: 0.9rem; }
+.legal-contact-card p:last-child { margin: 0; }
+
 /* Compatibility Rules */
 .reflect-card { background: #0d1117; border: 1px solid #30363d; border-radius: 8px; }
 .reflect-badge {
