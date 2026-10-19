@@ -8,6 +8,41 @@ import PracticeStudio from '../components/dashboard/PracticeStudio'
 
 const DIFFICULTY_MAP = { Junior: 'easy', Intermediate: 'medium', Senior: 'hard' }
 
+const CURATED_TRACKS = [
+  {
+    title: 'React & Frontend Core',
+    desc: 'React 19 hooks, component lifecycle, bundle size & rendering optimization.',
+    role: 'Frontend Engineer',
+    topic: 'React & Modern Web Architecture',
+    difficulty: 'Intermediate',
+    mode: 'questions',
+  },
+  {
+    title: 'Node.js & Microservices',
+    desc: 'Event loop, RESTful APIs, async concurrency, auth & data streaming.',
+    role: 'Backend Developer',
+    topic: 'Node.js, Express & Microservices',
+    difficulty: 'Senior',
+    mode: 'questions',
+  },
+  {
+    title: 'System Design & Scalability',
+    desc: 'High-concurrency architectures, Redis caching, sharding & fault recovery.',
+    role: 'System Design Architect',
+    topic: 'System Design, Scalability & Caching',
+    difficulty: 'Senior',
+    mode: 'questions',
+  },
+  {
+    title: 'Speed MCQ Tech Drill',
+    desc: 'Rapid-fire multiple choice assessment covering JavaScript, SQL & Web APIs.',
+    role: 'Fullstack Developer',
+    topic: 'React & Modern Web Architecture',
+    difficulty: 'Intermediate',
+    mode: 'quiz',
+  },
+]
+
 export default function Practice() {
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -116,10 +151,10 @@ export default function Practice() {
       <div style={{ maxWidth: '1060px', margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.75rem' }}>
           <div>
-            <h1 style={{ fontSize: '1.35rem', fontWeight: 700, margin: '0 0 0.15rem', color: '#f8fafc', letterSpacing: '-0.025em' }}>Practice Studio</h1>
-            <p style={{ margin: 0, fontSize: '0.82rem', color: 'rgba(239, 237, 253, 0.6)' }}>Configure parameters to simulate real technical hiring rounds.</p>
+            <h1 style={{ fontSize: '1.35rem', fontWeight: 700, margin: '0 0 0.15rem', color: '#111827', letterSpacing: '-0.025em' }}>Practice Studio</h1>
+            <p style={{ margin: 0, fontSize: '0.82rem', color: '#6b7280' }}>Configure parameters to simulate real technical hiring rounds.</p>
           </div>
-          <Link to="/dashboard" style={{ fontSize: '0.82rem', color: '#c084fc', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', textDecoration: 'none', fontWeight: 500 }}>
+          <Link to="/dashboard" style={{ fontSize: '0.82rem', color: '#2563eb', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', textDecoration: 'none', fontWeight: 500 }}>
             <ArrowLeft size={14} /> Back to Dashboard
           </Link>
         </div>
@@ -131,6 +166,57 @@ export default function Practice() {
           timerMinutes={timerMinutes} setTimerMinutes={setTimerMinutes} resumeFileName={resumeFileName}
           handleFileUpload={handleFileUpload} handleRemoveResume={handleRemoveResume} createSession={createSession} busy={busy} progress={progress}
         />
+
+        {/* Curated Quick-Start Tracks */}
+        <div style={{ marginTop: '1.25rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.65rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <span style={{ fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', color: '#4b5563', letterSpacing: '0.04em' }}>
+              Curated Practice Tracks
+            </span>
+            <span style={{ fontSize: '0.74rem', color: '#6b7280' }}>Select a track to quickly configure your session</span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '0.75rem' }}>
+            {CURATED_TRACKS.map((trk) => {
+              const isSelected = role === trk.role && topic === trk.topic && mode === trk.mode
+              return (
+                <button
+                  key={trk.title}
+                  type="button"
+                  onClick={() => {
+                    setRole(trk.role)
+                    setTopic(trk.topic)
+                    setDifficulty(trk.difficulty)
+                    setMode(trk.mode)
+                    toast.success(`Loaded "${trk.title}" track settings!`)
+                  }}
+                  className="panel"
+                  style={{
+                    padding: '0.85rem 1rem',
+                    textAlign: 'left',
+                    background: isSelected ? '#eff6ff' : 'var(--surface)',
+                    border: isSelected ? '1.5px solid #2563eb' : '1px solid var(--border)',
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
+                    <span style={{ fontWeight: 700, fontSize: '0.86rem', color: isSelected ? '#2563eb' : '#111827' }}>
+                      {trk.title}
+                    </span>
+                    <span style={{ fontSize: '0.68rem', padding: '0.12rem 0.45rem', borderRadius: '4px', background: isSelected ? '#dbeafe' : 'var(--surface-2)', color: isSelected ? '#1d4ed8' : '#6b7280', fontWeight: 600 }}>
+                      {trk.difficulty}
+                    </span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '0.76rem', color: '#6b7280', lineHeight: 1.45 }}>
+                    {trk.desc}
+                  </p>
+                </button>
+              )
+            })}
+          </div>
+        </div>
       </div>
     </main>
   )

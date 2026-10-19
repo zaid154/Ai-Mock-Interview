@@ -62,34 +62,34 @@ export default function Login() {
               </span>
             </Link>
 
-            <h2 style={{ fontSize: '1.35rem', lineHeight: '1.25', marginBottom: '0.5rem', fontWeight: 600, color: '#f8fafc', letterSpacing: '-0.025em' }}>
+            <h2 style={{ fontSize: '1.35rem', lineHeight: '1.25', marginBottom: '0.5rem', fontWeight: 600, color: '#111827', letterSpacing: '-0.025em' }}>
               Prepare for your next technical interview.
             </h2>
-            <p style={{ color: 'rgba(239, 237, 253, 0.65)', fontSize: '0.84rem', lineHeight: '1.5', marginBottom: '0.85rem' }}>
+            <p style={{ color: '#6b7280', fontSize: '0.84rem', lineHeight: '1.5', marginBottom: '0.85rem' }}>
               Practice realistic coding and system design questions with instant AI feedback and shareable milestone certificates.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontSize: '0.84rem', color: 'rgba(239, 237, 253, 0.85)' }}>
-                <CheckCircle2 size={16} style={{ color: '#38bdf8', flexShrink: 0 }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontSize: '0.84rem', color: '#374151' }}>
+                <CheckCircle2 size={16} style={{ color: '#2563eb', flexShrink: 0 }} />
                 <span>Role-specific technical questions</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontSize: '0.84rem', color: 'rgba(239, 237, 253, 0.85)' }}>
-                <CheckCircle2 size={16} style={{ color: '#38bdf8', flexShrink: 0 }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontSize: '0.84rem', color: '#374151' }}>
+                <CheckCircle2 size={16} style={{ color: '#2563eb', flexShrink: 0 }} />
                 <span>Questions tailored to your resume</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontSize: '0.84rem', color: 'rgba(239, 237, 253, 0.85)' }}>
-                <CheckCircle2 size={16} style={{ color: '#38bdf8', flexShrink: 0 }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontSize: '0.84rem', color: '#374151' }}>
+                <CheckCircle2 size={16} style={{ color: '#2563eb', flexShrink: 0 }} />
                 <span>Shareable verified certificates</span>
               </div>
             </div>
           </div>
 
-          <div style={{ marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
+          <div style={{ marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid #e5e7eb' }}>
             <button
               type="button"
               onClick={fillDemoAdmin}
-              style={{ background: 'none', border: 'none', color: '#c084fc', fontSize: '0.78rem', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
+              style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: '0.78rem', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
             >
               Fill Demo Credentials
             </button>
@@ -99,10 +99,10 @@ export default function Login() {
         {/* Right Pane: Login Form */}
         <div className="reflect-auth-right">
           <div style={{ marginBottom: '1rem' }}>
-            <h1 style={{ fontSize: '1.45rem', marginBottom: '0.3rem', fontWeight: 600, color: '#f8fafc', letterSpacing: '-0.025em' }}>
+            <h1 style={{ fontSize: '1.45rem', marginBottom: '0.3rem', fontWeight: 600, color: '#111827', letterSpacing: '-0.025em' }}>
               Sign in
             </h1>
-            <p style={{ margin: 0, fontSize: '0.86rem', color: 'rgba(239, 237, 253, 0.65)' }}>
+            <p style={{ margin: 0, fontSize: '0.86rem', color: '#6b7280' }}>
               Welcome back! Enter your details to continue.
             </p>
           </div>
@@ -128,7 +128,7 @@ export default function Login() {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
                 <label htmlFor="login-password" className="reflect-field-label" style={{ marginBottom: 0 }}>Password</label>
-                <Link to="/forgot-password" style={{ fontSize: '0.78rem', color: '#c084fc', textDecoration: 'none' }}>
+                <Link to="/forgot-password" style={{ fontSize: '0.78rem', color: '#2563eb', textDecoration: 'none' }}>
                   Forgot?
                 </Link>
               </div>
@@ -148,7 +148,7 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => setShowPw(!showPw)}
-                  style={{ position: 'absolute', right: '0.85rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'rgba(255, 255, 255, 0.5)', cursor: 'pointer', padding: 0, display: 'flex' }}
+                  style={{ position: 'absolute', right: '0.85rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: 0, display: 'flex' }}
                   aria-label={showPw ? 'Hide password' : 'Show password'}
                 >
                   {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -165,10 +165,10 @@ export default function Login() {
               {busy ? 'Signing in…' : <>Sign in to Account <ArrowRight size={16} /></>}
             </button>
 
-            <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', marginTop: '0.5rem', paddingTop: '1rem', textAlign: 'center' }}>
-              <p style={{ margin: 0, fontSize: '0.84rem', color: 'rgba(239, 237, 253, 0.65)' }}>
+            <div style={{ borderTop: '1px solid #e5e7eb', marginTop: '0.5rem', paddingTop: '1rem', textAlign: 'center' }}>
+              <p style={{ margin: 0, fontSize: '0.84rem', color: '#6b7280' }}>
                 Don't have an account?{' '}
-                <Link to="/register" style={{ fontWeight: 600, color: '#c084fc' }}>
+                <Link to="/register" style={{ fontWeight: 600, color: '#2563eb' }}>
                   Create account
                 </Link>
               </p>

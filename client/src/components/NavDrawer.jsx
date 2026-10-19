@@ -35,7 +35,7 @@ export default function NavDrawer({
         style={{
           position: 'fixed',
           inset: 0,
-          background: 'rgba(3, 0, 20, 0.75)',
+          background: 'rgba(0, 0, 0, 0.3)',
           backdropFilter: 'blur(8px)',
           WebkitBackdropFilter: 'blur(8px)',
           zIndex: 998
@@ -52,11 +52,11 @@ export default function NavDrawer({
           right: 0,
           width: 'min(320px, 85vw)',
           height: '100dvh',
-          background: 'rgba(5, 2, 28, 0.96)',
+          background: 'rgba(255, 255, 255, 0.98)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
-          borderLeft: '1px solid rgba(255, 255, 255, 0.1)',
-          boxShadow: '-8px 0 32px rgba(0, 0, 0, 0.6)',
+          borderLeft: '1px solid #e5e7eb',
+          boxShadow: '-8px 0 32px rgba(0, 0, 0, 0.1)',
           padding: '1.25rem',
           zIndex: 999,
           display: 'flex',
@@ -65,16 +65,16 @@ export default function NavDrawer({
         }}
       >
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '1rem', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: '#f4f0ff' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '1rem', borderBottom: '1px solid #e5e7eb' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: '#111827' }}>
               <div className="reflect-brand-icon" style={{ width: '26px', height: '26px' }}>
                 <img src="/logo.png" alt="MockMate AI Logo" className="reflect-brand-img" />
               </div>
-              <span>MockMate <span style={{ color: '#c084fc', fontSize: '0.85rem' }}>AI</span></span>
+              <span>MockMate <span style={{ color: '#2563eb', fontSize: '0.85rem' }}>AI</span></span>
             </div>
             <button
               onClick={onClose}
-              style={{ background: 'none', border: 'none', color: 'rgba(255, 255, 255, 0.7)', cursor: 'pointer', padding: '4px' }}
+              style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: '4px' }}
               aria-label="Close menu"
             >
               <X size={20} />
@@ -103,7 +103,7 @@ export default function NavDrawer({
           </nav>
         </div>
 
-        <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+        <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
           {user ? (
             <button
               onClick={onLogout}
@@ -115,9 +115,9 @@ export default function NavDrawer({
                 gap: '0.5rem',
                 padding: '0.65rem',
                 borderRadius: '8px',
-                border: '1px solid rgba(244, 63, 94, 0.3)',
-                background: 'rgba(244, 63, 94, 0.1)',
-                color: '#fb7185',
+                border: '1px solid rgba(220, 38, 38, 0.3)',
+                background: 'rgba(220, 38, 38, 0.08)',
+                color: '#dc2626',
                 cursor: 'pointer',
                 fontWeight: 500,
                 fontSize: '0.88rem'

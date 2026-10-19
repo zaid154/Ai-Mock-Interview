@@ -82,10 +82,10 @@ export default function OtpVerify() {
           <div className="reflect-brand-icon" style={{ width: '46px', height: '46px', margin: '0 auto 0.85rem' }}>
             <MailCheck size={22} />
           </div>
-          <h1 style={{ fontSize: '1.65rem', marginBottom: '0.35rem', fontWeight: 600, color: '#f8fafc', letterSpacing: '-0.025em' }}>
+          <h1 style={{ fontSize: '1.65rem', marginBottom: '0.35rem', fontWeight: 600, color: '#111827', letterSpacing: '-0.025em' }}>
             Verify Email
           </h1>
-          <p style={{ margin: 0, fontSize: '0.86rem', color: 'rgba(239, 237, 253, 0.65)' }}>
+          <p style={{ margin: 0, fontSize: '0.86rem', color: '#6b7280' }}>
             We'll send a 6-digit verification code to your inbox.
           </p>
         </div>
@@ -93,8 +93,8 @@ export default function OtpVerify() {
         <form onSubmit={verify} style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
           {requireEmailVerification === true && (
             <div className="reflect-badge" style={{ justifyContent: 'center', margin: 0, background: 'rgba(245, 158, 11, 0.1)', borderColor: 'rgba(245, 158, 11, 0.3)' }}>
-              <ShieldCheck size={14} style={{ color: '#fbbf24' }} />
-              <span style={{ color: '#fbbf24' }}>Email verification required before login</span>
+              <ShieldCheck size={14} style={{ color: '#d97706' }} />
+              <span style={{ color: '#d97706' }}>Email verification required before login</span>
             </div>
           )}
 
@@ -123,9 +123,9 @@ export default function OtpVerify() {
             </button>
           ) : (
             <>
-              <div style={{ padding: '0.85rem 1rem', borderRadius: '12px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', fontSize: '0.86rem', color: 'rgba(239, 237, 253, 0.75)' }}>
-                <MailCheck size={16} style={{ color: '#34d399', marginRight: '0.4rem', verticalAlign: 'middle' }} />
-                Code sent to <strong style={{ color: '#f8fafc' }}>{email}</strong>. Check inbox.
+              <div style={{ padding: '0.85rem 1rem', borderRadius: '8px', background: '#f0fdf4', border: '1px solid #bbf7d0', fontSize: '0.86rem', color: '#166534' }}>
+                <MailCheck size={16} style={{ color: '#16a34a', marginRight: '0.4rem', verticalAlign: 'middle' }} />
+                Code sent to <strong style={{ color: '#111827' }}>{email}</strong>. Check inbox.
               </div>
 
               <div>
@@ -154,9 +154,9 @@ export default function OtpVerify() {
 
               <div style={{ textAlign: 'center', margin: '0.4rem 0 0' }}>
                 {cooldown > 0 ? (
-                  <span style={{ fontSize: '0.82rem', color: 'rgba(239, 237, 253, 0.5)' }}>Resend available in {cooldown}s</span>
+                  <span style={{ fontSize: '0.82rem', color: '#6b7280' }}>Resend available in {cooldown}s</span>
                 ) : (
-                  <button type="button" onClick={sendCode} disabled={busy || cooldown > 0} style={{ background: 'none', border: 'none', color: '#38bdf8', fontSize: '0.84rem', cursor: 'pointer', fontWeight: 500 }}>
+                  <button type="button" onClick={sendCode} disabled={busy || cooldown > 0} style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: '0.84rem', cursor: 'pointer', fontWeight: 500 }}>
                     Resend Code
                   </button>
                 )}
@@ -166,7 +166,7 @@ export default function OtpVerify() {
 
           {requireEmailVerification === false && (
             <div style={{ textAlign: 'center', marginTop: '0.4rem' }}>
-              <button type="button" onClick={skipVerification} disabled={busy} style={{ background: 'none', border: 'none', color: 'rgba(239, 237, 253, 0.55)', fontSize: '0.82rem', cursor: 'pointer' }}>
+              <button type="button" onClick={skipVerification} disabled={busy} style={{ background: 'none', border: 'none', color: '#6b7280', fontSize: '0.82rem', cursor: 'pointer' }}>
                 Skip verification for now
               </button>
             </div>

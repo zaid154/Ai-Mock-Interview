@@ -58,23 +58,23 @@ export default function ForgotPassword() {
                 MockMate <span className="reflect-brand-badge">AI</span>
               </span>
             </Link>
-            <h2 style={{ fontSize: '1.35rem', lineHeight: 1.25, marginBottom: '0.5rem', fontWeight: 600, color: '#f8fafc', letterSpacing: '-0.025em' }}>
+            <h2 style={{ fontSize: '1.35rem', lineHeight: 1.25, marginBottom: '0.5rem', fontWeight: 600, color: '#111827', letterSpacing: '-0.025em' }}>
               Account Recovery
             </h2>
-            <p style={{ color: 'rgba(239, 237, 253, 0.65)', fontSize: '0.84rem', lineHeight: 1.5, marginBottom: '0.85rem' }}>
+            <p style={{ color: '#6b7280', fontSize: '0.84rem', lineHeight: 1.5, marginBottom: '0.85rem' }}>
               Verify your identity with a 6-digit one-time code to update your account password.
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               {['6-digit email verification code', 'Encrypted password update', 'Automatic session invalidation'].map((text) => (
-                <div key={text} style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontSize: '0.84rem', color: 'rgba(239, 237, 253, 0.85)' }}>
-                  <CheckCircle2 size={16} style={{ color: '#38bdf8', flexShrink: 0 }} aria-hidden="true" />
+                <div key={text} style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontSize: '0.84rem', color: '#374151' }}>
+                  <CheckCircle2 size={16} style={{ color: '#2563eb', flexShrink: 0 }} aria-hidden="true" />
                   <span>{text}</span>
                 </div>
               ))}
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(255, 255, 255, 0.08)', color: 'rgba(239, 237, 253, 0.6)', fontSize: '0.78rem' }}>
-            <ShieldCheck size={16} style={{ color: '#38bdf8' }} aria-hidden="true" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid #e5e7eb', color: '#6b7280', fontSize: '0.78rem' }}>
+            <ShieldCheck size={16} style={{ color: '#2563eb' }} aria-hidden="true" />
             <span>Secure identity verification</span>
           </div>
         </div>
@@ -85,10 +85,10 @@ export default function ForgotPassword() {
             <div className="reflect-badge" style={{ margin: '0 0 0.5rem', fontSize: '0.72rem', padding: '2px 8px' }}>
               <span className="reflect-badge-text">STEP 0{step} OF 02</span>
             </div>
-            <h1 style={{ fontSize: '1.45rem', marginBottom: '0.3rem', fontWeight: 600, color: '#f8fafc', letterSpacing: '-0.025em' }}>
+            <h1 style={{ fontSize: '1.45rem', marginBottom: '0.3rem', fontWeight: 600, color: '#111827', letterSpacing: '-0.025em' }}>
               {step === 1 ? 'Forgot Password?' : 'Enter 6-Digit Code'}
             </h1>
-            <p style={{ margin: 0, fontSize: '0.86rem', color: 'rgba(239, 237, 253, 0.65)' }}>
+            <p style={{ margin: 0, fontSize: '0.86rem', color: '#6b7280' }}>
               {step === 1 ? 'Enter your registered email address to receive a security reset code.' : `Enter the code sent to ${email} along with your new password.`}
             </p>
           </div>
@@ -114,8 +114,8 @@ export default function ForgotPassword() {
               <button type="submit" className="reflect-btn-primary" disabled={busy} style={{ width: '100%', justifyContent: 'center', padding: '0.75rem', marginTop: '0.4rem', fontSize: '0.9rem' }}>
                 {busy ? 'Sending Code…' : <>Send Reset Code <ArrowRight size={16} /></>}
               </button>
-              <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', marginTop: '0.5rem', paddingTop: '1rem', textAlign: 'center' }}>
-                <Link to="/login" style={{ fontSize: '0.84rem', fontWeight: 600, color: 'rgba(239, 237, 253, 0.7)', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+              <div style={{ borderTop: '1px solid #e5e7eb', marginTop: '0.5rem', paddingTop: '1rem', textAlign: 'center' }}>
+                <Link to="/login" style={{ fontSize: '0.84rem', fontWeight: 600, color: '#2563eb', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
                   <ArrowLeft size={14} /> Back to Sign In
                 </Link>
               </div>
@@ -162,10 +162,13 @@ export default function ForgotPassword() {
               <button type="submit" className="reflect-btn-primary" disabled={busy} style={{ width: '100%', justifyContent: 'center', padding: '0.75rem', marginTop: '0.4rem', fontSize: '0.9rem' }}>
                 {busy ? 'Updating Password…' : <>Confirm &amp; Reset Password <ArrowRight size={16} /></>}
               </button>
-              <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', marginTop: '0.5rem', paddingTop: '1rem', textAlign: 'center' }}>
-                <button type="button" onClick={() => setStep(1)} style={{ background: 'none', border: 'none', color: '#38bdf8', fontSize: '0.84rem', fontWeight: 600, cursor: 'pointer' }}>
+              <div style={{ borderTop: '1px solid #e5e7eb', marginTop: '0.5rem', paddingTop: '1rem', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center' }}>
+                <button type="button" onClick={() => setStep(1)} style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: '0.84rem', fontWeight: 600, cursor: 'pointer' }}>
                   Change Email Address
                 </button>
+                <Link to="/login" style={{ fontSize: '0.84rem', fontWeight: 600, color: '#6b7280', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <ArrowLeft size={14} /> Back to Sign In
+                </Link>
               </div>
             </form>
           )}

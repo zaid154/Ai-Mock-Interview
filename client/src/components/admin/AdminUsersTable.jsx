@@ -38,10 +38,10 @@ export default function AdminUsersTable({
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
                       <Avatar src={u.avatar} name={u.name} size={30} />
-                      <span style={{ fontWeight: 600, color: '#f8fafc' }}>{u.name}</span>
+                      <span style={{ fontWeight: 600, color: '#111827' }}>{u.name}</span>
                     </div>
                   </td>
-                  <td className="mono small" style={{ color: 'rgba(239, 237, 253, 0.7)' }}>{u.email}</td>
+                  <td className="mono small" style={{ color: '#4b5563' }}>{u.email}</td>
                   <td>
                     <span className={`admin-role-badge ${u.role === 'admin' ? 'admin' : 'user'}`}>
                       {u.role.toUpperCase()}
@@ -58,7 +58,7 @@ export default function AdminUsersTable({
                       {u.isVerified ? 'Verified' : 'Unverified'}
                     </button>
                   </td>
-                  <td style={{ color: 'rgba(239, 237, 253, 0.55)', fontSize: '0.8rem' }}>
+                  <td style={{ color: '#6b7280', fontSize: '0.8rem' }}>
                     {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '—'}
                   </td>
                   <td style={{ textAlign: 'right' }}>

@@ -16,7 +16,7 @@ export default function AdminNav({ userCount }) {
     <div style={{ marginBottom: '2rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
         <div>
-          <h1 style={{ fontSize: '1.85rem', fontWeight: 700, margin: '0 0 0.25rem', color: '#f8fafc', letterSpacing: '-0.02em' }}>
+          <h1 style={{ fontSize: '1.85rem', fontWeight: 700, margin: '0 0 0.25rem', color: '#111827', letterSpacing: '-0.02em' }}>
             Platform Administration
           </h1>
           <p className="muted small" style={{ margin: 0 }}>

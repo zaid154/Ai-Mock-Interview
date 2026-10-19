@@ -63,7 +63,7 @@ export default function ApiKeyManager({
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.9rem' }}>
         <div>
           <h3 className="panel-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 0.25rem' }}>
-            <Cpu size={18} style={{ color: '#c084fc' }} /> AI API Load Balancer &amp; Key Rotation
+            <Cpu size={18} style={{ color: '#2563eb' }} /> AI API Load Balancer &amp; Key Rotation
           </h3>
           <p className="muted small" style={{ margin: 0 }}>
             Round-Robin request balancing, live health verification, and 60-second cooldown failover.
@@ -74,15 +74,15 @@ export default function ApiKeyManager({
             <RefreshCw size={13} className={testingAll ? 'animate-spin' : ''} />
             {testingAll ? 'Testing Keys…' : 'Test All Keys'}
           </button>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', padding: '0.3rem 0.75rem', background: 'rgba(34, 197, 94, 0.12)', border: '1px solid rgba(34, 197, 94, 0.28)', borderRadius: '20px', color: '#4ade80', fontSize: '0.74rem', fontWeight: 600 }}>
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#4ade80' }} />
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', padding: '0.3rem 0.75rem', background: '#dcfce7', border: '1px solid #bbf7d0', borderRadius: '20px', color: '#16a34a', fontSize: '0.74rem', fontWeight: 600 }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#16a34a' }} />
             Load Balancer Active ({totalKeys} in Pool)
           </div>
         </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', fontSize: '0.78rem', color: 'rgba(239, 237, 253, 0.75)' }}>
-        <span style={{ padding: '0.12rem 0.45rem', borderRadius: '4px', background: 'rgba(168, 85, 247, 0.15)', color: '#c084fc', border: '1px solid rgba(168, 85, 247, 0.3)', fontWeight: 600 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', fontSize: '0.78rem', color: '#4b5563' }}>
+        <span style={{ padding: '0.12rem 0.45rem', borderRadius: '4px', background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', fontWeight: 600 }}>
           {envKeysCount} in .env
         </span>
         <span>+ {geminiKeys.length} Custom DB = <strong>{totalKeys} keys in rotation pool</strong></span>
@@ -101,29 +101,29 @@ export default function ApiKeyManager({
           const isHealthy = testRes ? testRes.ok : item.status === 'ready'
           const isCooldown = item.status === 'cooldown' || testRes?.status === 'cooldown'
           return (
-            <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.65rem 0.9rem', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.06)', borderRadius: '8px', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.65rem 0.9rem', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: '8px', flexWrap: 'wrap', gap: '0.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                <span style={{ fontWeight: 600, color: '#f8fafc', fontSize: '0.86rem' }}>{item.label}</span>
-                <span style={{ fontSize: '0.66rem', padding: '0.1rem 0.4rem', borderRadius: '4px', background: item.source === 'env' ? 'rgba(168, 85, 247, 0.15)' : 'rgba(56, 189, 248, 0.15)', color: item.source === 'env' ? '#c084fc' : '#38bdf8', border: '1px solid rgba(255,255,255,0.08)', fontWeight: 600 }}>
+                <span style={{ fontWeight: 600, color: '#111827', fontSize: '0.86rem' }}>{item.label}</span>
+                <span style={{ fontSize: '0.66rem', padding: '0.1rem 0.4rem', borderRadius: '4px', background: item.source === 'env' ? '#eff6ff' : '#f0f9ff', color: item.source === 'env' ? '#2563eb' : '#0284c7', border: '1px solid var(--border)', fontWeight: 600 }}>
                   {item.source === 'env' ? '.env Key' : 'Custom DB'}
                 </span>
-                <span className="mono small" style={{ color: 'rgba(239, 237, 253, 0.55)', fontSize: '0.78rem' }}>{item.maskedKey}</span>
+                <span className="mono small" style={{ color: '#6b7280', fontSize: '0.78rem' }}>{item.maskedKey}</span>
                 {testRes ? (
                   testRes.ok ? (
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.72rem', padding: '0.12rem 0.5rem', borderRadius: '12px', background: 'rgba(34, 197, 94, 0.12)', color: '#4ade80', border: '1px solid rgba(34, 197, 94, 0.25)' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.72rem', padding: '0.12rem 0.5rem', borderRadius: '12px', background: '#dcfce7', color: '#16a34a', border: '1px solid #bbf7d0' }}>
                       <CheckCircle2 size={12} /> Active ({testRes.latencyMs}ms)
                     </span>
                   ) : (
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.72rem', padding: '0.12rem 0.5rem', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.12)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.25)' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.72rem', padding: '0.12rem 0.5rem', borderRadius: '12px', background: '#fee2e2', color: '#dc2626', border: '1px solid #fecaca' }}>
                       <AlertCircle size={12} /> {testRes.message || 'Failed'}
                     </span>
                   )
                 ) : isCooldown ? (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.72rem', padding: '0.12rem 0.5rem', borderRadius: '12px', background: 'rgba(234, 179, 8, 0.12)', color: '#facc15', border: '1px solid rgba(234, 179, 8, 0.25)' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.72rem', padding: '0.12rem 0.5rem', borderRadius: '12px', background: '#fef3c7', color: '#d97706', border: '1px solid #fde68a' }}>
                     <Clock size={12} /> Cooldown ({item.cooldownRemainingSec}s)
                   </span>
                 ) : (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.72rem', padding: '0.12rem 0.5rem', borderRadius: '12px', background: 'rgba(255, 255, 255, 0.05)', color: 'rgba(239, 237, 253, 0.65)', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.72rem', padding: '0.12rem 0.5rem', borderRadius: '12px', background: '#f3f4f6', color: '#4b5563', border: '1px solid #e5e7eb' }}>
                     <Zap size={11} /> Ready
                   </span>
                 )}

@@ -151,7 +151,7 @@ export default function Interview() {
     submit()
   }
 
-  if (loading) return <main className="page-center muted">Loading focus session environment…</main>
+  if (loading) return <main className="page-center muted">Loading interview…</main>
   if (!interview) return null
 
   const question = interview.questions[current]
@@ -206,7 +206,7 @@ export default function Interview() {
             onClick={submit}
             disabled={submitting}
           >
-            {submitting ? 'Scoring your answers…' : <>Finish &amp; Get Feedback <CheckCircle2 size={18} /></>}
+            {submitting ? 'Submitting…' : <>Finish &amp; Get Feedback <CheckCircle2 size={18} /></>}
           </button>
         ) : (
           <button

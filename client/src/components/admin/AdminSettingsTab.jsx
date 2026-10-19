@@ -116,9 +116,9 @@ export default function AdminSettingsTab({
                 {customSettings.map((s) => (
                   <tr key={s._id}>
                     <td className="mono small" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      <button type="button" className="link-btn" onClick={() => renameKey(s.key)} style={{ color: '#c084fc', textDecoration: 'none', fontWeight: 600 }}>{s.key}</button>
+                      <button type="button" className="link-btn" onClick={() => renameKey(s.key)} style={{ color: '#2563eb', textDecoration: 'none', fontWeight: 600 }}>{s.key}</button>
                     </td>
-                    <td className="mono small" onClick={() => editValue(s)} style={{ cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'rgba(239, 237, 253, 0.75)' }} title={typeof s.value === 'string' ? s.value : JSON.stringify(s.value)}>
+                    <td className="mono small" onClick={() => editValue(s)} style={{ cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--text)' }} title={typeof s.value === 'string' ? s.value : JSON.stringify(s.value)}>
                       {formatDisplay(s.value, valueToText)}
                     </td>
                     <td style={{ textAlign: 'right' }}>

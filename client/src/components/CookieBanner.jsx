@@ -53,9 +53,9 @@ export default function CookieBanner() {
         style={{
           padding: '1rem 1.15rem',
           borderRadius: '12px',
-          background: 'rgba(9, 5, 26, 0.92)',
-          border: '1px solid rgba(168, 85, 247, 0.25)',
-          boxShadow: '0 12px 32px rgba(0, 0, 0, 0.65)',
+          background: '#ffffff',
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 12px 32px rgba(0, 0, 0, 0.12)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '0.75rem' }}>
@@ -64,22 +64,22 @@ export default function CookieBanner() {
               width: '32px',
               height: '32px',
               borderRadius: '8px',
-              background: 'rgba(168, 85, 247, 0.15)',
+              background: 'rgba(37, 99, 235, 0.08)',
               display: 'grid',
               placeItems: 'center',
-              color: '#c084fc',
+              color: '#2563eb',
               flexShrink: 0,
             }}
           >
             <Cookie size={16} aria-hidden="true" />
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#f8fafc', marginBottom: '0.2rem' }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#111827', marginBottom: '0.2rem' }}>
               Storage &amp; Session Notice
             </div>
-            <p style={{ margin: 0, fontSize: '0.78rem', lineHeight: 1.5, color: 'rgba(239, 237, 253, 0.7)' }}>
+            <p style={{ margin: 0, fontSize: '0.78rem', lineHeight: 1.5, color: '#6b7280' }}>
               MockMate AI uses essential local storage and session tokens to preserve authentication and interview progress. We do not use third-party advertising cookies.{' '}
-              <Link to="/privacy" style={{ color: '#c084fc', textDecoration: 'underline' }}>
+              <Link to="/privacy" style={{ color: '#2563eb', textDecoration: 'underline' }}>
                 Privacy Policy
               </Link>
             </p>
@@ -87,7 +87,7 @@ export default function CookieBanner() {
           <button
             type="button"
             onClick={dismiss}
-            style={{ background: 'none', border: 'none', color: 'rgba(239, 237, 253, 0.6)', cursor: 'pointer', padding: 0 }}
+            style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: 0 }}
             aria-label="Dismiss cookie notice"
           >
             <X size={16} />

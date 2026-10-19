@@ -20,21 +20,21 @@ export default function PracticeProgress({
       style={{
         padding: '1.1rem 1.25rem',
         marginTop: '0.4rem',
-        background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.08), rgba(99, 102, 241, 0.05))',
-        border: '1px solid rgba(168, 85, 247, 0.25)',
+        background: '#eff6ff',
+        border: '1px solid #bfdbfe',
         borderRadius: '12px',
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem' }}>
           {isComplete ? (
-            <CheckCircle2 size={18} style={{ color: '#4ade80' }} />
+            <CheckCircle2 size={18} style={{ color: '#16a34a' }} />
           ) : isRetrying || errorMessage ? (
-            <AlertCircle size={18} style={{ color: '#f87171' }} />
+            <AlertCircle size={18} style={{ color: '#dc2626' }} />
           ) : (
-            <Loader2 size={18} className="animate-spin" style={{ color: '#c084fc' }} />
+            <Loader2 size={18} className="animate-spin" style={{ color: '#2563eb' }} />
           )}
-          <span style={{ fontSize: '0.88rem', fontWeight: 600, color: '#f8fafc' }} aria-live="polite">
+          <span style={{ fontSize: '0.88rem', fontWeight: 600, color: '#111827' }} aria-live="polite">
             {isComplete ? 'Assessment Ready ✓' : 'Preparing Assessment…'}
           </span>
         </div>
@@ -43,9 +43,9 @@ export default function PracticeProgress({
             fontSize: '0.78rem',
             fontWeight: 700,
             fontFamily: 'var(--font-mono)',
-            color: isComplete ? '#4ade80' : '#c084fc',
+            color: isComplete ? '#16a34a' : '#2563eb',
             padding: '0.15rem 0.5rem',
-            background: 'rgba(255,255,255,0.06)',
+            background: '#dbeafe',
             borderRadius: '12px',
           }}
         >
@@ -62,7 +62,7 @@ export default function PracticeProgress({
         aria-label="Question generation progress"
         style={{
           height: '7px',
-          background: 'rgba(255, 255, 255, 0.08)',
+          background: '#e5e7eb',
           borderRadius: '999px',
           overflow: 'hidden',
           margin: '0.45rem 0 0.65rem',
@@ -73,9 +73,9 @@ export default function PracticeProgress({
             height: '100%',
             width: `${Math.min(100, Math.max(5, percent))}%`,
             background: isComplete
-              ? 'linear-gradient(90deg, #22c55e, #4ade80)'
-              : 'linear-gradient(90deg, #9333ea, #a855f7, #6366f1)',
-            boxShadow: '0 0 12px rgba(168, 85, 247, 0.5)',
+              ? '#16a34a'
+              : '#2563eb',
+            boxShadow: 'none',
             transition: 'width 0.35s ease',
             borderRadius: '999px',
           }}
@@ -83,7 +83,7 @@ export default function PracticeProgress({
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
-        <p style={{ margin: 0, fontSize: '0.8rem', color: errorMessage ? '#f87171' : 'rgba(239, 237, 253, 0.8)' }}>
+        <p style={{ margin: 0, fontSize: '0.8rem', color: errorMessage ? '#dc2626' : '#4b5563' }}>
           {errorMessage || statusText}
         </p>
 
@@ -105,7 +105,7 @@ export default function PracticeProgress({
               style={{
                 background: 'transparent',
                 border: 'none',
-                color: 'rgba(239, 237, 253, 0.45)',
+                color: '#6b7280',
                 fontSize: '0.74rem',
                 cursor: 'pointer',
                 display: 'inline-flex',

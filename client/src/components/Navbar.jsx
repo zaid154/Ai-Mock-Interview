@@ -122,8 +122,8 @@ export default function Navbar() {
               {userMenuOpen && (
                 <div className="reflect-dropdown" role="menu">
                   <div className="reflect-dropdown-header">
-                    <div style={{ fontWeight: 600, fontSize: '0.86rem', color: '#f8fafc' }}>{user.name}</div>
-                    <div style={{ fontSize: '0.74rem', color: 'rgba(239, 237, 253, 0.55)', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <div style={{ fontWeight: 600, fontSize: '0.86rem', color: '#111827' }}>{user.name}</div>
+                    <div style={{ fontSize: '0.74rem', color: '#9ca3af', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {user.email}
                     </div>
                   </div>
@@ -141,7 +141,7 @@ export default function Navbar() {
                       role="menuitem"
                       onClick={handleLogout}
                       className="reflect-dropdown-item"
-                      style={{ color: '#fb7185' }}
+                      style={{ color: '#dc2626' }}
                     >
                       <LogOut size={14} aria-hidden="true" /> Sign out
                     </button>

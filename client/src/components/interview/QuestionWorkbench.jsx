@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Check, Copy, Bookmark, FileText, RotateCcw, Edit3, Mic, MicOff, Sparkles, HelpCircle, MessageSquarePlus } from 'lucide-react'
+import { Check, Copy, Bookmark, FileText, RotateCcw, Edit3, Mic, MicOff, Layers, HelpCircle, MessageSquarePlus } from 'lucide-react'
 import toast from 'react-hot-toast'
 import FormattedPrompt from '../FormattedPrompt'
 
@@ -113,12 +113,12 @@ export default function QuestionWorkbench({
       </div>
 
       {(followUpPrompt || question.followUpPrompt) && (
-        <div style={{ marginBottom: '1rem', padding: '0.9rem 1.1rem', borderRadius: '10px', background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(168, 85, 247, 0.08))', border: '1px solid rgba(168, 85, 247, 0.3)', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#c084fc', fontSize: '0.82rem', fontWeight: 700 }}>
+        <div style={{ marginBottom: '1rem', padding: '0.9rem 1.1rem', borderRadius: '10px', background: '#eff6ff', border: '1px solid #bfdbfe', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#2563eb', fontSize: '0.82rem', fontWeight: 700 }}>
             <MessageSquarePlus size={15} />
             <span>INTERVIEWER FOLLOW-UP PROBE</span>
           </div>
-          <p style={{ margin: 0, fontSize: '0.92rem', lineHeight: 1.5, color: '#f1f5f9' }}>
+          <p style={{ margin: 0, fontSize: '0.92rem', lineHeight: 1.5, color: '#1f2937' }}>
             {followUpPrompt || question.followUpPrompt}
           </p>
         </div>
@@ -129,9 +129,8 @@ export default function QuestionWorkbench({
           <button type="button" className={`btn btn-sm ${activeTab === 'freeform' ? 'btn-secondary' : 'btn-ghost'}`} style={{ fontSize: '0.78rem', padding: '0.25rem 0.7rem' }} onClick={() => setActiveTab('freeform')}>
             Standard Answer
           </button>
-          <button type="button" className={`btn btn-sm ${activeTab === 'star' ? 'btn-secondary' : 'btn-ghost'}`} style={{ fontSize: '0.78rem', padding: '0.25rem 0.7rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }} onClick={() => setActiveTab('star')}>
-            <Sparkles size={13} style={{ color: 'var(--accent-primary)' }} />
-            <span>STAR Framework</span>
+          <button type="button" className={`btn btn-sm ${activeTab === 'star' ? 'btn-secondary' : 'btn-ghost'}`} style={{ fontSize: '0.78rem', padding: '0.25rem 0.7rem' }} onClick={() => setActiveTab('star')}>
+            STAR Framework
           </button>
         </div>
 
@@ -139,7 +138,7 @@ export default function QuestionWorkbench({
           {onProbeFollowUp && (
             <button type="button" className="btn btn-ghost btn-sm" disabled={probing || !answer.trim()} onClick={onProbeFollowUp} title="Request follow-up probe" style={{ fontSize: '0.78rem' }}>
               <MessageSquarePlus size={14} style={{ color: 'var(--accent-primary)' }} />
-              <span>{probing ? 'Probing…' : 'Interviewer Probe'}</span>
+              <span>{probing ? 'Probing…' : 'Ask Follow-Up'}</span>
             </button>
           )}
           <button
@@ -156,7 +155,7 @@ export default function QuestionWorkbench({
       </div>
 
       {isListening && (
-        <div style={{ padding: '0.5rem 0.8rem', borderRadius: '6px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#fca5a5', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.6rem' }}>
+        <div style={{ padding: '0.5rem 0.8rem', borderRadius: '6px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.6rem' }}>
           <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444', display: 'inline-block' }} />
           <span>Listening… speak your answer clearly. Text will appear below in real-time.</span>
         </div>
@@ -165,8 +164,8 @@ export default function QuestionWorkbench({
       {activeTab === 'star' ? (
         <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: '10px', padding: '1.2rem', marginBottom: '0.8rem', display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <Sparkles size={15} /> STAR Method Answer Builder
+            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#111827', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <Layers size={15} style={{ color: '#2563eb' }} /> STAR Structured Response
             </span>
             <button type="button" className="btn btn-ghost btn-sm" style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem' }} onClick={() => setShowStarGuide(!showStarGuide)}>
               <HelpCircle size={13} /> {showStarGuide ? 'Hide Guide' : 'What is STAR?'}

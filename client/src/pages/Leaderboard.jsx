@@ -33,13 +33,13 @@ export default function Leaderboard() {
       {/* Section Header */}
       <div className="section-head" style={{ marginBottom: '1.75rem' }}>
         <div className="reflect-badge" style={{ marginBottom: '0.4rem' }}>
-          <Trophy size={12} style={{ color: '#c084fc' }} aria-hidden="true" />
+          <Trophy size={12} style={{ color: '#2563eb' }} aria-hidden="true" />
           <span className="reflect-badge-text">Candidate Rankings</span>
         </div>
-        <h1 style={{ fontSize: '1.85rem', fontWeight: 700, margin: '0 0 0.35rem', color: '#f8fafc' }}>
+        <h1 style={{ fontSize: '1.85rem', fontWeight: 700, margin: '0 0 0.35rem', color: '#111827' }}>
           Leaderboard
         </h1>
-        <p style={{ color: 'rgba(239, 237, 253, 0.7)', fontSize: '0.9rem', maxWidth: '60ch', margin: 0 }}>
+        <p style={{ color: '#6b7280', fontSize: '0.9rem', maxWidth: '60ch', margin: 0 }}>
           Candidate practitioners ranked by completed interview sessions and average evaluation scores.
         </p>
       </div>
@@ -49,8 +49,8 @@ export default function Leaderboard() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
             {[1, 2, 3].map((i) => (
               <div key={i} className="panel" style={{ padding: '1.5rem', minHeight: '110px', background: 'var(--surface-2)', opacity: 0.6 }}>
-                <div style={{ width: '40%', height: '12px', background: 'rgba(255,255,255,0.08)', borderRadius: '4px', marginBottom: '0.8rem' }} />
-                <div style={{ width: '70%', height: '16px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px' }} />
+                <div style={{ width: '40%', height: '12px', background: 'rgba(0,0,0,0.06)', borderRadius: '4px', marginBottom: '0.8rem' }} />
+                <div style={{ width: '70%', height: '16px', background: 'rgba(0,0,0,0.04)', borderRadius: '4px' }} />
               </div>
             ))}
           </div>
@@ -58,7 +58,7 @@ export default function Leaderboard() {
       ) : leaderboard.length === 0 ? (
         <div className="panel page-center" style={{ minHeight: '260px', textAlign: 'center', padding: '3.5rem 1.5rem' }}>
           <Trophy size={36} style={{ color: 'var(--text-subtle)', marginBottom: '0.85rem', opacity: 0.6 }} aria-hidden="true" />
-          <h2 style={{ fontSize: '1.25rem', marginBottom: '0.35rem', color: '#f8fafc' }}>No rankings recorded yet</h2>
+          <h2 style={{ fontSize: '1.25rem', marginBottom: '0.35rem', color: '#111827' }}>No rankings recorded yet</h2>
           <p className="muted small" style={{ maxWidth: '440px', margin: '0 auto 1.5rem', lineHeight: 1.6 }}>
             Complete your first technical practice session or quiz to establish your standing on the leaderboard.
           </p>
@@ -77,22 +77,22 @@ export default function Leaderboard() {
                   className="panel"
                   style={{
                     padding: '1.4rem',
-                    border: idx === 0 ? '1px solid rgba(168, 85, 247, 0.4)' : '1px solid var(--border)',
-                    background: idx === 0 ? 'rgba(168, 85, 247, 0.05)' : 'var(--surface)',
+                    border: idx === 0 ? '1px solid rgba(37, 99, 235, 0.4)' : '1px solid var(--border)',
+                    background: idx === 0 ? 'rgba(37, 99, 235, 0.04)' : 'var(--surface)',
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.8rem' }}>
                     <span className={idx === 0 ? 'tag' : 'tag-soft'} style={{ fontSize: '0.72rem' }}>
                       {idx === 0 ? '1st Place' : idx === 1 ? '2nd Place' : '3rd Place'}
                     </span>
-                    <span className="mono" style={{ fontSize: '1.05rem', fontWeight: 700, color: idx === 0 ? '#4ade80' : 'var(--text)' }}>
+                    <span className="mono" style={{ fontSize: '1.05rem', fontWeight: 700, color: idx === 0 ? '#16a34a' : 'var(--text)' }}>
                       {item.avgScore}%
                     </span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
                     <Avatar src={item.avatar} name={item.name} size={idx === 0 ? 44 : 38} />
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontWeight: 600, fontSize: '0.96rem', color: '#f8fafc', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <div style={{ fontWeight: 600, fontSize: '0.96rem', color: '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {item.name}
                       </div>
                       <div className="muted small" style={{ fontSize: '0.78rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>

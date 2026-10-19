@@ -69,18 +69,18 @@ export default function Bookmarks() {
       <div className="section-head" style={{ marginBottom: '1.75rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.4rem', flexWrap: 'wrap' }}>
           <div className="reflect-badge" style={{ margin: 0 }}>
-            <Bookmark size={12} style={{ color: '#c084fc' }} aria-hidden="true" />
-            <span className="reflect-badge-text">Study Vault</span>
+            <Bookmark size={12} style={{ color: '#2563eb' }} aria-hidden="true" />
+            <span className="reflect-badge-text">Saved Questions</span>
           </div>
           <span className="tag-soft" style={{ fontSize: '0.75rem', fontWeight: 600 }}>
             {bookmarks.length} {bookmarks.length === 1 ? 'Question' : 'Questions'}
           </span>
         </div>
-        <h1 style={{ fontSize: '1.85rem', fontWeight: 700, margin: '0 0 0.35rem', color: '#f8fafc' }}>
+        <h1 style={{ fontSize: '1.85rem', fontWeight: 700, margin: '0 0 0.35rem', color: '#111827' }}>
           Bookmarked Questions
         </h1>
-        <p style={{ color: 'rgba(239, 237, 253, 0.7)', fontSize: '0.9rem', maxWidth: '60ch', margin: 0 }}>
-          Review saved technical questions, test recall with hidden model answers, and manage custom study notes.
+        <p style={{ color: '#6b7280', fontSize: '0.9rem', maxWidth: '60ch', margin: 0 }}>
+          Review saved technical questions, examine reference answers, and manage personal notes.
         </p>
       </div>
 
@@ -123,15 +123,15 @@ export default function Bookmarks() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {[1, 2].map((n) => (
             <div key={n} className="panel" style={{ padding: '2rem', minHeight: '140px', background: 'var(--surface-2)', opacity: 0.6 }}>
-              <div style={{ width: '30%', height: '14px', background: 'rgba(255,255,255,0.08)', borderRadius: '4px', marginBottom: '1rem' }} />
-              <div style={{ width: '75%', height: '18px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px' }} />
+              <div style={{ width: '30%', height: '14px', background: 'rgba(0,0,0,0.06)', borderRadius: '4px', marginBottom: '1rem' }} />
+              <div style={{ width: '75%', height: '18px', background: 'rgba(0,0,0,0.04)', borderRadius: '4px' }} />
             </div>
           ))}
         </div>
       ) : bookmarks.length === 0 ? (
         <div className="panel page-center" style={{ minHeight: '260px', textAlign: 'center', padding: '3.5rem 1.5rem' }}>
           <Bookmark size={36} style={{ color: 'var(--text-subtle)', marginBottom: '0.85rem', opacity: 0.6 }} aria-hidden="true" />
-          <h3 style={{ fontSize: '1.25rem', marginBottom: '0.35rem', color: '#f8fafc' }}>No bookmarked questions yet</h3>
+          <h3 style={{ fontSize: '1.25rem', marginBottom: '0.35rem', color: '#111827' }}>No bookmarked questions yet</h3>
           <p className="muted small" style={{ maxWidth: '440px', margin: '0 auto 1.5rem', lineHeight: 1.6 }}>
             While taking practice interviews or quizzes, click the Bookmark icon on any question to save it here for revision and recall practice.
           </p>
@@ -142,7 +142,7 @@ export default function Bookmarks() {
       ) : filtered.length === 0 ? (
         <div className="panel page-center" style={{ minHeight: '220px', textAlign: 'center', padding: '2.5rem 1.5rem' }}>
           <BookOpen size={32} style={{ color: 'var(--text-subtle)', marginBottom: '0.65rem' }} aria-hidden="true" />
-          <h3 style={{ fontSize: '1.15rem', marginBottom: '0.25rem', color: '#f8fafc' }}>No questions match your filter</h3>
+          <h3 style={{ fontSize: '1.15rem', marginBottom: '0.25rem', color: '#111827' }}>No questions match your filter</h3>
           <p className="muted small" style={{ margin: 0 }}>Try clearing your search query or selecting &quot;All Categories&quot;.</p>
         </div>
       ) : (

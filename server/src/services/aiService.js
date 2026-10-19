@@ -12,10 +12,21 @@ const cleanText = (val) => String(val || '').replaceAll('\\r\\n', '\n').replaceA
 const maskKey = (k) => (k && k.length > 10 ? `${k.slice(0, 6)}••••••••${k.slice(-4)}` : '••••••••')
 
 function sanitizePromptText(val) {
-  return cleanText(val)
+  let cleaned = cleanText(val)
     .replace(/\/\/\s*(?:assume\b|note\b|hint\b|clue\b|bug\b|fix\b|solution\b|this causes|this triggers|fires even if|your logic here)[^\r\n]*/gi, '')
     .replace(/\/\/\s*$/gm, '')
     .trim()
+
+  // Clean out awkward self-referential or formulaic AI opening phrases
+  cleaned = cleaned
+    .replace(/^In\s+(?:your\s+)?(?:Mock\s*Mate(?:\s*AI)?|AI\s+Mock\s+Interview)(?:\s+(?:platform|project|app|website|system))?,\s*/i, '')
+    .replace(/\b(?:Mock\s*Mate(?:\s*AI)?)\b/gi, 'your application')
+    .trim()
+
+  if (cleaned.length > 0) {
+    cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1)
+  }
+  return cleaned
 }
 
 async function testSingleKey(rawKey) {
@@ -178,7 +189,11 @@ function filterRelevantContext(resumeContext, role = '', category = 'General') {
   const matchedSkills = allSkills.filter((s) => keywords.includes(s.toLowerCase()) || s.toLowerCase().split(' ').some((w) => w.length > 2 && keywords.includes(w)))
   const finalSkills = matchedSkills.length >= 2 ? matchedSkills.slice(0, 8) : allSkills.slice(0, 8)
 
-  const allProjects = Array.isArray(resumeContext.projects) ? resumeContext.projects : []
+  // Filter out any self-referential project referencing MockMate
+  const allProjects = (Array.isArray(resumeContext.projects) ? resumeContext.projects : []).filter((p) => {
+    const name = String(p.name || '').toLowerCase()
+    return !name.includes('mockmate') && !name.includes('mock mate') && !name.includes('mock-mate') && !name.includes('ai mock interview')
+  })
   const matchedProjects = allProjects.filter((p) => {
     const text = `${p.name} ${(p.technologies || []).join(' ')} ${p.description || ''}`.toLowerCase()
     return keywords.split(' ').some((kw) => kw.length > 2 && text.includes(kw))
@@ -188,7 +203,7 @@ function filterRelevantContext(resumeContext, role = '', category = 'General') {
   const parts = []
   if (resumeContext.name) parts.push(`Candidate: ${resumeContext.name}`)
   if (finalSkills.length) parts.push(`Relevant Skills: ${finalSkills.join(', ')}`)
-  if (finalProjects.length) parts.push(`Key Projects: ${finalProjects.map((p) => `${p.name} (${(p.technologies || []).join(', ')})`).join(' | ')}`)
+  if (finalProjects.length) parts.push(`Key Experience Areas: ${finalProjects.map((p) => `${p.name} (${(p.technologies || []).join(', ')})`).join(' | ')}`)
   const exp = Array.isArray(resumeContext.experience) ? resumeContext.experience : []
   if (exp.length && exp[0].role) parts.push(`Experience: ${exp[0].role} at ${exp[0].company || 'Company'}`)
   return parts.join('\n')
@@ -198,13 +213,13 @@ function promptContext(role, difficulty, experience, relevantResume, category) {
   const cat = category && category !== 'General' ? ` focus specifically on the "${category}" domain.` : ''
   if (relevantResume && relevantResume.trim()) {
     return {
-      profile: `a "${role}" candidate (${experience || 'Fresher'} level at ${difficulty} difficulty) with this verified resume profile:\n${relevantResume.trim()}`,
-      rules: ` Ground technical scenario questions on the technologies and projects explicitly mentioned in their resume profile. Do not invent unlisted companies or tools.${cat}`,
+      profile: `a "${role}" candidate (${experience || 'Fresher'} level at ${difficulty} difficulty) with this verified technical background:\n${relevantResume.trim()}`,
+      rules: ` Evaluate the candidate on the technologies, architecture patterns, and engineering domains shown in their background. DO NOT rigidly quote project names (never say "In your [Project Name]..."). Never mention "MockMate" or "Mock Mate AI". Frame scenario questions naturally as an expert technical interviewer.${cat}`,
     }
   }
   return {
     profile: `a "${role}" candidate with experience level "${experience || 'Fresher'}" at ${difficulty} difficulty`,
-    rules: cat,
+    rules: ` Ask natural, realistic technical interview questions testing real-world engineering concepts and trade-offs. Never mention "MockMate" or "Mock Mate AI".${cat}`,
   }
 }
 
@@ -215,7 +230,16 @@ async function generateQuestions(role, difficulty, count, experience, resumeCont
 
   const ctx = promptContext(role, difficulty, experience, relevantResume, category)
   const excludeRule = excludePrompts && excludePrompts.length > 0 ? ` Do not repeat these questions:\n${excludePrompts.map((p) => `- ${p}`).join('\n')}` : ''
-  const prompt = `You are a senior technical interviewer. Write exactly ${count} distinct interview questions for ${ctx.profile}.${ctx.rules}${excludeRule} Match depth to experience level. Keep questions to 1-2 sentences. Mix conceptual depth with practical implementation. If code snippets are included, format with markdown code fences (\`\`\`javascript ... \`\`\`) and do not include comments that give away the answer or explain the bug. Do not number them. Respond as JSON: { "questions": string[] }.`
+  const prompt = `You are a Principal Engineering Interviewer conducting a technical screen for ${ctx.profile}.${ctx.rules}${excludeRule}
+Write exactly ${count} distinct interview questions.
+Rules:
+- Speak as a real Principal/Staff Engineer at a top tech company (Google, Stripe, Meta).
+- Avoid formulaic or robotic phrasing. Never start questions with "In your [Project Name] platform," or "In your project...".
+- Focus on practical architectural trade-offs, state management, concurrency, performance bottlenecks, caching, and edge cases.
+- Match depth to ${difficulty} difficulty level. Keep questions to 1-2 clear, natural sentences.
+- Never mention "MockMate" or "Mock Mate AI".
+- If code snippets are included, format with markdown code fences (\`\`\`javascript ... \`\`\`) without comments that give away solutions.
+- Respond strictly as JSON: { "questions": string[] }.`
 
   try {
     const data = await generateJson(prompt)

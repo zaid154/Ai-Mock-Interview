@@ -9,8 +9,8 @@ export default function QuizHud({ quiz, answered, total, current, onTimeUp }) {
       <div className="interview-hud-head">
         <div>
           <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.6rem', marginBottom: '0.2rem' }}>
-            <span className="badge-glow" style={{ fontSize: '0.72rem' }}>
-              <HelpCircle size={13} /> Technical MCQ Quiz
+            <span className="tag" style={{ background: '#dbeafe', color: '#1d4ed8', fontWeight: 600, fontSize: '0.72rem' }}>
+              Multiple Choice
             </span>
             <span className="tag">{quiz.role}</span>
             {quiz.category && quiz.category !== 'General' && <span className="tag-soft">{quiz.category}</span>}

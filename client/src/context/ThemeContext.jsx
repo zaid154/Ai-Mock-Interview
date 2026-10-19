@@ -8,9 +8,8 @@ export function ThemeProvider({ children }) {
   // Following prefers-color-scheme here handed dark-mode users a dark UI they
   // could not switch out of. A stored preference is still honoured.
   const [theme, setTheme] = useState(() => {
-    // Reflect deep space theme is the primary aesthetic. Wipe legacy 'light' stored preference.
-    localStorage.setItem('mockmate_theme', 'dark')
-    return 'dark'
+    localStorage.setItem('mockmate_theme', 'light')
+    return 'light'
   })
 
   useEffect(() => {

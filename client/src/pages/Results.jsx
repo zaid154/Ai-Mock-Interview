@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { RotateCcw, Award, Edit3, Save, Sparkles } from 'lucide-react'
+import { RotateCcw, Award, Edit3, Save } from 'lucide-react'
 import api, { apiError } from '../lib/api'
 import ScoreChart from '../components/ScoreChart'
 import QuestionEvaluationList from '../components/QuestionEvaluationList'
@@ -84,7 +84,7 @@ export default function Results() {
     }
   }
 
-  if (loading) return <main className="page-center muted">Evaluating performance results…</main>
+  if (loading) return <main className="page-center muted">Loading results…</main>
   if (!interview) return <main className="page-center muted">Results not found.</main>
 
   const v = verdict(interview.overallScore)
@@ -96,13 +96,13 @@ export default function Results() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div style={{ minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.6rem', marginBottom: '0.3rem' }}>
-            <span className="badge-glow" style={{ fontSize: '0.75rem' }}>
-              <Sparkles size={13} /> Performance Audit Complete
+            <span className="tag" style={{ background: '#dbeafe', color: '#1d4ed8', fontWeight: 600 }}>
+              Completed
             </span>
             <span className="tag">{interview.role}</span>
             {interview.category && interview.category !== 'General' && <span className="tag-soft">{interview.category}</span>}
           </div>
-          <h1 style={{ fontSize: '2rem', margin: 0 }}>Candidate Session Results</h1>
+          <h1 style={{ fontSize: '1.85rem', fontWeight: 700, margin: 0, color: '#111827' }}>Interview Results &amp; Feedback</h1>
         </div>
 
         <div style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap' }}>
@@ -121,7 +121,7 @@ export default function Results() {
         <div className="panel" style={{ padding: '1.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
             <span className="subtle small uppercase" style={{ letterSpacing: '0.06em', fontWeight: 700 }}>
-              Readiness Rating
+              Overall Performance
             </span>
             <span className={v.className}>{v.label}</span>
           </div>
@@ -144,7 +144,7 @@ export default function Results() {
         {/* Right Column: Interactive Score Breakdown Chart */}
         <div className="panel" style={{ padding: '1.75rem' }}>
           <span className="subtle small uppercase" style={{ letterSpacing: '0.06em', fontWeight: 700, display: 'block', marginBottom: '1rem' }}>
-            Question-by-Question Progression
+            Question Scores
           </span>
           <ScoreChart
             questions={interview.questions}
@@ -157,7 +157,7 @@ export default function Results() {
       <div className="panel" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
           <span className="field-label" style={{ margin: 0, display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
-            <Edit3 size={15} style={{ color: 'var(--accent-primary)' }} /> Session Takeaways &amp; Retrospective Notes
+            <Edit3 size={15} style={{ color: 'var(--accent-primary)' }} /> Personal Notes
           </span>
           <button
             type="button"
@@ -178,7 +178,7 @@ export default function Results() {
       </div>
 
       {/* ── Question Breakdown List ── */}
-      <h2 style={{ fontSize: '1.4rem', marginBottom: '1.25rem' }}>Detailed Question Evaluation</h2>
+      <h2 style={{ fontSize: '1.3rem', marginBottom: '1.25rem', color: '#111827' }}>Questions &amp; Feedback</h2>
 
       <QuestionEvaluationList
         questions={interview.questions}

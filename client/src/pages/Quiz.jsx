@@ -164,7 +164,7 @@ export default function Quiz() {
 
         <div className="glass-card" style={{ marginTop: '1.5rem', padding: '1.1rem', background: 'var(--surface-2)' }}>
           <span className="field-label" style={{ marginBottom: '0.4rem', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
-            <Edit3 size={15} style={{ color: 'var(--accent-primary)' }} /> Candidate Note / Key Recall
+            <Edit3 size={15} style={{ color: 'var(--accent-primary)' }} /> Personal Notes
           </span>
           <input
             type="text"

@@ -18,10 +18,10 @@ export default function PerformanceHub({
       {/* Professional Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.85rem' }}>
         <div>
-          <h1 style={{ fontSize: '1.35rem', fontWeight: 700, margin: '0 0 0.2rem', color: '#f8fafc', letterSpacing: '-0.02em' }}>
+          <h1 style={{ fontSize: '1.35rem', fontWeight: 700, margin: '0 0 0.2rem', color: '#111827', letterSpacing: '-0.02em' }}>
             Welcome, {firstName}
           </h1>
-          <p style={{ margin: 0, fontSize: '0.84rem', color: 'rgba(239, 237, 253, 0.65)' }}>
+          <p style={{ margin: 0, fontSize: '0.84rem', color: '#6b7280' }}>
             Candidate overview, skill assessments, and recent practice sessions.
           </p>
         </div>
@@ -41,34 +41,34 @@ export default function PerformanceHub({
       <div className="hub-action-grid">
         <div className="hub-action-card" onClick={() => navigate('/practice?mode=questions')}>
           <div className="hub-action-card-header">
-            <div className="hub-action-icon-wrap" style={{ background: 'rgba(168, 85, 247, 0.12)', border: '1px solid rgba(168, 85, 247, 0.25)', color: '#c084fc' }}>
+            <div className="hub-action-icon-wrap" style={{ background: 'rgba(37, 99, 235, 0.08)', border: '1px solid rgba(37, 99, 235, 0.2)', color: '#2563eb' }}>
               <MessageSquare size={18} />
             </div>
             <div>
-              <div style={{ fontWeight: 600, fontSize: '0.92rem', color: '#f8fafc', marginBottom: '0.2rem' }}>Technical Interview</div>
-              <div style={{ fontSize: '0.78rem', color: 'rgba(239, 237, 253, 0.6)', lineHeight: 1.45 }}>
+              <div style={{ fontWeight: 600, fontSize: '0.92rem', color: '#111827', marginBottom: '0.2rem' }}>Technical Interview</div>
+              <div style={{ fontSize: '0.78rem', color: '#6b7280', lineHeight: 1.45 }}>
                 Simulated hiring rounds with technical follow-ups and performance evaluation.
               </div>
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#c084fc', fontSize: '0.8rem', fontWeight: 600 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#2563eb', fontSize: '0.8rem', fontWeight: 600 }}>
             Start Interview <ArrowRight size={13} />
           </div>
         </div>
 
         <div className="hub-action-card" onClick={() => navigate('/practice?mode=quiz')}>
           <div className="hub-action-card-header">
-            <div className="hub-action-icon-wrap" style={{ background: 'rgba(99, 102, 241, 0.12)', border: '1px solid rgba(99, 102, 241, 0.25)', color: '#a5b4fc' }}>
+            <div className="hub-action-icon-wrap" style={{ background: 'rgba(37, 99, 235, 0.08)', border: '1px solid rgba(37, 99, 235, 0.2)', color: '#2563eb' }}>
               <CheckSquare size={18} />
             </div>
             <div>
-              <div style={{ fontWeight: 600, fontSize: '0.92rem', color: '#f8fafc', marginBottom: '0.2rem' }}>Technical Assessment</div>
-              <div style={{ fontSize: '0.78rem', color: 'rgba(239, 237, 253, 0.6)', lineHeight: 1.45 }}>
+              <div style={{ fontWeight: 600, fontSize: '0.92rem', color: '#111827', marginBottom: '0.2rem' }}>Technical Assessment</div>
+              <div style={{ fontSize: '0.78rem', color: '#6b7280', lineHeight: 1.45 }}>
                 Timed multiple-choice evaluation covering core architecture and engineering.
               </div>
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#a5b4fc', fontSize: '0.8rem', fontWeight: 600 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#2563eb', fontSize: '0.8rem', fontWeight: 600 }}>
             Start Assessment <ArrowRight size={13} />
           </div>
         </div>
@@ -78,18 +78,18 @@ export default function PerformanceHub({
       {completedSessions.length > 0 && (
         <div className="hub-stats-row">
           <div className="hub-stat-tile">
-            <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'rgba(239, 237, 253, 0.5)', fontWeight: 600 }}>Completed Drills</span>
-            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#f8fafc' }}>{completedSessions.length} <span style={{ fontSize: '0.78rem', fontWeight: 400, color: 'rgba(239, 237, 253, 0.6)' }}>sessions</span></div>
+            <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b7280', fontWeight: 600 }}>Completed Drills</span>
+            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827' }}>{completedSessions.length} <span style={{ fontSize: '0.78rem', fontWeight: 400, color: '#6b7280' }}>sessions</span></div>
           </div>
           <div className="hub-stat-tile">
-            <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'rgba(239, 237, 253, 0.5)', fontWeight: 600 }}>Average Score</span>
-            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: avgScore >= 75 ? '#4ade80' : '#e2e8f0', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              {avgScore}% <span style={{ fontSize: '0.72rem', fontWeight: 500, padding: '0.15rem 0.45rem', borderRadius: '6px', background: 'rgba(255, 255, 255, 0.07)', color: 'rgba(239, 237, 253, 0.8)' }}>{avgScore >= 80 ? 'Proficient' : 'In Progress'}</span>
+            <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b7280', fontWeight: 600 }}>Average Score</span>
+            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: avgScore >= 75 ? '#16a34a' : '#111827', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              {avgScore}% <span style={{ fontSize: '0.72rem', fontWeight: 500, padding: '0.15rem 0.45rem', borderRadius: '6px', background: 'rgba(0, 0, 0, 0.05)', color: '#4b5563' }}>{avgScore >= 80 ? 'Proficient' : 'In Progress'}</span>
             </div>
           </div>
           <div className="hub-stat-tile">
-            <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'rgba(239, 237, 253, 0.5)', fontWeight: 600 }}>Target Track</span>
-            <div style={{ fontSize: '0.92rem', fontWeight: 600, color: '#f8fafc', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{targetRole}</div>
+            <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b7280', fontWeight: 600 }}>Target Track</span>
+            <div style={{ fontSize: '0.92rem', fontWeight: 600, color: '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{targetRole}</div>
           </div>
         </div>
       )}
@@ -97,8 +97,8 @@ export default function PerformanceHub({
       {/* History List or First-time Roadmap */}
       <div className="hub-card">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem', flexWrap: 'wrap', gap: '0.6rem' }}>
-          <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-            <Layers size={15} style={{ color: '#c084fc' }} />
+          <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#111827', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+            <Layers size={15} style={{ color: '#2563eb' }} />
             Recent Practice History
           </div>
           {sessions.length > 0 && (
@@ -114,18 +114,18 @@ export default function PerformanceHub({
         ) : filteredSessions.length === 0 ? (
           sessions.length === 0 ? (
             <div className="hub-empty-roadmap" style={{ textAlign: 'center', padding: '1.5rem 1rem' }}>
-              <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#f8fafc', marginBottom: '0.3rem' }}>
+              <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#111827', marginBottom: '0.3rem' }}>
                 Getting Started
               </div>
-              <p style={{ fontSize: '0.82rem', color: 'rgba(239, 237, 253, 0.6)', maxWidth: '420px', margin: '0 auto 1.25rem' }}>
+              <p style={{ fontSize: '0.82rem', color: '#6b7280', maxWidth: '420px', margin: '0 auto 1.25rem' }}>
                 Configure your target role and complete your first session to track performance.
               </p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem', marginBottom: '1.25rem', textAlign: 'left' }}>
                 {STEPS.map((s) => (
-                  <div key={s.num} style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '0.85rem', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
-                    <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'rgba(239, 237, 253, 0.5)', marginBottom: '0.2rem' }}>{s.num}</div>
-                    <div style={{ fontWeight: 600, fontSize: '0.84rem', color: '#f8fafc', marginBottom: '0.2rem' }}>{s.title}</div>
-                    <div style={{ fontSize: '0.74rem', color: 'rgba(239, 237, 253, 0.55)' }}>{s.desc}</div>
+                  <div key={s.num} style={{ background: '#f9fafb', padding: '0.85rem', borderRadius: '10px', border: '1px solid #e5e7eb' }}>
+                    <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#6b7280', marginBottom: '0.2rem' }}>{s.num}</div>
+                    <div style={{ fontWeight: 600, fontSize: '0.84rem', color: '#111827', marginBottom: '0.2rem' }}>{s.title}</div>
+                    <div style={{ fontSize: '0.74rem', color: '#6b7280' }}>{s.desc}</div>
                   </div>
                 ))}
               </div>
@@ -134,7 +134,7 @@ export default function PerformanceHub({
               </button>
             </div>
           ) : (
-            <div style={{ textAlign: 'center', padding: '2rem 1rem', border: '1px dashed rgba(255, 255, 255, 0.1)', borderRadius: '10px' }}>
+            <div style={{ textAlign: 'center', padding: '2rem 1rem', border: '1px dashed #e5e7eb', borderRadius: '10px' }}>
               <p className="muted small" style={{ margin: 0 }}>No sessions match &quot;{searchFilter}&quot;</p>
             </div>
           )
@@ -158,7 +158,7 @@ export default function PerformanceHub({
                     </div>
                   </div>
                   <div className="session-actions-cluster">
-                    <span className="session-score-pill" style={{ background: session.status === 'completed' ? 'rgba(168, 85, 247, 0.15)' : 'rgba(234, 179, 8, 0.15)', color: session.status === 'completed' ? '#c084fc' : '#facc15' }}>
+                    <span className="session-score-pill" style={{ background: session.status === 'completed' ? 'rgba(37, 99, 235, 0.1)' : 'rgba(234, 179, 8, 0.15)', color: session.status === 'completed' ? '#2563eb' : '#d97706' }}>
                       {session.status === 'completed' ? (score !== undefined ? `${score}% Score` : 'Completed') : 'In Progress'}
                     </span>
                     <button type="button" className="session-trash-btn" onClick={(e) => deleteSession(session._id, e)} title="Delete Session">

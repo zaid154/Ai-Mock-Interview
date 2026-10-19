@@ -1,4 +1,3 @@
-import { Sparkles } from 'lucide-react'
 import Timer from '../Timer'
 
 export default function InterviewHUD({
@@ -12,12 +11,12 @@ export default function InterviewHUD({
 }) {
   return (
     <>
-      {/* ── Focus Mode HUD Header ── */}
+      {/* ── Interview Header ── */}
       <div className="interview-hud-head">
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.3rem', flexWrap: 'wrap' }}>
-            <span className="badge-glow" style={{ fontSize: '0.75rem' }}>
-              <Sparkles size={13} /> Focus Mode Session
+            <span className="tag" style={{ background: '#dbeafe', color: '#1d4ed8', fontWeight: 600 }}>
+              Live Interview
             </span>
             <span className="tag" style={{ textTransform: 'uppercase' }}>
               {interview.role}
