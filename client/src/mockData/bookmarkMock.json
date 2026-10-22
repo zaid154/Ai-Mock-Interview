@@ -1,0 +1,24 @@
+[
+  {
+    "_id": "mock_bm_001",
+    "userId": "mock_user_001",
+    "interviewId": "mock_interview_001",
+    "question": "Explain how MongoDB creates and utilizes compound indexes, including index prefix ordering rules.",
+    "idealAnswer": "Compound indexes index multiple fields. MongoDB can use an index on (A, B, C) for queries on (A), (A, B), or (A, B, C), but not (B) or (C) alone due to index prefix order constraints.",
+    "role": "Backend Architecture",
+    "category": "MongoDB",
+    "notes": "Remember Equality, Sort, Range (ESR) rule for optimal compound index design.",
+    "createdAt": "2026-10-21T12:00:00.000Z"
+  },
+  {
+    "_id": "mock_bm_002",
+    "userId": "mock_user_001",
+    "interviewId": "mock_interview_001",
+    "question": "What happens under the hood during client-side hydration in React?",
+    "idealAnswer": "Hydration attaches event listeners to the server-rendered HTML DOM without destroying and recreating the DOM nodes, preserving fast First Contentful Paint.",
+    "role": "Frontend Engineering",
+    "category": "React",
+    "notes": "Key topic for senior frontend rounds.",
+    "createdAt": "2026-10-21T14:30:00.000Z"
+  }
+]

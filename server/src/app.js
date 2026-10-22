@@ -2,9 +2,9 @@ const express = require('express')
 const cors = require('cors')
 const morgan = require('morgan')
 const cookieParser = require('cookie-parser')
-const helmet = require('helmet') // 🛡️ security headers
-const rateLimit = require('express-rate-limit') // 🛡️ brute‑force/DDoS protection
-const mongoSanitize = require('express-mongo-sanitize') // 🛡️ NoSQL injection guard
+const helmet = require('helmet')
+const rateLimit = require('express-rate-limit')
+const mongoSanitize = require('express-mongo-sanitize')
 
 const authRoutes = require('./routes/authRoutes')
 const adminRoutes = require('./routes/adminRoutes')
@@ -15,22 +15,20 @@ const { notFound, errorHandler } = require('./middleware/errorMiddleware')
 
 const app = express()
 
-// Trust reverse proxies (Render, Vercel, Cloudflare, NGINX) to enable rate-limiting behind proxies
+// Trust reverse proxies (Render, Vercel, Cloudflare, NGINX)
 app.set('trust proxy', 1)
 
-// CORS: CLIENT_URL accepts one origin or a comma-separated allow-list. This
-// lets the Render API serve the live Vercel site (and optional preview URLs)
-// without accidentally allowing every production website.
+// CORS: CLIENT_URL accepts one origin or comma-separated allow-list
 const allowedOrigins = (process.env.CLIENT_URL || '')
   .split(',')
   .map((origin) => origin.trim().replace(/\/$/, ''))
   .filter(Boolean)
 
-app.use(helmet()) // 🛡️ set secure HTTP headers
+app.use(helmet())
 
 const isDev = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV
 
-// Global rate limiting: 1000 requests per 15 minutes per IP in production, skipped in development
+// Global rate limiting: 1000 requests per 15 minutes per IP in production, skipped in dev
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 1000,
@@ -39,11 +37,11 @@ const apiLimiter = rateLimit({
   legacyHeaders: false,
   skip: () => isDev,
 })
-app.use('/api/', apiLimiter) // apply to all API routes
+app.use('/api/', apiLimiter)
 
 // Strict rate limiter for sensitive authentication endpoints in production
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: 1000,
   message: { error: 'Too many authentication attempts. Please try again after 15 minutes.' },
   standardHeaders: true,
@@ -55,43 +53,52 @@ app.use('/api/auth/register', authLimiter)
 app.use('/api/auth/verify-otp', authLimiter)
 app.use('/api/auth/forgot-password', authLimiter)
 
-app.use(mongoSanitize()) // 🛡️ prevent NoSQL injection
+app.use(mongoSanitize())
 
-app.use(cors({
-  origin(origin, callback) {
-    if (!origin) return callback(null, true)
-    const cleanOrigin = origin.replace(/\/$/, '')
-    if (
-      allowedOrigins.length === 0 ||
-      allowedOrigins.includes(cleanOrigin) ||
-      cleanOrigin.startsWith('http://localhost:') ||
-      cleanOrigin.startsWith('http://127.0.0.1:') ||
-      cleanOrigin.endsWith('.vercel.app')
-    ) {
-      return callback(null, true)
-    }
-    return callback(new Error(`CORS policy violation: Origin ${origin} not allowed`))
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-}))
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin) return callback(null, true)
+      const cleanOrigin = origin.replace(/\/$/, '')
+      if (
+        allowedOrigins.length === 0 ||
+        allowedOrigins.includes(cleanOrigin) ||
+        cleanOrigin.startsWith('http://localhost:') ||
+        cleanOrigin.startsWith('http://127.0.0.1:') ||
+        cleanOrigin.endsWith('.vercel.app')
+      ) {
+        return callback(null, true)
+      }
+      return callback(new Error(`CORS policy violation: Origin ${origin} not allowed`))
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  })
+)
 
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ limit: '10mb', extended: true }))
 app.use(cookieParser())
 app.use(morgan('dev'))
 
+// Health checks
+app.get('/', (_req, res) => {
+  res.json({ status: 'ok', service: 'mockmate-server', uptime: Math.round(process.uptime()) })
+})
+
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', service: 'mockmate-server' })
 })
 
+// Route mounting
 app.use('/api/auth', authRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/interviews', interviewRoutes)
 app.use('/api/bookmarks', bookmarkRoutes)
 app.use('/api/certificates', certificateRoutes)
 
+// 404 & Global Error Middleware
 app.use('/api', notFound)
 app.use(errorHandler)
 

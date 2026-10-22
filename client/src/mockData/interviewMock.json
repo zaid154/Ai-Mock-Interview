@@ -1,0 +1,41 @@
+{
+  "_id": "mock_interview_001",
+  "userId": "mock_user_001",
+  "role": "Fullstack Engineer",
+  "category": "MERN Stack",
+  "difficulty": "Mid-Level",
+  "mode": "questions",
+  "status": "completed",
+  "finalScore": 88,
+  "summary": "Strong grasp of React concurrency, async Node patterns, and MongoDB indexing. Communicated trade-offs effectively.",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "How do you mitigate race conditions when handling multiple concurrent updates in Node.js with MongoDB?",
+      "userAnswer": "I use optimistic locking via document version keys (__v), atomic operators like $inc and $set, or MongoDB multi-document transactions where strict ACID is required.",
+      "score": 90,
+      "feedback": "Comprehensive answer correctly identifying atomic operators and optimistic locking with version keys.",
+      "rubric": {
+        "technicalAccuracy": 9,
+        "systemArchitecture": 9,
+        "starMethodology": 9,
+        "communication": 9
+      }
+    },
+    {
+      "id": "q2",
+      "question": "Explain the difference between useMemo and useCallback in React 18, and when each should be applied.",
+      "userAnswer": "useMemo caches the evaluated result of a function between re-renders, while useCallback caches the function instance itself, useful when passing callbacks to optimized children.",
+      "score": 86,
+      "feedback": "Clear explanation distinguishing value caching vs reference preservation across re-renders.",
+      "rubric": {
+        "technicalAccuracy": 9,
+        "systemArchitecture": 8,
+        "starMethodology": 8,
+        "communication": 9
+      }
+    }
+  ],
+  "createdAt": "2026-10-20T10:00:00.000Z",
+  "updatedAt": "2026-10-20T10:25:00.000Z"
+}

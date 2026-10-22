@@ -34,6 +34,7 @@ module.exports = {
   hashOtp,
   otpExpiry,
   isOtpValid,
+  OTP_LENGTH,
   OTP_TTL_MINUTES,
   OTP_RESEND_COOLDOWN_SECONDS,
   OTP_MAX_ATTEMPTS,

@@ -1,16 +1,21 @@
 import axios from 'axios'
 
 // Base URL: use VITE_API_URL if set, otherwise relative '/api'
+const baseURL =
+  (typeof import.meta !== 'undefined' && import.meta?.env?.VITE_API_URL) || '/api'
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL,
   withCredentials: true,
 })
 
 // Automatically attach Bearer token header if present in localStorage
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('mockmate_token')
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
+  if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+    const token = localStorage.getItem('mockmate_token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
   }
   return config
 })
