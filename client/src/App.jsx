@@ -1,4 +1,6 @@
+import { useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
+import api from './lib/api'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import ScrollToTop from './components/ScrollToTop'
@@ -28,6 +30,11 @@ import CookieBanner from './components/CookieBanner'
 
 // Route table. Public auth pages, then protected app pages, then admin panel.
 export default function App() {
+  // Silent wake-up ping to spin up backend (e.g. Render/Railway cold starts) immediately when user visits the site
+  useEffect(() => {
+    api.get('/health').catch(() => {})
+  }, [])
+
   return (
     <div className="app-shell">
       <ScrollToTop />
