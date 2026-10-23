@@ -30,15 +30,15 @@ export default function ProfileOverview({ stats, bio, setActiveTab, onEditBio })
       </div>
 
       {/* About Panel */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
+      <div className="bg-white rounded-xl border border-slate-200 p-6 sm:p-8 shadow-xs">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+          <h2 className="text-base font-bold text-slate-900">
             About &amp; Target Roles
           </h2>
           <button
             type="button"
             onClick={handleEdit}
-            className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 cursor-pointer"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 cursor-pointer"
           >
             <Edit3 size={13} /> Edit
           </button>
