@@ -144,42 +144,55 @@ export default function PerformanceHub({
             <div style={{ textAlign: 'center', padding: '2rem 0' }} className="muted small">No sessions matching "{searchFilter}"</div>
           )
         ) : (
-          <div className="hub-session-list">
-            {filteredSessions.map((s) => {
-              const isDone = s.status === 'completed'
-              const score = s.overallScore || s.totalScore || 0
-              const dateStr = s.createdAt ? new Date(s.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recently'
+          <div className="session-feed-list">
+            {filteredSessions.map((session) => {
+              const isDone = session.status === 'completed'
+              const score = session.overallScore ?? session.totalScore
+              const dateStr = session.createdAt
+                ? new Date(session.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+                : 'Recently'
 
               return (
-                <div key={s._id} className="hub-session-row" onClick={() => navigate(isDone ? `/results/${s._id}` : `/interview/${s._id}`)}>
-                  <div className="hub-session-left">
-                    <div className="hub-session-role">{s.role || 'Software Engineer'}</div>
-                    <div className="hub-session-meta">
-                      <span>{s.category || s.topic || 'General'}</span>
-                      <span>&bull;</span>
-                      <span>{s.difficulty || 'Medium'}</span>
-                      <span>&bull;</span>
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
-                        <Clock size={11} /> {dateStr}
+                <div
+                  key={session._id}
+                  className="session-feed-card"
+                  onClick={() => navigate(isDone ? `/results/${session._id}` : `/interview/${session._id}`)}
+                >
+                  <div className="session-main-meta">
+                    <div className="session-pill-cluster">
+                      <span className="tag-soft" style={{ fontSize: '0.66rem' }}>
+                        {session.difficulty || 'Medium'}
                       </span>
+                      {session.timerMinutes > 0 && (
+                        <span className="tag-soft" style={{ fontSize: '0.66rem', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                          <Clock size={10} /> {session.timerMinutes}m
+                        </span>
+                      )}
+                    </div>
+                    <div className="session-title-text">{session.role || 'Software Engineer'}</div>
+                    <div className="session-topic-sub">
+                      {session.category || session.topic || 'General'}
+                      <span> &bull; {dateStr}</span>
                     </div>
                   </div>
 
-                  <div className="hub-session-right">
-                    {isDone ? (
-                      <div className="hub-session-score" style={{ color: score >= 75 ? '#16a34a' : '#2563eb' }}>
-                        {score}%
-                      </div>
-                    ) : (
-                      <span className="hub-session-inprog">In Progress</span>
-                    )}
+                  <div className="session-actions-cluster">
+                    <span
+                      className="session-score-pill"
+                      style={{
+                        background: isDone ? 'rgba(37, 99, 235, 0.1)' : 'rgba(234, 179, 8, 0.15)',
+                        color: isDone ? '#2563eb' : '#d97706',
+                      }}
+                    >
+                      {isDone ? (score !== undefined ? `${score}%` : 'Completed') : 'In Progress'}
+                    </span>
                     <button
                       type="button"
-                      className="hub-session-delete"
-                      onClick={(e) => deleteSession(s._id, e)}
-                      title="Delete session"
+                      className="session-trash-btn"
+                      onClick={(e) => deleteSession(session._id, e)}
+                      title="Delete Session"
                     >
-                      <Trash2 size={13} />
+                      <Trash2 size={14} />
                     </button>
                   </div>
                 </div>
