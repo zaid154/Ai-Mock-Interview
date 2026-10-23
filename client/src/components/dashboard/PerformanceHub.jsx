@@ -1,9 +1,9 @@
-import { Clock, Trash2, Search, ArrowRight, MessageSquare, CheckSquare, Layers } from 'lucide-react'
+import { Clock, Trash2, Search, ArrowRight, MessageSquare, Bookmark, Layers } from 'lucide-react'
 
 const STEPS = [
-  { num: '01', title: 'Select Track & Format', desc: 'Choose between conversational technical Q&A or rapid multiple choice.' },
-  { num: '02', title: 'Complete Simulation', desc: 'Answer timed technical scenarios and code-level questions.' },
-  { num: '03', title: 'Analyze Evaluation', desc: 'Review line-by-line feedback, strengths, and areas to improve.' },
+  { num: '01', title: 'Choose Track', desc: 'Select Frontend, Backend, Fullstack, or System Design.' },
+  { num: '02', title: 'Answer Scenarios', desc: 'Speak or type your answers with live AI evaluation.' },
+  { num: '03', title: 'Review Rubric', desc: 'Check 4-pillar rubric scores and bookmark tough questions.' },
 ]
 
 export default function PerformanceHub({
@@ -15,7 +15,7 @@ export default function PerformanceHub({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-      {/* Professional Header */}
+      {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.85rem' }}>
         <div>
           <h1 style={{ fontSize: '1.35rem', fontWeight: 700, margin: '0 0 0.2rem', color: '#111827', letterSpacing: '-0.02em' }}>
@@ -37,48 +37,48 @@ export default function PerformanceHub({
         )}
       </div>
 
-      {/* Two Direct Action Cards */}
+      {/* Action Cards */}
       <div className="hub-action-grid">
-        <div className="hub-action-card" onClick={() => navigate('/practice?mode=questions')}>
+        <div className="hub-action-card" onClick={() => navigate('/practice')}>
           <div className="hub-action-card-header">
             <div className="hub-action-icon-wrap" style={{ background: 'rgba(37, 99, 235, 0.08)', border: '1px solid rgba(37, 99, 235, 0.2)', color: '#2563eb' }}>
               <MessageSquare size={18} />
             </div>
             <div>
-              <div style={{ fontWeight: 600, fontSize: '0.92rem', color: '#111827', marginBottom: '0.2rem' }}>Technical Interview</div>
+              <div style={{ fontWeight: 600, fontSize: '0.92rem', color: '#111827', marginBottom: '0.2rem' }}>Technical Mock Interview</div>
               <div style={{ fontSize: '0.78rem', color: '#6b7280', lineHeight: 1.45 }}>
-                Simulated hiring rounds with technical follow-ups and performance evaluation.
+                Simulate real technical hiring screens with live speech-to-text dictation and AI rubrics.
               </div>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#2563eb', fontSize: '0.8rem', fontWeight: 600 }}>
-            Start Interview <ArrowRight size={13} />
+            Launch Studio <ArrowRight size={13} />
           </div>
         </div>
 
-        <div className="hub-action-card" onClick={() => navigate('/practice?mode=quiz')}>
+        <div className="hub-action-card" onClick={() => navigate('/bookmarks')}>
           <div className="hub-action-card-header">
             <div className="hub-action-icon-wrap" style={{ background: 'rgba(37, 99, 235, 0.08)', border: '1px solid rgba(37, 99, 235, 0.2)', color: '#2563eb' }}>
-              <CheckSquare size={18} />
+              <Bookmark size={18} />
             </div>
             <div>
-              <div style={{ fontWeight: 600, fontSize: '0.92rem', color: '#111827', marginBottom: '0.2rem' }}>Technical Assessment</div>
+              <div style={{ fontWeight: 600, fontSize: '0.92rem', color: '#111827', marginBottom: '0.2rem' }}>Saved Bookmarks</div>
               <div style={{ fontSize: '0.78rem', color: '#6b7280', lineHeight: 1.45 }}>
-                Timed multiple-choice evaluation covering core architecture and engineering.
+                Review saved tricky questions and ideal answers before your real interview.
               </div>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#2563eb', fontSize: '0.8rem', fontWeight: 600 }}>
-            Start Assessment <ArrowRight size={13} />
+            View Saved Questions <ArrowRight size={13} />
           </div>
         </div>
       </div>
 
-      {/* Stats Summary (Shown when user has completed at least 1 session) */}
+      {/* Stats Summary */}
       {completedSessions.length > 0 && (
         <div className="hub-stats-row">
           <div className="hub-stat-tile">
-            <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b7280', fontWeight: 600 }}>Completed Drills</span>
+            <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b7280', fontWeight: 600 }}>Completed Interviews</span>
             <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827' }}>{completedSessions.length} <span style={{ fontSize: '0.78rem', fontWeight: 400, color: '#6b7280' }}>sessions</span></div>
           </div>
           <div className="hub-stat-tile">
@@ -115,54 +115,71 @@ export default function PerformanceHub({
           sessions.length === 0 ? (
             <div className="hub-empty-roadmap" style={{ textAlign: 'center', padding: '1.5rem 1rem' }}>
               <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#111827', marginBottom: '0.3rem' }}>
-                Getting Started
+                How It Works
               </div>
               <p style={{ fontSize: '0.82rem', color: '#6b7280', maxWidth: '420px', margin: '0 auto 1.25rem' }}>
-                Configure your target role and complete your first session to track performance.
+                Simulate technical interviews tailored to your target engineering track and get instant rubric feedback.
               </p>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem', marginBottom: '1.25rem', textAlign: 'left' }}>
+              <div className="hub-roadmap-steps">
                 {STEPS.map((s) => (
-                  <div key={s.num} style={{ background: '#f9fafb', padding: '0.85rem', borderRadius: '10px', border: '1px solid #e5e7eb' }}>
-                    <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#6b7280', marginBottom: '0.2rem' }}>{s.num}</div>
-                    <div style={{ fontWeight: 600, fontSize: '0.84rem', color: '#111827', marginBottom: '0.2rem' }}>{s.title}</div>
-                    <div style={{ fontSize: '0.74rem', color: '#6b7280' }}>{s.desc}</div>
+                  <div key={s.num} className="hub-step-card">
+                    <span className="hub-step-num">{s.num}</span>
+                    <span className="hub-step-title">{s.title}</span>
+                    <span className="hub-step-desc">{s.desc}</span>
                   </div>
                 ))}
               </div>
-              <button type="button" className="reflect-btn-primary" onClick={onOpenStudio} style={{ margin: '0 auto', fontSize: '0.84rem' }}>
-                Start First Session
-              </button>
+              {onOpenStudio && (
+                <button
+                  type="button"
+                  className="reflect-btn-primary"
+                  onClick={onOpenStudio}
+                  style={{ marginTop: '1.5rem', padding: '0.55rem 1.4rem', fontSize: '0.86rem' }}
+                >
+                  Start Your First Interview
+                </button>
+              )}
             </div>
           ) : (
-            <div style={{ textAlign: 'center', padding: '2rem 1rem', border: '1px dashed #e5e7eb', borderRadius: '10px' }}>
-              <p className="muted small" style={{ margin: 0 }}>No sessions match &quot;{searchFilter}&quot;</p>
-            </div>
+            <div style={{ textAlign: 'center', padding: '2rem 0' }} className="muted small">No sessions matching "{searchFilter}"</div>
           )
         ) : (
-          <div className="session-feed-list">
-            {filteredSessions.map((session) => {
-              const score = session.overallScore ?? session.totalScore
-              const dest = session.status === 'completed' ? `/results/${session._id}` : session.mode === 'quiz' ? `/quiz/${session._id}` : `/interview/${session._id}`
+          <div className="hub-session-list">
+            {filteredSessions.map((s) => {
+              const isDone = s.status === 'completed'
+              const score = s.overallScore || s.totalScore || 0
+              const dateStr = s.createdAt ? new Date(s.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recently'
+
               return (
-                <div key={session._id} className="session-feed-card" onClick={() => navigate(dest)}>
-                  <div className="session-main-meta">
-                    <div className="session-pill-cluster">
-                      <span className="tag" style={{ fontSize: '0.66rem' }}>{session.mode === 'quiz' ? 'Quiz' : 'Q&A'}</span>
-                      <span className="tag-soft" style={{ fontSize: '0.66rem' }}>{session.difficulty}</span>
-                      {session.timerMinutes > 0 && <span className="tag-soft" style={{ fontSize: '0.66rem', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}><Clock size={10} /> {session.timerMinutes}m</span>}
-                    </div>
-                    <div className="session-title-text">{session.role}</div>
-                    <div className="session-topic-sub">
-                      {session.category || session.topic}
-                      {session.createdAt && <span> • {new Date(session.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>}
+                <div key={s._id} className="hub-session-row" onClick={() => navigate(isDone ? `/results/${s._id}` : `/interview/${s._id}`)}>
+                  <div className="hub-session-left">
+                    <div className="hub-session-role">{s.role || 'Software Engineer'}</div>
+                    <div className="hub-session-meta">
+                      <span>{s.category || s.topic || 'General'}</span>
+                      <span>&bull;</span>
+                      <span>{s.difficulty || 'Medium'}</span>
+                      <span>&bull;</span>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                        <Clock size={11} /> {dateStr}
+                      </span>
                     </div>
                   </div>
-                  <div className="session-actions-cluster">
-                    <span className="session-score-pill" style={{ background: session.status === 'completed' ? 'rgba(37, 99, 235, 0.1)' : 'rgba(234, 179, 8, 0.15)', color: session.status === 'completed' ? '#2563eb' : '#d97706' }}>
-                      {session.status === 'completed' ? (score !== undefined ? `${score}% Score` : 'Completed') : 'In Progress'}
-                    </span>
-                    <button type="button" className="session-trash-btn" onClick={(e) => deleteSession(session._id, e)} title="Delete Session">
-                      <Trash2 size={14} />
+
+                  <div className="hub-session-right">
+                    {isDone ? (
+                      <div className="hub-session-score" style={{ color: score >= 75 ? '#16a34a' : '#2563eb' }}>
+                        {score}%
+                      </div>
+                    ) : (
+                      <span className="hub-session-inprog">In Progress</span>
+                    )}
+                    <button
+                      type="button"
+                      className="hub-session-delete"
+                      onClick={(e) => deleteSession(s._id, e)}
+                      title="Delete session"
+                    >
+                      <Trash2 size={13} />
                     </button>
                   </div>
                 </div>

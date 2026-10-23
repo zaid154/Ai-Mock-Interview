@@ -1,4 +1,4 @@
-import { BarChart3, Layers, Target, TrendingUp } from 'lucide-react'
+import { BarChart3, CheckCircle2, Target, TrendingUp } from 'lucide-react'
 
 function StatTile({ icon: Icon, label, value, tone }) {
   return (
@@ -12,20 +12,14 @@ function StatTile({ icon: Icon, label, value, tone }) {
   )
 }
 
-/**
- * ProfileOverview Component
- * 
- * Displays candidate stats grid (Q&A sessions, MCQ quizzes, average and highest scores)
- * and the bio summary card.
- */
 export default function ProfileOverview({ stats, bio, setActiveTab, onEditBio }) {
   const handleEdit = onEditBio || (() => setActiveTab && setActiveTab('edit'))
 
   return (
     <>
       <div className="stat-row">
-        <StatTile icon={BarChart3} label="Q&amp;A sessions" value={stats.totalInterviews} />
-        <StatTile icon={Layers} label="MCQ quizzes" value={stats.totalQuizzes} />
+        <StatTile icon={BarChart3} label="Interviews" value={stats.totalInterviews} />
+        <StatTile icon={CheckCircle2} label="Completed" value={stats.totalCompleted || stats.totalInterviews} />
         <StatTile icon={Target} label="Average score" value={`${stats.avgScore}%`} tone="good" />
         <StatTile icon={TrendingUp} label="Highest score" value={`${stats.highestScore}%`} tone="accent" />
       </div>

@@ -1,16 +1,15 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { goToSection } from '../lib/scrollToSection'
 import Avatar from './Avatar'
 import NavDrawer from './NavDrawer'
-import { User, LogOut, Shield, Menu, ChevronDown } from 'lucide-react'
+import { Menu, ChevronDown, User, LogOut } from 'lucide-react'
 
 export default function Navbar() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const menuRef = useRef(null)
@@ -21,22 +20,12 @@ export default function Navbar() {
         setUserMenuOpen(false)
       }
     }
-    function handleKeyDown(e) {
-      if (e.key === 'Escape') setUserMenuOpen(false)
-    }
-    if (userMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
-      window.addEventListener('keydown', handleKeyDown)
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-      window.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [userMenuOpen])
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   function handleLogout() {
     setUserMenuOpen(false)
-    setDrawerOpen(false)
     logout()
     navigate('/login')
   }
@@ -44,15 +33,10 @@ export default function Navbar() {
   const isDashboardActive =
     location.pathname === '/dashboard' ||
     location.pathname.startsWith('/interview') ||
-    location.pathname.startsWith('/quiz') ||
     location.pathname.startsWith('/results')
 
   const isPracticeActive = location.pathname === '/practice'
   const isBookmarksActive = location.pathname === '/bookmarks'
-  const isLeaderboardActive = location.pathname === '/leaderboard'
-  const isCertificatesActive =
-    location.pathname === '/certificates' ||
-    location.pathname.startsWith('/verify-certificate')
 
   function scrollToSection(id) {
     goToSection(id, { pathname: location.pathname, navigate })
@@ -84,22 +68,11 @@ export default function Navbar() {
               <Link to="/bookmarks" className={`reflect-nav-link ${isBookmarksActive ? 'active' : ''}`}>
                 Bookmarks
               </Link>
-              <Link to="/leaderboard" className={`reflect-nav-link ${isLeaderboardActive ? 'active' : ''}`}>
-                Leaderboard
-              </Link>
-              <Link to="/certificates" className={`reflect-nav-link ${isCertificatesActive ? 'active' : ''}`}>
-                Certificates
-              </Link>
             </>
           ) : (
-            <>
-              <Link to="/" className={`reflect-nav-link ${location.pathname === '/' ? 'active' : ''}`}>
-                Home
-              </Link>
-              <Link to="/leaderboard" className={`reflect-nav-link ${isLeaderboardActive ? 'active' : ''}`}>
-                Leaderboard
-              </Link>
-            </>
+            <Link to="/" className={`reflect-nav-link ${location.pathname === '/' ? 'active' : ''}`}>
+              Home
+            </Link>
           )}
         </nav>
 
@@ -131,11 +104,6 @@ export default function Navbar() {
                     <Link to="/profile" role="menuitem" className="reflect-dropdown-item" onClick={() => setUserMenuOpen(false)}>
                       <User size={14} aria-hidden="true" /> Profile &amp; Settings
                     </Link>
-                    {user.role === 'admin' && (
-                      <Link to="/admin" role="menuitem" className="reflect-dropdown-item" onClick={() => setUserMenuOpen(false)}>
-                        <Shield size={14} aria-hidden="true" /> Admin Settings
-                      </Link>
-                    )}
                     <button
                       type="button"
                       role="menuitem"

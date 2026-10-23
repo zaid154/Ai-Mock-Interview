@@ -1,225 +1,94 @@
-require('./config/env') // load the shared root .env first
+require('./config/env')
 const mongoose = require('mongoose')
 const bcrypt = require('bcryptjs')
 const User = require('./models/userModel')
 const Question = require('./models/questionModel')
-const Interview = require('./models/interviewModel')
-const Setting = require('./models/settingModel')
-const Certificate = require('./models/certificateModel')
-const CertificateTemplate = require('./models/certificateTemplateModel')
-const { DEFAULT_TEMPLATES } = require('./controllers/certificateTemplateController')
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mockmate'
 
-const { questions, SAMPLE_CANDIDATES } = require('./seedData')
+const questions = [
+  // Frontend
+  { role: 'Frontend Developer', difficulty: 'easy', prompt: 'Explain the difference between let, const, and var in JavaScript.' },
+  { role: 'Frontend Developer', difficulty: 'easy', prompt: 'What is the CSS box model and how does box-sizing: border-box work?' },
+  { role: 'Frontend Developer', difficulty: 'easy', prompt: 'How does event delegation work in DOM scripting, and what are its advantages?' },
+  { role: 'Frontend Developer', difficulty: 'medium', prompt: 'How does React Virtual DOM diffing algorithm work, and why are keys important?' },
+  { role: 'Frontend Developer', difficulty: 'medium', prompt: 'When would you use useMemo or useCallback, and when should you avoid them?' },
+  { role: 'Frontend Developer', difficulty: 'medium', prompt: 'Explain the differences between SSR, SSG, and Client-Side Rendering.' },
+  { role: 'Frontend Developer', difficulty: 'hard', prompt: 'A web app is experiencing UI jank during scroll. How do you profile and optimize performance?' },
+  { role: 'Frontend Developer', difficulty: 'hard', prompt: 'How would you architect a scalable micro-frontend architecture for a large team?' },
 
-async function seed({ reset = true } = {}) {
-  await mongoose.connect(MONGODB_URI)
-  console.log(`Connected: ${MONGODB_URI}`)
+  // Backend
+  { role: 'Backend Developer', difficulty: 'easy', prompt: 'What is the semantic difference between PUT and PATCH in REST APIs?' },
+  { role: 'Backend Developer', difficulty: 'easy', prompt: 'What are database indexes, and how do B-tree indexes speed up queries?' },
+  { role: 'Backend Developer', difficulty: 'medium', prompt: 'Compare SQL vs NoSQL databases. When would you choose one over the other?' },
+  { role: 'Backend Developer', difficulty: 'medium', prompt: 'How would you design an idempotent payment processing endpoint?' },
+  { role: 'Backend Developer', difficulty: 'medium', prompt: 'Explain how the Node.js event loop handles non-blocking asynchronous I/O.' },
+  { role: 'Backend Developer', difficulty: 'hard', prompt: 'Design a sliding-window rate limiter for a public API.' },
+  { role: 'Backend Developer', difficulty: 'hard', prompt: 'A database query went from 20ms to 3s under peak traffic. How do you troubleshoot it?' },
 
-  // 1) Offline fallback question bank
-  const result = await Question.bulkWrite(
-    questions.map((question) => ({
-      updateOne: {
-        filter: { role: question.role, difficulty: question.difficulty, prompt: question.prompt },
-        update: { $setOnInsert: question },
-        upsert: true,
-      },
-    })),
-  )
-  console.log(`Fallback questions ready (${result.upsertedCount || 0} added).`)
+  // Full Stack
+  { role: 'Full Stack Developer', difficulty: 'easy', prompt: 'Walk through what happens in the browser and network from URL entry to page paint.' },
+  { role: 'Full Stack Developer', difficulty: 'easy', prompt: 'What are CORS headers, and how do you configure them securely?' },
+  { role: 'Full Stack Developer', difficulty: 'medium', prompt: 'How do you secure a JWT-based authentication flow with HTTP-only cookies and CSRF protection?' },
+  { role: 'Full Stack Developer', difficulty: 'medium', prompt: 'Compare WebSockets, Server-Sent Events (SSE), and long-polling for real-time features.' },
+  { role: 'Full Stack Developer', difficulty: 'hard', prompt: 'Design a scalable URL shortener service like Bitly with high read-to-write ratio.' },
 
-  // 2) Staff admins.
-  //
-  // .env.example documents ADMIN_EMAIL / ADMIN_PASSWORD / ADMIN_NAME as the
-  // "default admin (created/updated by npm run seed)", but this seed used to
-  // ignore them completely and hardcode admin@shop.com — so anyone who filled
-  // in those variables got an account that did not exist and a login that
-  // failed. Honour the documented contract, and keep admin@shop.com as a
-  // fixture so existing setups do not lose their account.
-  const ADMINS = [
-    {
-      email: (process.env.ADMIN_EMAIL || 'zaidm1323@gmail.com').trim().toLowerCase(),
-      password: process.env.ADMIN_PASSWORD || '123456',
-      name: process.env.ADMIN_NAME || 'Mohd Zaid',
-      avatar: '',
-    },
-    {
-      email: 'zaidm1323@gmail.com',
-      password: '123456',
-      name: 'Mohd Zaid',
-      avatar: '',
-    },
-    {
-      email: 'admin@shop.com',
-      password: 'Admin@123',
-      name: 'Admin Support',
-      avatar:
-        'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80',
-    },
-  ]
+  // System Design
+  { role: 'System Design', difficulty: 'medium', prompt: 'How do CDNs and edge caching improve performance for dynamic web apps?' },
+  { role: 'System Design', difficulty: 'hard', prompt: 'Design a distributed rate limiter across multiple microservices with Redis.' },
 
-  const seenAdminEmails = new Set()
-  for (const a of ADMINS) {
-    if (!a.email || seenAdminEmails.has(a.email)) continue
-    seenAdminEmails.add(a.email)
+  // Behavioral
+  { role: 'Behavioral', difficulty: 'easy', prompt: 'Describe a project you are proud of and your specific role in building it.' },
+  { role: 'Behavioral', difficulty: 'medium', prompt: 'Tell me about a time you disagreed with an architectural decision. How did you resolve it?' },
+]
 
-    const doc = await User.findOneAndUpdate(
-      { email: a.email },
-      {
-        name: a.name,
-        email: a.email,
-        passwordHash: await bcrypt.hash(a.password, 10),
+async function seed() {
+  try {
+    await mongoose.connect(MONGODB_URI)
+    console.log(`Connected to MongoDB: ${MONGODB_URI}`)
+
+    // 1. Seed fallback questions
+    for (const q of questions) {
+      await Question.updateOne(
+        { role: q.role, difficulty: q.difficulty, prompt: q.prompt },
+        { $setOnInsert: q },
+        { upsert: true }
+      )
+    }
+    console.log(`Fallback questions seeded (${questions.length} total).`)
+
+    // 2. Seed default admin account
+    const adminEmail = (process.env.ADMIN_EMAIL || 'admin@mockmate.com').trim().toLowerCase()
+    const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@123'
+    const adminName = process.env.ADMIN_NAME || 'Admin User'
+
+    const existingAdmin = await User.findOne({ email: adminEmail })
+    const salt = await bcrypt.genSalt(10)
+    const passwordHash = await bcrypt.hash(adminPassword, salt)
+
+    if (!existingAdmin) {
+      await User.create({
+        name: adminName,
+        email: adminEmail,
+        passwordHash,
         role: 'admin',
-        avatar: a.avatar,
-        isVerified: true,
         isEmailVerified: true,
         verifiedAt: new Date(),
-        registrationCompleted: true,
-      },
-      { upsert: true, new: true, setDefaultsOnInsert: true },
-    )
-    if (doc) {
-      await Interview.deleteMany({ user: doc._id })
-      await Certificate.deleteMany({ user: doc._id })
-    }
-    console.log(`Admin ready: ${a.name} (${a.email}) / ${a.password}`)
-  }
-
-  // 3) Seed Candidates, Completed Interview Sessions, and Persistent Certificates
-  for (let i = 0; i < SAMPLE_CANDIDATES.length; i++) {
-    const cand = SAMPLE_CANDIDATES[i]
-    const hash = await bcrypt.hash(cand.password, 10)
-
-    const userDoc = await User.findOneAndUpdate(
-      { email: cand.email.toLowerCase() },
-      {
-        name: cand.name,
-        email: cand.email.toLowerCase(),
-        passwordHash: hash,
-        role: cand.role,
-        bio: cand.bio,
-        avatar: cand.avatar,
-        isVerified: true,
-        isEmailVerified: true,
-        verifiedAt: new Date(Date.now() - 86400000 * (10 - i)),
-        registrationCompleted: true,
-      },
-      { upsert: true, new: true, setDefaultsOnInsert: true },
-    )
-
-    // Clear old records for this candidate
-    await Interview.deleteMany({ user: userDoc._id })
-    await Certificate.deleteMany({ user: userDoc._id })
-
-    const interviewDocs = cand.interviews.map((item, idx) => ({
-      user: userDoc._id,
-      role: item.role,
-      difficulty: item.difficulty,
-      mode: item.mode,
-      status: 'completed',
-      overallScore: item.overallScore,
-      summary: item.summary,
-      questions: [
-        {
-          prompt: `Explain the core architecture and key trade-offs in ${item.role}.`,
-          answer: `I design high-performance systems by prioritizing clean separation of concerns, defensive validation, and modular component architecture.`,
-          feedback: `Strong candidate response with clear technical depth and structured reasoning.`,
-          score: Math.min(10, Math.round(item.overallScore / 10)),
-        },
-        {
-          prompt: `How do you diagnose and resolve performance bottlenecks under heavy load?`,
-          answer: `I analyze system metrics using profiling tools, identify slow database queries or un-indexed fields, and implement caching layers like Redis.`,
-          feedback: `Excellent analytical approach and systematic troubleshooting workflow.`,
-          score: Math.min(10, Math.round(item.overallScore / 10)),
-        },
-      ],
-      createdAt: new Date(Date.now() - 86400000 * (i * 2 + idx + 1)),
-    }))
-
-    const createdInterviews = await Interview.insertMany(interviewDocs)
-
-    // Seed Certificates for qualifying sessions (score >= 70)
-    const certDocs = []
-    for (const intDoc of createdInterviews) {
-      if (intDoc.overallScore >= 70) {
-        const certId = `MM-CERT-${intDoc._id.toString().slice(-8).toUpperCase()}`
-        const verifyUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/verify-certificate/${certId}`
-        const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(verifyUrl)}&size=200x200`
-        certDocs.push({
-          certId,
-          user: userDoc._id,
-          interview: intDoc._id,
-          candidateName: userDoc.name,
-          candidateEmail: userDoc.email,
-          role: intDoc.role,
-          difficulty: intDoc.difficulty,
-          score: intDoc.overallScore,
-          issueDate: intDoc.createdAt,
-          verifyUrl,
-          qrCodeUrl,
-        })
-      }
-    }
-    if (certDocs.length) {
-      await Certificate.insertMany(certDocs)
+      })
+      console.log(`Admin account created: ${adminEmail}`)
+    } else {
+      existingAdmin.passwordHash = passwordHash
+      existingAdmin.isEmailVerified = true
+      await existingAdmin.save()
+      console.log(`Admin account updated: ${adminEmail}`)
     }
 
-    console.log(`Candidate #${i + 1} ready: ${cand.name} (${cand.email}) - ${cand.interviews.length} sessions, ${certDocs.length} certificates`)
+    console.log('Database seeding completed successfully.')
+    process.exit(0)
+  } catch (error) {
+    console.error('Seeding error:', error)
+    process.exit(1)
   }
-
-  // 4) Default settings
-  await Setting.findOneAndUpdate(
-    { key: 'verificationRequired' },
-    { $setOnInsert: { key: 'verificationRequired', value: false } },
-    { upsert: true },
-  )
-  await Setting.findOneAndUpdate(
-    { key: 'gemini_api_keys' },
-    { $setOnInsert: { key: 'gemini_api_keys', value: [] } },
-    { upsert: true },
-  )
-  await Setting.findOneAndUpdate(
-    { key: 'cert_signatory_name' },
-    { $setOnInsert: { key: 'cert_signatory_name', value: 'Mohd Zaid' } },
-    { upsert: true },
-  )
-  await Setting.findOneAndUpdate(
-    { key: 'cert_signatory_title' },
-    {
-      $setOnInsert: {
-        key: 'cert_signatory_title',
-        value: 'Global Director of Candidate Assessments, MockMate AI',
-      },
-    },
-    { upsert: true },
-  )
-  console.log('Default settings ready.')
-
-  // 5) Certificate milestones.
-  // Upsert by key rather than wipe-and-insert: re-seeding must not discard a
-  // milestone an admin has since retitled, recoloured or switched design on.
-  // Only the identity fields are forced; everything else is $setOnInsert.
-  for (const t of DEFAULT_TEMPLATES) {
-    await CertificateTemplate.findOneAndUpdate(
-      { key: t.key },
-      { $setOnInsert: t },
-      { upsert: true, setDefaultsOnInsert: true },
-    )
-  }
-  const templateCount = await CertificateTemplate.countDocuments()
-  console.log(`Certificate milestones ready: ${templateCount} template(s).`)
-
-  await mongoose.disconnect()
-  console.log('Seed complete!')
 }
 
-if (require.main === module) {
-  seed().catch(async (err) => {
-    console.error('Seed failed:', err)
-    process.exitCode = 1
-    await mongoose.disconnect()
-  })
-}
-
-module.exports = { seed }
+seed()

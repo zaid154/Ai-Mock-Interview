@@ -1,4 +1,4 @@
-import { HelpCircle, Layers, Briefcase, Code2, Upload, FileCheck, X, ArrowRight } from 'lucide-react'
+import { HelpCircle, Briefcase, Code2, Upload, FileCheck, X, ArrowRight } from 'lucide-react'
 import PracticeProgress from './PracticeProgress'
 
 const ROLES = [
@@ -8,75 +8,72 @@ const ROLES = [
   { label: 'System Design', value: 'System Design Architect' },
   { label: 'DevOps & Cloud', value: 'DevOps & Cloud Engineer' }
 ]
-const TOPICS = ['React & Modern Web Architecture', 'Node.js, Express & Microservices', 'System Design, Scalability & Caching', 'Data Structures & Algorithms', 'DevOps & Cloud', 'SQL & Database Optimization', 'Custom Topic']
+const TOPICS = [
+  'React & Modern Web Architecture',
+  'Node.js, Express & Microservices',
+  'System Design, Scalability & Caching',
+  'Data Structures & Algorithms',
+  'DevOps & Cloud',
+  'SQL & Database Optimization',
+  'Custom Topic'
+]
 const COUNTS = [3, 5, 7, 10]
-const TIMERS = [{ label: 'Untimed', value: '0' }, { label: '5m', value: '5' }, { label: '10m', value: '10' }, { label: '15m', value: '15' }, { label: '20m', value: '20' }]
+const TIMERS = [
+  { label: 'Untimed', value: '0' },
+  { label: '5m', value: '5' },
+  { label: '10m', value: '10' },
+  { label: '15m', value: '15' },
+  { label: '20m', value: '20' }
+]
 const LEVELS = ['Junior', 'Intermediate', 'Senior']
 
 export default function PracticeStudio({
-  mode, setMode, role, setRole, topic, setTopic, customTopic, setCustomTopic,
+  role, setRole, topic, setTopic, customTopic, setCustomTopic,
   numQuestions, setNumQuestions, difficulty, setDifficulty, timerMinutes, setTimerMinutes,
   resumeFileName, handleFileUpload, handleRemoveResume, createSession, busy, progress,
 }) {
   return (
     <div className="studio-card">
       <form onSubmit={createSession} className="studio-grid-form">
-        {/* Left Column: Format, Target Role & Seniority */}
+        {/* Left Column: Target Role & Seniority */}
         <div className="studio-col">
-          {/* 1. Practice Mode */}
           <div className="studio-section">
-            <span className="studio-section-label">1. Practice Mode</span>
-            <div className="mode-selection-grid" role="radiogroup" aria-label="Practice Mode">
-              <button type="button" role="radio" aria-checked={mode === 'questions'} className={`mode-selector-card ${mode === 'questions' ? 'active' : ''}`} onClick={() => setMode('questions')}>
-                <div className="mode-icon-box"><HelpCircle size={18} aria-hidden="true" /></div>
-                <div className="mode-card-content">
-                  <div className="mode-card-title">Q&amp;A Interview</div>
-                  <div className="mode-card-desc">Verbal &amp; technical scenarios with AI evaluation.</div>
-                </div>
-              </button>
-              <button type="button" role="radio" aria-checked={mode === 'quiz'} className={`mode-selector-card ${mode === 'quiz' ? 'active' : ''}`} onClick={() => setMode('quiz')}>
-                <div className="mode-icon-box"><Layers size={18} aria-hidden="true" /></div>
-                <div className="mode-card-content">
-                  <div className="mode-card-title">Speed MCQ Quiz</div>
-                  <div className="mode-card-desc">Rapid-fire technical multiple-choice assessments.</div>
-                </div>
-              </button>
-            </div>
-          </div>
-
-          {/* 2. Target Role & Seniority */}
-          <div className="studio-section">
-            <label htmlFor="practice-role" className="studio-section-label">2. Target Role &amp; Seniority</label>
+            <label htmlFor="practice-role" className="studio-section-label">1. Target Role &amp; Seniority</label>
             <div className="input-icon-wrap">
-              <Briefcase size={15} className="input-icon" aria-hidden="true" />
+              <Briefcase size={16} className="input-icon" aria-hidden="true" />
               <input
                 id="practice-role"
+                type="text"
+                placeholder="e.g. Senior Frontend Engineer"
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
-                placeholder="e.g. Senior Frontend Engineer"
+                className="input input-with-icon"
                 required
               />
             </div>
-
-            <div className="preset-pills-row" aria-label="Preset Roles">
+            <div className="preset-pill-cluster" role="group" aria-label="Role presets">
               {ROLES.map((r) => (
-                <button key={r.value} type="button" className={`preset-pill ${role === r.value ? 'active' : ''}`} onClick={() => setRole(r.value)}>
+                <button
+                  key={r.value}
+                  type="button"
+                  onClick={() => setRole(r.value)}
+                  className={`preset-pill ${role === r.value ? 'active' : ''}`}
+                >
                   {r.label}
                 </button>
               ))}
             </div>
 
-            <div style={{ marginTop: '0.45rem' }}>
-              <span className="field-label" style={{ marginBottom: '0.35rem', display: 'block' }}>Seniority Level</span>
-              <div className="pill-button-group" role="radiogroup" aria-label="Seniority Level" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+            <div style={{ marginTop: '0.85rem' }}>
+              <div className="preset-pill-cluster" role="radiogroup" aria-label="Experience level">
                 {LEVELS.map((lvl) => (
                   <button
                     key={lvl}
                     type="button"
                     role="radio"
                     aria-checked={difficulty === lvl}
-                    className={`pill-select-btn ${difficulty === lvl ? 'active' : ''}`}
                     onClick={() => setDifficulty(lvl)}
+                    className={`preset-pill ${difficulty === lvl ? 'active' : ''}`}
                   >
                     {lvl}
                   </button>
@@ -84,110 +81,128 @@ export default function PracticeStudio({
               </div>
             </div>
           </div>
+
+          {/* 2. Technical Focus Topic */}
+          <div className="studio-section">
+            <label htmlFor="practice-topic" className="studio-section-label">2. Focus Area</label>
+            <div className="input-icon-wrap">
+              <Code2 size={16} className="input-icon" aria-hidden="true" />
+              <select
+                id="practice-topic"
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+                className="input input-with-icon"
+              >
+                {TOPICS.map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
+            {topic === 'Custom Topic' && (
+              <input
+                type="text"
+                placeholder="Enter specific topic (e.g. Docker & Kubernetes)"
+                value={customTopic}
+                onChange={(e) => setCustomTopic(e.target.value)}
+                className="input"
+                style={{ marginTop: '0.5rem' }}
+                autoFocus
+              />
+            )}
+          </div>
         </div>
 
-        {/* Right Column: Technical Domain, Drill Parameters, Resume & Launch */}
+        {/* Right Column: Parameters & Launch */}
         <div className="studio-col">
-          {/* 3. Domain & Custom Topic */}
+          {/* 3. Session Parameters */}
           <div className="studio-section">
-            <label htmlFor="practice-topic" className="studio-section-label">3. Technical Domain</label>
-            <select
-              id="practice-topic"
-              value={topic}
-              onChange={(e) => { setTopic(e.target.value); if (e.target.value !== 'Custom Topic') setCustomTopic('') }}
-            >
-              {TOPICS.map((t) => <option key={t} value={t}>{t}</option>)}
-            </select>
-
-            {topic === 'Custom Topic' && (
-              <div className="input-icon-wrap" style={{ marginTop: '0.35rem' }}>
-                <Code2 size={15} className="input-icon" aria-hidden="true" />
-                <input
-                  id="practice-custom-topic"
-                  aria-label="Custom Topic"
-                  value={customTopic}
-                  onChange={(e) => setCustomTopic(e.target.value)}
-                  placeholder="Enter custom topic (e.g. Docker, GraphQL, WebSockets)"
-                  required
-                />
+            <span className="studio-section-label">3. Interview Length &amp; Timer</span>
+            <div className="studio-params-row">
+              <div>
+                <span className="param-sublabel">Questions</span>
+                <div className="preset-pill-cluster" role="radiogroup" aria-label="Number of questions">
+                  {COUNTS.map((cnt) => (
+                    <button
+                      key={cnt}
+                      type="button"
+                      role="radio"
+                      aria-checked={Number(numQuestions) === cnt}
+                      onClick={() => setNumQuestions(String(cnt))}
+                      className={`preset-pill ${Number(numQuestions) === cnt ? 'active' : ''}`}
+                    >
+                      {cnt}
+                    </button>
+                  ))}
+                </div>
               </div>
+              <div>
+                <span className="param-sublabel">Time Limit</span>
+                <div className="preset-pill-cluster" role="radiogroup" aria-label="Timer duration">
+                  {TIMERS.map((t) => (
+                    <button
+                      key={t.value}
+                      type="button"
+                      role="radio"
+                      aria-checked={timerMinutes === t.value}
+                      onClick={() => setTimerMinutes(t.value)}
+                      className={`preset-pill ${timerMinutes === t.value ? 'active' : ''}`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 4. Optional Resume Upload */}
+          <div className="studio-section">
+            <span className="studio-section-label">4. Resume Tailoring (Optional)</span>
+            {resumeFileName ? (
+              <div className="resume-attached-card">
+                <div className="resume-attached-info">
+                  <FileCheck size={16} className="text-good" aria-hidden="true" />
+                  <span className="resume-attached-name">{resumeFileName}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRemoveResume}
+                  className="resume-remove-btn"
+                  title="Remove attached resume"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            ) : (
+              <label className="resume-dropzone">
+                <input
+                  type="file"
+                  accept=".pdf"
+                  onChange={handleFileUpload}
+                  style={{ display: 'none' }}
+                />
+                <Upload size={18} style={{ color: '#2563eb' }} aria-hidden="true" />
+                <span>Upload PDF Resume to tailor questions</span>
+              </label>
             )}
           </div>
 
-          {/* 4. Question Count & Duration */}
-          <div className="studio-section">
-            <span className="studio-section-label">4. Questions &amp; Duration</span>
-            <div className="studio-params-row">
-              <div>
-                <span className="field-label" style={{ marginBottom: '0.3rem', display: 'block' }}>Questions</span>
-                <div className="pill-button-group" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
-                  {COUNTS.map((cnt) => (
-                    <button key={cnt} type="button" className={`pill-select-btn ${numQuestions === cnt ? 'active' : ''}`} onClick={() => setNumQuestions(cnt)}>
-                      {cnt} Qs
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <span className="field-label" style={{ marginBottom: '0.3rem', display: 'block' }}>Timer</span>
-                <div className="pill-button-group" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
-                  {TIMERS.map((opt) => (
-                    <button key={opt.value} type="button" className={`pill-select-btn ${timerMinutes === opt.value ? 'active' : ''}`} onClick={() => setTimerMinutes(opt.value)}>
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 5. Resume Context */}
-          <div className="studio-section">
-            <span className="studio-section-label">5. Resume PDF Context (Optional)</span>
-            <div className={`resume-studio-zone ${resumeFileName ? 'attached' : ''}`}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0, flex: 1 }}>
-                {resumeFileName ? <FileCheck size={18} style={{ color: '#4ade80' }} aria-hidden="true" /> : <Upload size={16} aria-hidden="true" />}
-                <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                  <span style={{ fontSize: '0.82rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {resumeFileName || 'Attach Resume PDF (Tailors questions to projects)'}
-                  </span>
-                  {resumeFileName && (
-                    <span style={{ fontSize: '0.7rem', color: '#4ade80' }}>
-                      ✓ Saved resume context available
-                    </span>
-                  )}
-                </div>
-              </div>
-              {resumeFileName ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <label className="btn btn-secondary btn-sm" style={{ padding: '0.15rem 0.45rem', fontSize: '0.72rem', cursor: 'pointer' }}>
-                    Replace <input type="file" accept=".pdf" onChange={handleFileUpload} style={{ display: 'none' }} />
-                  </label>
-                  <button type="button" onClick={handleRemoveResume} className="btn btn-secondary btn-sm" style={{ padding: '0.15rem 0.45rem', fontSize: '0.72rem' }}>
-                    <X size={12} aria-hidden="true" /> Remove
-                  </button>
-                </div>
-              ) : (
-                <label className="tag-soft" style={{ fontSize: '0.72rem', padding: '0.15rem 0.45rem', cursor: 'pointer' }}>
-                  Browse <input type="file" accept=".pdf" onChange={handleFileUpload} style={{ display: 'none' }} />
-                </label>
-              )}
-            </div>
-          </div>
-
-          {progress?.active ? (
-            <PracticeProgress
-              statusText={progress.statusText} percent={progress.percent}
-              isRetrying={progress.isRetrying} errorMessage={progress.errorMessage}
-              onRetry={progress.onRetry} onCancel={progress.onCancel}
-            />
-          ) : (
-            <button type="submit" className="studio-launch-btn" disabled={busy} style={{ marginTop: '0.25rem' }}>
-              Start {mode === 'quiz' ? 'MCQ Drill' : 'Mock Interview'} <ArrowRight size={17} aria-hidden="true" />
+          {/* Launch Action */}
+          <div style={{ marginTop: 'auto', paddingTop: '1rem' }}>
+            <button
+              type="submit"
+              disabled={busy}
+              className="btn btn-primary"
+              style={{ width: '100%', justifyContent: 'center', padding: '0.85rem' }}
+            >
+              {busy ? 'Preparing Interview...' : 'Start AI Interview'}
+              {!busy && <ArrowRight size={16} style={{ marginLeft: '0.4rem' }} />}
             </button>
-          )}
+          </div>
         </div>
       </form>
+
+      {progress && progress.active && <PracticeProgress progress={progress} />}
     </div>
   )
 }

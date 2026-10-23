@@ -1,24 +1,23 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import api from '../lib/api'
 
-// Holds the signed-in user and the auth actions. `user` includes role and
-// isVerified so the UI can show the admin link and verification prompts.
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
-  // `null` means the live setting has not loaded yet. Treat that state as
-  // mandatory in the UI so the optional skip action never flashes briefly.
   const [requireEmailVerification, setRequireEmailVerification] = useState(null)
 
   async function refreshVerificationSetting() {
-    const { data } = await api.get('/auth/verification-settings')
-    setRequireEmailVerification(data.requireEmailVerification === true)
-    return data.requireEmailVerification === true
+    try {
+      const { data } = await api.get('/auth/verification-settings')
+      setRequireEmailVerification(data.requireEmailVerification === true)
+      return data.requireEmailVerification === true
+    } catch {
+      return false
+    }
   }
 
-  // Restore session from HttpOnly cookie on boot.
   useEffect(() => {
     Promise.all([api.get('/auth/me').catch(() => null), refreshVerificationSetting().catch(() => false)])
       .then(([res]) => {
@@ -34,19 +33,6 @@ export function AuthProvider({ children }) {
       .finally(() => setLoading(false))
   }, [])
 
-  // Refresh on focus and periodically so an admin change is reflected even
-  // when this tab is already open.
-  useEffect(() => {
-    const refresh = () => refreshVerificationSetting().catch(() => {})
-    refresh()
-    const timer = window.setInterval(refresh, 15000)
-    window.addEventListener('focus', refresh)
-    return () => {
-      window.clearInterval(timer)
-      window.removeEventListener('focus', refresh)
-    }
-  }, [])
-
   async function login(email, password) {
     const { data } = await api.post('/auth/login', { email, password })
     if (data.token) {
@@ -60,40 +46,27 @@ export function AuthProvider({ children }) {
     return data
   }
 
-  function establishSession(data) {
-    if (data.token) {
-      localStorage.setItem('mockmate_token', data.token)
-    }
-    setUser(data.user)
-  }
-
-  async function completeRegistration(registrationToken) {
-    const { data } = await api.post('/auth/complete-registration', { registrationToken })
-    establishSession(data)
-  }
-
   async function logout() {
     try {
       await api.post('/auth/logout')
-    } catch {
-      // ignore
-    }
+    } catch {}
     localStorage.removeItem('mockmate_token')
     setUser(null)
   }
 
-  // Re-fetch the user (used after verifying email or uploading a resume).
-  async function refreshUser() {
-    try {
-      const { data } = await api.get('/auth/me')
-      setUser(data.user)
-    } catch {
-      // ignore
-    }
-  }
-
   return (
-    <AuthContext.Provider value={{ user, loading, requireEmailVerification, login, register, establishSession, completeRegistration, logout, refreshUser, refreshVerificationSetting }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        setUser,
+        loading,
+        login,
+        register,
+        logout,
+        requireEmailVerification,
+        refreshVerificationSetting,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )

@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { Zap, Github, Globe, Linkedin, ArrowUpRight, Mail } from 'lucide-react'
+import { Github, Globe, Linkedin, ArrowUpRight, Mail } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { goToSection } from '../lib/scrollToSection'
 
@@ -29,10 +29,9 @@ export default function Footer() {
             </Link>
 
             <p style={{ margin: '0.5rem 0 1rem', maxWidth: '38ch', fontSize: '0.86rem', lineHeight: '1.55', color: '#6b7280' }}>
-              AI-driven technical engineering interviews, real-time feedback, and certificates of completion.
+              AI-driven technical engineering interviews with real-time feedback and detailed rubric scoring.
             </p>
 
-            {/* Creator Badge & Social Icons */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
               <a
                 href="https://portfolio-zeta-drab-97.vercel.app/"
@@ -70,40 +69,39 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Navigation Columns */}
+          {/* Quick Links */}
           <div className="footer-links-col">
-            <h4>Platform &amp; Legal</h4>
+            <h4>Platform</h4>
             {user ? (
               <>
                 <Link to="/dashboard">Dashboard</Link>
-                <Link to="/bookmarks">Bookmarks</Link>
-                <Link to="/leaderboard">Leaderboard</Link>
-                <Link to="/certificates">Certificates</Link>
-                <Link to="/privacy">Privacy Policy</Link>
-                <Link to="/terms">Terms of Service</Link>
+                <Link to="/practice">Practice Studio</Link>
+                <Link to="/bookmarks">Saved Questions</Link>
+                <Link to="/profile">Profile &amp; Settings</Link>
               </>
             ) : (
               <>
                 <Link to="/">Home</Link>
-                <Link to="/leaderboard">Leaderboard</Link>
-                <Link to="/privacy">Privacy Policy</Link>
-                <Link to="/terms">Terms of Service</Link>
+                <Link to="/login">Sign In</Link>
+                <Link to="/register">Create Account</Link>
               </>
             )}
           </div>
 
+          {/* Interview Tracks */}
           <div className="footer-links-col">
-            <h4>Prep Tracks</h4>
-            <Link to={user ? '/practice' : '/register'}>Frontend Engineering</Link>
-            <Link to={user ? '/practice' : '/register'}>Backend Architecture</Link>
-            <Link to={user ? '/practice' : '/register'}>Fullstack &amp; MERN</Link>
-            <Link to={user ? '/practice' : '/register'}>System Design &amp; SQL</Link>
+            <h4>Tracks</h4>
+            <Link to={user ? "/practice" : "/login"}>Frontend Engineering</Link>
+            <Link to={user ? "/practice" : "/login"}>Backend Architecture</Link>
+            <Link to={user ? "/practice" : "/login"}>Fullstack &amp; MERN</Link>
+            <Link to={user ? "/practice" : "/login"}>System Design</Link>
           </div>
 
+          {/* Contact & Author */}
           <div className="footer-links-col">
-            <h4>Connect &amp; Author</h4>
-            <a href="mailto:zaidm1323@gmail.com" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
-              <Mail size={13} style={{ color: '#2563eb' }} /> zaidm1323@gmail.com
+            <h4>Connect</h4>
+            <a href="mailto:zaidm1323@gmail.com" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+              <Mail size={13} /> zaidm1323@gmail.com
             </a>
             <a href="https://portfolio-zeta-drab-97.vercel.app/" target="_blank" rel="noreferrer">
               Portfolio Site ↗
@@ -112,27 +110,21 @@ export default function Footer() {
               GitHub Profile ↗
             </a>
             <a href="https://www.linkedin.com/in/mohd-zaid-794090231/" target="_blank" rel="noreferrer">
-              LinkedIn Network ↗
+              LinkedIn ↗
             </a>
           </div>
         </div>
-      </div>
 
-      <div className="footer-bottom-bar">
-        <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.8rem', paddingTop: 0, paddingBottom: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-            <p style={{ margin: 0, fontSize: '0.8rem', color: '#6b7280' }}>
-              © {year} MockMate AI. Built by <a href="https://portfolio-zeta-drab-97.vercel.app/" target="_blank" rel="noreferrer" style={{ fontWeight: 600, color: '#111827' }}>Mohd Zaid</a>.
-            </p>
-            <div style={{ display: 'flex', gap: '0.65rem', fontSize: '0.78rem' }}>
-              <Link to="/privacy" style={{ color: '#6b7280' }}>Privacy</Link>
-              <span style={{ color: '#d1d5db' }}>•</span>
-              <Link to="/terms" style={{ color: '#6b7280' }}>Terms</Link>
-            </div>
+        {/* Bottom Bar */}
+        <div className="footer-bottom-bar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
+          <div>&copy; {year} MockMate AI. Built by Mohd Zaid.</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.8rem', color: '#9ca3af' }}>
+            <span>MERN Stack</span>
+            <span>&bull;</span>
+            <span>Google Gemini AI</span>
+            <span>&bull;</span>
+            <span>Open Source</span>
           </div>
-          <span className="tag-soft" style={{ fontSize: '0.74rem' }}>
-            Technical Interview Platform
-          </span>
         </div>
       </div>
     </footer>

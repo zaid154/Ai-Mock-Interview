@@ -7,18 +7,14 @@ const rateLimit = require('express-rate-limit')
 const mongoSanitize = require('express-mongo-sanitize')
 
 const authRoutes = require('./routes/authRoutes')
-const adminRoutes = require('./routes/adminRoutes')
 const interviewRoutes = require('./routes/interviewRoutes')
 const bookmarkRoutes = require('./routes/bookmarkRoutes')
-const certificateRoutes = require('./routes/certificateRoutes')
 const { notFound, errorHandler } = require('./middleware/errorMiddleware')
 
 const app = express()
 
-// Trust reverse proxies (Render, Vercel, Cloudflare, NGINX)
 app.set('trust proxy', 1)
 
-// CORS: CLIENT_URL accepts one origin or comma-separated allow-list
 const allowedOrigins = (process.env.CLIENT_URL || '')
   .split(',')
   .map((origin) => origin.trim().replace(/\/$/, ''))
@@ -28,7 +24,7 @@ app.use(helmet())
 
 const isDev = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV
 
-// Global rate limiting: 1000 requests per 15 minutes per IP in production, skipped in dev
+// Rate limiters
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 1000,
@@ -39,11 +35,10 @@ const apiLimiter = rateLimit({
 })
 app.use('/api/', apiLimiter)
 
-// Strict rate limiter for sensitive authentication endpoints in production
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 1000,
-  message: { error: 'Too many authentication attempts. Please try again after 15 minutes.' },
+  message: { error: 'Too many authentication attempts. Please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
   skip: () => isDev,
@@ -91,14 +86,12 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', service: 'mockmate-server' })
 })
 
-// Route mounting
+// Routes
 app.use('/api/auth', authRoutes)
-app.use('/api/admin', adminRoutes)
 app.use('/api/interviews', interviewRoutes)
 app.use('/api/bookmarks', bookmarkRoutes)
-app.use('/api/certificates', certificateRoutes)
 
-// 404 & Global Error Middleware
+// Error handling
 app.use('/api', notFound)
 app.use(errorHandler)
 

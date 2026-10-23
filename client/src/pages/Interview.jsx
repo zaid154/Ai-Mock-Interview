@@ -31,10 +31,6 @@ export default function Interview() {
           navigate(`/results/${data._id}`, { replace: true })
           return
         }
-        if (data.mode === 'quiz') {
-          navigate(`/quiz/${data._id}`, { replace: true })
-          return
-        }
         setInterview(data)
         setAnswers(data.questions.map((q) => q.answer || ''))
         setNotes(data.questions.map((q) => q.notes || ''))

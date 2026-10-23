@@ -1,60 +1,30 @@
-import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { X, LogOut } from 'lucide-react'
 
-export default function NavDrawer({
-  isOpen,
-  onClose,
-  user,
-  onLogout,
-  onSectionClick
-}) {
-  useEffect(() => {
-    if (!isOpen) return
-    function handleKeyDown(e) {
-      if (e.key === 'Escape') onClose()
-    }
-    const originalOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    window.addEventListener('keydown', handleKeyDown)
-    return () => {
-      document.body.style.overflow = originalOverflow
-      window.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [isOpen, onClose])
-
-  if (!isOpen || typeof document === 'undefined') return null
+export default function NavDrawer({ isOpen, onClose, user, onLogout }) {
+  if (!isOpen) return null
 
   return createPortal(
     <>
       <div
-        className="mobile-drawer-overlay"
         onClick={onClose}
-        aria-hidden="true"
         style={{
           position: 'fixed',
           inset: 0,
           background: 'rgba(0, 0, 0, 0.3)',
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
+          backdropFilter: 'blur(4px)',
           zIndex: 998
         }}
       />
       <div
-        className="mobile-drawer open"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Navigation menu"
         style={{
           position: 'fixed',
           top: 0,
           right: 0,
-          width: 'min(320px, 85vw)',
-          height: '100dvh',
+          bottom: 0,
+          width: '280px',
           background: 'rgba(255, 255, 255, 0.98)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
           borderLeft: '1px solid #e5e7eb',
           boxShadow: '-8px 0 32px rgba(0, 0, 0, 0.1)',
           padding: '1.25rem',
@@ -87,18 +57,10 @@ export default function NavDrawer({
                 <Link to="/dashboard" className="reflect-nav-link-mobile" onClick={onClose}>Dashboard</Link>
                 <Link to="/practice" className="reflect-nav-link-mobile" onClick={onClose}>Practice</Link>
                 <Link to="/bookmarks" className="reflect-nav-link-mobile" onClick={onClose}>Bookmarks</Link>
-                <Link to="/leaderboard" className="reflect-nav-link-mobile" onClick={onClose}>Leaderboard</Link>
-                <Link to="/certificates" className="reflect-nav-link-mobile" onClick={onClose}>Certificates</Link>
                 <Link to="/profile" className="reflect-nav-link-mobile" onClick={onClose}>Profile &amp; Settings</Link>
-                {user.role === 'admin' && (
-                  <Link to="/admin" className="reflect-nav-link-mobile" onClick={onClose}>Admin Settings</Link>
-                )}
               </>
             ) : (
-              <>
-                <Link to="/" className="reflect-nav-link-mobile" onClick={onClose}>Home</Link>
-                <Link to="/leaderboard" className="reflect-nav-link-mobile" onClick={onClose}>Leaderboard</Link>
-              </>
+              <Link to="/" className="reflect-nav-link-mobile" onClick={onClose}>Home</Link>
             )}
           </nav>
         </div>

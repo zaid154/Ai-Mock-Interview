@@ -1,22 +1,22 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, Trophy } from 'lucide-react'
+import { ArrowRight, Code2 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
 const TRACKS = [
   {
-    title: 'Frontend Engineering',
-    desc: 'React architecture, state management, rendering performance, web standards, and modern JavaScript / TypeScript.'
+    role: 'Frontend Engineering',
+    desc: 'React 18 concurrency, rendering lifecycles, DOM event loop, CSS layout engines, web performance, and state machines.'
   },
   {
-    title: 'Backend Architecture',
-    desc: 'API design, database schemas, query optimization, caching strategies, concurrency, and microservice patterns.'
+    role: 'Backend Architecture',
+    desc: 'Node.js event loop, asynchronous I/O, relational indexing vs. NoSQL document modeling, idempotent APIs, and caching.'
   },
   {
-    title: 'Fullstack & MERN',
-    desc: 'End-to-end application architecture, client-server data flow, authentication, session security, and state synchronization.'
+    role: 'Fullstack & MERN',
+    desc: 'End-to-end data flow, React-Express synchronization, schema validation, optimistic UI updates, and token authentication.'
   },
   {
-    title: 'System Design',
+    role: 'System Design & Scalability',
     desc: 'High-scale distributed systems, throughput vs. latency, caching layers, message queues, and horizontal partitioning.'
   }
 ]
@@ -28,11 +28,11 @@ const STEPS = [
   },
   {
     title: 'Practice conversational technical rounds',
-    desc: 'Answer technical questions with voice or text, write code in the integrated editor, and handle realistic interviewer curveballs.'
+    desc: 'Answer technical questions with voice or text, walk through system trade-offs, and handle realistic interviewer follow-ups.'
   },
   {
-    title: 'Get instant rubric evaluation & credentials',
-    desc: 'Review actionable scores across architecture, edge cases, and trade-offs. Earn verifiable milestone certificates for your LinkedIn and resume.'
+    title: 'Get instant rubric evaluation',
+    desc: 'Review actionable scores across technical depth, system architecture, and communication clarity. Bookmark tricky questions for quick revision.'
   }
 ]
 
@@ -56,23 +56,23 @@ export default function Landing() {
               <span>{user ? 'Go to Dashboard' : 'Start Practicing Free'}</span>
               <ArrowRight size={16} />
             </Link>
-            <Link to="/leaderboard" className="landing-btn-link">
-              <Trophy size={15} />
-              <span>Leaderboard</span>
+            <Link to={user ? '/practice' : '/login'} className="landing-btn-link">
+              <Code2 size={15} />
+              <span>Explore Tracks</span>
             </Link>
           </div>
         </header>
 
         <hr className="landing-divider" />
 
-        {/* Tracks List (No Cards, Clean Editorial Layout) */}
+        {/* Tracks List */}
         <section className="landing-block">
           <h2 className="landing-block-title">Engineering Tracks</h2>
-          <div className="landing-list">
-            {TRACKS.map((t) => (
-              <div key={t.title} className="landing-list-item">
-                <div className="landing-item-title">{t.title}</div>
-                <p className="landing-item-desc">{t.desc}</p>
+          <div className="landing-track-list">
+            {TRACKS.map((track) => (
+              <div key={track.role} className="landing-track-item">
+                <div className="landing-track-name">{track.role}</div>
+                <div className="landing-track-desc">{track.desc}</div>
               </div>
             ))}
           </div>
@@ -80,32 +80,35 @@ export default function Landing() {
 
         <hr className="landing-divider" />
 
-        {/* Workflow (No Cards, Clean Ordered Layout) */}
+        {/* How it Works */}
         <section className="landing-block">
           <h2 className="landing-block-title">How It Works</h2>
-          <div className="landing-list">
-            {STEPS.map((s, idx) => (
-              <div key={s.title} className="landing-step-row">
-                <span className="landing-step-index">{`0${idx + 1}`}</span>
-                <div className="landing-list-item">
-                  <div className="landing-item-title">{s.title}</div>
-                  <p className="landing-item-desc">{s.desc}</p>
+          <div className="landing-step-list">
+            {STEPS.map((step, idx) => (
+              <div key={step.title} className="landing-step-item">
+                <div className="landing-step-num">0{idx + 1}</div>
+                <div>
+                  <div className="landing-step-title">{step.title}</div>
+                  <div className="landing-step-desc">{step.desc}</div>
                 </div>
               </div>
             ))}
           </div>
         </section>
 
-        {/* Footer Callout (No Cards, Clean Text) */}
-        <footer className="landing-final">
-          <p className="landing-final-text">
-            Free to use in browser • No credit card required
+        <hr className="landing-divider" />
+
+        {/* Bottom CTA */}
+        <section className="landing-cta-block">
+          <h2 className="landing-cta-title">Ready to test your knowledge?</h2>
+          <p className="landing-cta-sub">
+            Pick a role, start a session, and get calibrated feedback in minutes.
           </p>
           <Link to={user ? '/dashboard' : '/register'} className="landing-btn-start">
-            <span>{user ? 'Open Dashboard' : 'Get Started'}</span>
-            <ArrowRight size={15} />
+            <span>{user ? 'Launch Dashboard' : 'Get Started Free'}</span>
+            <ArrowRight size={16} />
           </Link>
-        </footer>
+        </section>
       </main>
     </div>
   )

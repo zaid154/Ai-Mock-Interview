@@ -1,98 +1,99 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { RotateCcw, Award, Edit3, Save } from 'lucide-react'
 import api, { apiError } from '../lib/api'
 import ScoreChart from '../components/ScoreChart'
 import QuestionEvaluationList from '../components/QuestionEvaluationList'
-import { formatGeneratedText, normalizePrompt } from '../lib/text'
+import { RotateCcw, Bookmark, Check, Save } from 'lucide-react'
 
 function verdict(score) {
-  if (score >= 80) return { label: 'Strong Candidate', className: 'score-chip', desc: 'Ready for real-world interviews!' }
-  if (score >= 55) return { label: 'Solid, with minor gaps', className: 'chip-pending', desc: 'Good foundation. Review key feedback areas below.' }
-  return { label: 'Needs Practice', className: 'tag-soft', desc: 'Revisit core concepts and try another practice session.' }
+  if (score >= 80) return { label: 'Strong Hire', className: 'badge-good' }
+  if (score >= 60) return { label: 'Hire with Coaching', className: 'badge-warn' }
+  return { label: 'Needs Practice', className: 'badge-bad' }
 }
 
 export default function Results() {
   const { id } = useParams()
-
   const [interview, setInterview] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [bookmarkedMap, setBookmarkedMap] = useState({})
   const [sessionNotes, setSessionNotes] = useState('')
   const [savingNotes, setSavingNotes] = useState(false)
+  const [bookmarkedMap, setBookmarkedMap] = useState({})
 
   useEffect(() => {
-    api
-      .get(`/interviews/${id}`)
-      .then((res) => {
-        const data = res.data.interview
-        setInterview(data)
-        setSessionNotes(data.notes || '')
-      })
-      .catch((err) => toast.error(apiError(err, 'Could not load results')))
-      .finally(() => setLoading(false))
-
-    api
-      .get('/bookmarks')
-      .then((res) => {
-        const map = {}
-        ;(res.data.bookmarks || []).forEach((b) => {
-          map[normalizePrompt(b.prompt)] = true
-        })
-        setBookmarkedMap(map)
-      })
-      .catch(() => {})
+    async function loadResults() {
+      try {
+        const { data } = await api.get(`/interviews/${id}`)
+        setInterview(data.interview)
+        setSessionNotes(data.interview.notes || '')
+      } catch (err) {
+        toast.error(apiError(err, 'Failed to load results'))
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadResults()
   }, [id])
 
-  async function handleBookmarkQuestion(q) {
-    const key = normalizePrompt(q.prompt)
-    const currentStatus = Boolean(bookmarkedMap[key])
-    setBookmarkedMap((prev) => ({ ...prev, [key]: !currentStatus }))
-
-    try {
-      const { data } = await api.post('/bookmarks/toggle', {
-        prompt: q.prompt,
-        role: interview.role,
-        category: interview.category,
-        answer: q.answer,
-        feedback: q.feedback,
-        options: q.options,
-        correctIndex: q.correctIndex,
-        notes: q.notes,
-        modelAnswer: q.modelAnswer,
-        rubric: q.rubric,
-        talkingPoints: q.talkingPoints,
-      })
-      setBookmarkedMap((prev) => ({ ...prev, [key]: data.bookmarked }))
-      toast.success(data.bookmarked ? 'Question saved to Bookmarks!' : 'Bookmark removed')
-    } catch (err) {
-      setBookmarkedMap((prev) => ({ ...prev, [key]: currentStatus }))
-      toast.error(apiError(err, 'Could not update bookmark'))
-    }
-  }
-
-  async function handleSaveSessionNotes() {
+  async function handleSaveNotes() {
     setSavingNotes(true)
     try {
       await api.patch(`/interviews/${id}/notes`, { notes: sessionNotes })
-      toast.success('Session notes saved!')
+      toast.success('Notes saved successfully')
     } catch (err) {
-      toast.error(apiError(err, 'Could not save notes'))
+      toast.error(apiError(err, 'Failed to save notes'))
     } finally {
       setSavingNotes(false)
     }
   }
 
-  if (loading) return <main className="page-center muted">Loading results…</main>
-  if (!interview) return <main className="page-center muted">Results not found.</main>
+  async function handleBookmarkQuestion(q) {
+    const isBookmarked = !!bookmarkedMap[q._id || q.question]
+    try {
+      if (isBookmarked) {
+        await api.delete(`/bookmarks/by-question?question=${encodeURIComponent(q.question)}`)
+        setBookmarkedMap((prev) => ({ ...prev, [q._id || q.question]: false }))
+        toast.success('Question removed from bookmarks')
+      } else {
+        await api.post('/bookmarks', {
+          question: q.question,
+          idealAnswer: q.idealAnswer || q.feedback,
+          role: interview.role,
+          category: interview.category || 'General',
+          interviewId: id,
+        })
+        setBookmarkedMap((prev) => ({ ...prev, [q._id || q.question]: true }))
+        toast.success('Question saved to bookmarks')
+      }
+    } catch (err) {
+      toast.error(apiError(err, 'Failed to update bookmark'))
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="container page-center">
+        <div className="muted small mono">Loading interview scorecard...</div>
+      </div>
+    )
+  }
+
+  if (!interview) {
+    return (
+      <div className="container page-center">
+        <h2>Interview not found</h2>
+        <Link to="/dashboard" className="btn btn-primary" style={{ marginTop: '1rem' }}>
+          Back to Dashboard
+        </Link>
+      </div>
+    )
+  }
 
   const v = verdict(interview.overallScore)
-  const isQuiz = interview.mode === 'quiz'
 
   return (
     <main className="container">
-      {/* ── Results Header ── */}
+      {/* Results Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div style={{ minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.6rem', marginBottom: '0.3rem' }}>
@@ -106,18 +107,18 @@ export default function Results() {
         </div>
 
         <div style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap' }}>
-          <Link to="/certificates" className="btn btn-secondary">
-            <Award size={16} /> View Certificates
+          <Link to="/bookmarks" className="btn btn-secondary">
+            <Bookmark size={16} /> Saved Bookmarks
           </Link>
-          <Link to="/dashboard" className="btn btn-primary">
+          <Link to="/practice" className="btn btn-primary">
             <RotateCcw size={16} /> Start New Session
           </Link>
         </div>
       </div>
 
-      {/* ── Top 2-Column Analytics Overview ── */}
+      {/* Top 2-Column Analytics Overview */}
       <div className="results-overview-grid" style={{ marginBottom: '2rem' }}>
-        {/* Left Column: Overall Score Meter */}
+        {/* Overall Score */}
         <div className="panel" style={{ padding: '1.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
             <span className="subtle small uppercase" style={{ letterSpacing: '0.06em', fontWeight: 700 }}>
@@ -128,61 +129,64 @@ export default function Results() {
 
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginBottom: '0.5rem' }}>
             <span className="mono" style={{ fontSize: '3.5rem', fontWeight: 800, lineHeight: 1 }}>
-              {interview.overallScore}%
+              {interview.overallScore || 0}
             </span>
-            <span className="muted" style={{ fontSize: '1.1rem' }}>overall rating</span>
+            <span className="subtle" style={{ fontSize: '1.25rem' }}>/ 100</span>
           </div>
 
-          <p className="muted small" style={{ margin: 0 }}>{v.desc}</p>
-          {interview.summary && (
-            <p style={{ marginTop: '1rem', fontSize: '0.92rem', lineHeight: '1.5', color: 'var(--text-muted)' }}>
-              {formatGeneratedText(interview.summary)}
+          <div className="meter-track" style={{ height: '8px', marginBottom: '1.25rem' }}>
+            <div className="meter-fill" style={{ width: `${interview.overallScore || 0}%`, background: '#2563eb' }} />
+          </div>
+
+          {interview.feedback && (
+            <p style={{ margin: 0, fontSize: '0.92rem', color: '#4b5563', lineHeight: 1.6 }}>
+              {interview.feedback}
             </p>
           )}
         </div>
 
-        {/* Right Column: Interactive Score Breakdown Chart */}
+        {/* 4-Pillar Rubric Radar / Chart */}
         <div className="panel" style={{ padding: '1.75rem' }}>
-          <span className="subtle small uppercase" style={{ letterSpacing: '0.06em', fontWeight: 700, display: 'block', marginBottom: '1rem' }}>
-            Question Scores
-          </span>
+          <div style={{ marginBottom: '1rem' }}>
+            <span className="subtle small uppercase" style={{ letterSpacing: '0.06em', fontWeight: 700 }}>
+              4-Pillar Evaluation Rubric
+            </span>
+          </div>
           <ScoreChart
-            questions={interview.questions}
-            scores={interview.questions.map((q) => q.score ?? 0)}
+            rubricBreakdown={interview.rubricBreakdown}
+            overallScore={interview.overallScore}
           />
         </div>
       </div>
 
-      {/* ── Candidate Session Notes Card ── */}
+      {/* Key Takeaways & Revision Notes */}
       <div className="panel" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-          <span className="field-label" style={{ margin: 0, display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
-            <Edit3 size={15} style={{ color: 'var(--accent-primary)' }} /> Personal Notes
-          </span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+          <h2 style={{ fontSize: '1.05rem', margin: 0, color: '#111827' }}>Personal Session Notes</h2>
           <button
             type="button"
-            className="btn btn-secondary btn-sm"
-            onClick={handleSaveSessionNotes}
+            onClick={handleSaveNotes}
             disabled={savingNotes}
+            className="btn btn-secondary btn-sm"
           >
-            <Save size={13} /> {savingNotes ? 'Saving…' : 'Save Notes'}
+            {savingNotes ? <Check size={14} /> : <Save size={14} />}
+            {savingNotes ? 'Saving...' : 'Save Notes'}
           </button>
         </div>
         <textarea
           rows={3}
           value={sessionNotes}
           onChange={(e) => setSessionNotes(e.target.value)}
-          placeholder="Capture your key takeaways, concepts to revise, or algorithmic patterns to practice..."
+          placeholder="Capture key concepts to revise, edge cases discussed, or patterns to practice..."
           style={{ width: '100%', fontSize: '0.9rem', resize: 'vertical' }}
         />
       </div>
 
-      {/* ── Question Breakdown List ── */}
+      {/* Question Breakdown List */}
       <h2 style={{ fontSize: '1.3rem', marginBottom: '1.25rem', color: '#111827' }}>Questions &amp; Feedback</h2>
 
       <QuestionEvaluationList
         questions={interview.questions}
-        isQuiz={isQuiz}
         bookmarkedMap={bookmarkedMap}
         onBookmarkQuestion={handleBookmarkQuestion}
       />

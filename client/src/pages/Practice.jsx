@@ -10,36 +10,32 @@ const DIFFICULTY_MAP = { Junior: 'easy', Intermediate: 'medium', Senior: 'hard' 
 
 const CURATED_TRACKS = [
   {
-    title: 'React & Frontend Core',
-    desc: 'React 19 hooks, component lifecycle, bundle size & rendering optimization.',
+    title: 'React & Frontend Architecture',
+    desc: 'React 18 hooks, rendering performance, state management & bundle optimization.',
     role: 'Frontend Engineer',
     topic: 'React & Modern Web Architecture',
     difficulty: 'Intermediate',
-    mode: 'questions',
   },
   {
     title: 'Node.js & Microservices',
-    desc: 'Event loop, RESTful APIs, async concurrency, auth & data streaming.',
+    desc: 'Event loop, asynchronous concurrency, API design, auth & streaming.',
     role: 'Backend Developer',
     topic: 'Node.js, Express & Microservices',
     difficulty: 'Senior',
-    mode: 'questions',
   },
   {
     title: 'System Design & Scalability',
-    desc: 'High-concurrency architectures, Redis caching, sharding & fault recovery.',
+    desc: 'Distributed systems, Redis caching, sharding, and resilience strategies.',
     role: 'System Design Architect',
     topic: 'System Design, Scalability & Caching',
     difficulty: 'Senior',
-    mode: 'questions',
   },
   {
-    title: 'Speed MCQ Tech Drill',
-    desc: 'Rapid-fire multiple choice assessment covering JavaScript, SQL & Web APIs.',
+    title: 'MERN Fullstack Engineering',
+    desc: 'End-to-end full stack development, MongoDB aggregations & React patterns.',
     role: 'Fullstack Developer',
     topic: 'React & Modern Web Architecture',
     difficulty: 'Intermediate',
-    mode: 'quiz',
   },
 ]
 
@@ -48,7 +44,6 @@ export default function Practice() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
-  const [mode, setMode] = useState(searchParams.get('mode') === 'quiz' ? 'quiz' : 'questions')
   const [role, setRole] = useState(user?.targetRole || 'Fullstack Developer')
   const [topic, setTopic] = useState('React & Modern Web Architecture')
   const [customTopic, setCustomTopic] = useState('')
@@ -61,40 +56,54 @@ export default function Practice() {
   const cancelRef = useRef(false)
 
   useEffect(() => {
-    const qMode = searchParams.get('mode')
-    if (qMode === 'quiz' || qMode === 'questions') setMode(qMode)
-  }, [searchParams])
+    const track = searchParams.get('track')
+    if (track) {
+      const match = CURATED_TRACKS.find((t) => t.title.toLowerCase().includes(track.toLowerCase()))
+      if (match) applyTrack(match)
+    }
+    if (user?.resumeFileName) {
+      setResumeFileName(user.resumeFileName)
+    }
+  }, [searchParams, user])
 
-  useEffect(() => {
-    api.get('/interviews/resume/active').then(({ data }) => {
-      if (data?.active && data?.fileName) setResumeFileName(data.fileName)
-    }).catch(() => {})
-  }, [])
+  function applyTrack(track) {
+    setRole(track.role)
+    setTopic(track.topic)
+    setDifficulty(track.difficulty)
+  }
 
   async function handleFileUpload(e) {
     const file = e.target.files?.[0]
     if (!file) return
-    if (!file.name.toLowerCase().endsWith('.pdf')) return toast.error('Please upload a PDF file')
-    const formData = new FormData()
-    formData.append('resume', file)
-    const toastId = toast.loading('Analyzing resume context…')
+    if (file.type !== 'application/pdf') {
+      return toast.error('Only PDF resumes are supported')
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      return toast.error('File size must be under 5 MB')
+    }
+
+    const form = new FormData()
+    form.append('resume', file)
+
+    const loadingToast = toast.loading('Parsing resume...')
     try {
-      const { data } = await api.post('/interviews/resume', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+      const { data } = await api.post('/auth/resume', form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
       setResumeFileName(data.fileName || file.name)
-      toast.success(data.cached ? '✓ Existing resume found! Loaded saved context.' : 'Resume context structured and saved', { id: toastId })
+      toast.success('Resume attached for tailoring', { id: loadingToast })
     } catch (err) {
-      toast.error(apiError(err, 'Could not parse resume'), { id: toastId })
+      toast.error(apiError(err, 'Failed to parse resume'), { id: loadingToast })
     }
   }
 
-  async function handleRemoveResume(e) {
-    e.preventDefault(); e.stopPropagation()
+  async function handleRemoveResume() {
     try {
-      await api.delete('/interviews/resume/active')
+      await api.delete('/auth/resume')
       setResumeFileName('')
-      toast.success('Resume context detached')
+      toast.success('Resume detached')
     } catch (err) {
-      toast.error(apiError(err, 'Could not remove resume'))
+      toast.error(apiError(err, 'Failed to remove resume'))
     }
   }
 
@@ -118,7 +127,7 @@ export default function Practice() {
 
     try {
       const payload = {
-        mode,
+        mode: 'questions',
         role: role.trim() || 'Software Engineer',
         category: finalTopic,
         experience: difficulty,
@@ -138,7 +147,7 @@ export default function Practice() {
 
       setProgress({ active: true, percent: 100, statusText: 'Assessment ready ✓' })
       const session = data.interview || data.session
-      navigate(session.mode === 'quiz' ? `/quiz/${session._id}` : `/interview/${session._id}`)
+      navigate(`/interview/${session._id}`)
     } catch (err) {
       setBusy(false)
       setProgress((p) => ({ ...p, errorMessage: 'Unable to start assessment.', onRetry: () => createSession() }))
@@ -159,64 +168,63 @@ export default function Practice() {
           </Link>
         </div>
 
+        {/* Curated Pre-Configured Tracks */}
+        <section aria-label="Curated tracks" style={{ marginBottom: '1.25rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '0.65rem' }}>
+            {CURATED_TRACKS.map((track) => (
+              <button
+                key={track.title}
+                type="button"
+                onClick={() => applyTrack(track)}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  padding: '0.75rem 0.85rem',
+                  borderRadius: '8px',
+                  background: '#ffffff',
+                  border: '1px solid #e5e7eb',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <div style={{ fontSize: '0.86rem', fontWeight: 600, color: '#111827', marginBottom: '0.2rem' }}>
+                  {track.title}
+                </div>
+                <div style={{ fontSize: '0.76rem', color: '#6b7280', lineHeight: 1.45, marginBottom: '0.45rem', flex: 1 }}>
+                  {track.desc}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <span style={{ fontSize: '0.7rem', padding: '0.12rem 0.45rem', background: '#eff6ff', color: '#2563eb', borderRadius: '4px', fontWeight: 600 }}>
+                    {track.difficulty}
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Studio Setup Form */}
         <PracticeStudio
-          mode={mode} setMode={setMode} role={role} setRole={setRole}
-          topic={topic} setTopic={setTopic} customTopic={customTopic} setCustomTopic={setCustomTopic}
-          numQuestions={numQuestions} setNumQuestions={setNumQuestions} difficulty={difficulty} setDifficulty={setDifficulty}
-          timerMinutes={timerMinutes} setTimerMinutes={setTimerMinutes} resumeFileName={resumeFileName}
-          handleFileUpload={handleFileUpload} handleRemoveResume={handleRemoveResume} createSession={createSession} busy={busy} progress={progress}
+          role={role}
+          setRole={setRole}
+          topic={topic}
+          setTopic={setTopic}
+          customTopic={customTopic}
+          setCustomTopic={setCustomTopic}
+          numQuestions={numQuestions}
+          setNumQuestions={setNumQuestions}
+          difficulty={difficulty}
+          setDifficulty={setDifficulty}
+          timerMinutes={timerMinutes}
+          setTimerMinutes={setTimerMinutes}
+          resumeFileName={resumeFileName}
+          handleFileUpload={handleFileUpload}
+          handleRemoveResume={handleRemoveResume}
+          createSession={createSession}
+          busy={busy}
+          progress={progress}
         />
-
-        {/* Curated Quick-Start Tracks */}
-        <div style={{ marginTop: '1.25rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.65rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-            <span style={{ fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', color: '#4b5563', letterSpacing: '0.04em' }}>
-              Curated Practice Tracks
-            </span>
-            <span style={{ fontSize: '0.74rem', color: '#6b7280' }}>Select a track to quickly configure your session</span>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '0.75rem' }}>
-            {CURATED_TRACKS.map((trk) => {
-              const isSelected = role === trk.role && topic === trk.topic && mode === trk.mode
-              return (
-                <button
-                  key={trk.title}
-                  type="button"
-                  onClick={() => {
-                    setRole(trk.role)
-                    setTopic(trk.topic)
-                    setDifficulty(trk.difficulty)
-                    setMode(trk.mode)
-                    toast.success(`Loaded "${trk.title}" track settings!`)
-                  }}
-                  className="panel"
-                  style={{
-                    padding: '0.85rem 1rem',
-                    textAlign: 'left',
-                    background: isSelected ? '#eff6ff' : 'var(--surface)',
-                    border: isSelected ? '1.5px solid #2563eb' : '1px solid var(--border)',
-                    borderRadius: '10px',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
-                    <span style={{ fontWeight: 700, fontSize: '0.86rem', color: isSelected ? '#2563eb' : '#111827' }}>
-                      {trk.title}
-                    </span>
-                    <span style={{ fontSize: '0.68rem', padding: '0.12rem 0.45rem', borderRadius: '4px', background: isSelected ? '#dbeafe' : 'var(--surface-2)', color: isSelected ? '#1d4ed8' : '#6b7280', fontWeight: 600 }}>
-                      {trk.difficulty}
-                    </span>
-                  </div>
-                  <p style={{ margin: 0, fontSize: '0.76rem', color: '#6b7280', lineHeight: 1.45 }}>
-                    {trk.desc}
-                  </p>
-                </button>
-              )
-            })}
-          </div>
-        </div>
       </div>
     </main>
   )
