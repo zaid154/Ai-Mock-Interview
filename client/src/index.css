@@ -972,33 +972,8 @@ button.option-card:hover:not(.selected) { border-color: var(--border-strong); ba
 .results-overview-grid { display: grid; grid-template-columns: minmax(0, 280px) minmax(0, 1fr); gap: 1.5rem; }
 
 /* ==========================================================================
-   Candidate Profile System & Avatar
+   Candidate Profile System
    ========================================================================== */
-.avatar {
-  position: relative;
-  display: inline-grid;
-  place-items: center;
-  flex-shrink: 0;
-  border-radius: 50%;
-  overflow: hidden;
-  background: var(--accent-primary);
-  color: #ffffff;
-  font-weight: 700;
-  line-height: 1;
-  user-select: none;
-}
-.avatar-glyph { grid-area: 1 / 1; }
-.avatar img {
-  grid-area: 1 / 1;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  opacity: 0;
-  transition: opacity 0.25s ease;
-}
-.avatar img.is-loaded { opacity: 1; }
-
 .profile-header {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -1006,40 +981,32 @@ button.option-card:hover:not(.selected) { border-color: var(--border-strong); ba
   overflow: hidden;
   margin-bottom: 1.5rem;
 }
-.profile-cover { height: 110px; background: var(--surface-2); border-bottom: 1px solid var(--border-soft); }
+.profile-cover {
+  height: 56px;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.08) 0%, rgba(37, 99, 235, 0.02) 100%);
+  border-bottom: 1px solid var(--border-soft);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0 1.5rem;
+}
 .profile-identity {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
+  justify-content: space-between;
   flex-wrap: wrap;
   gap: 1rem 1.25rem;
-  padding: 0 1.5rem 1.25rem;
-  margin-top: -42px;
-}
-.profile-avatar-slot {
-  position: relative;
-  flex-shrink: 0;
-  padding: 3px;
-  border-radius: 50%;
-  background: var(--accent-primary);
-}
-.profile-avatar-slot .avatar { border: 2px solid var(--surface); }
-.profile-avatar-edit {
-  position: absolute;
-  right: 2px;
-  bottom: 2px;
-  width: 28px;
-  height: 28px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  border: 2px solid var(--surface);
-  background: var(--accent-primary);
-  color: #ffffff;
-  cursor: pointer;
+  padding: 1.25rem 1.5rem;
 }
 .profile-identity-text { flex: 1; min-width: 0; }
-.profile-identity-text h1 { font-size: clamp(1.3rem, 3vw, 1.6rem); margin: 0 0 0.2rem; }
-.profile-verified { color: var(--good); }
+.profile-identity-text h1 {
+  font-size: clamp(1.3rem, 3vw, 1.6rem);
+  margin: 0 0 0.3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.profile-verified { color: #16a34a; }
 .profile-identity-actions { display: flex; gap: 0.5rem; }
 
 .profile-tabs { padding: 0 1.5rem 1.25rem; }
@@ -1068,24 +1035,6 @@ button.option-card:hover:not(.selected) { border-color: var(--border-strong); ba
 .stat-tile-label { font-size: 0.78rem; color: var(--text-muted); }
 .stat-tile-good .stat-tile-value { color: var(--good); }
 .stat-tile-accent .stat-tile-value { color: var(--accent-primary); }
-
-.photo-editor { display: flex; align-items: center; gap: 1rem; padding: 1rem; margin-bottom: 1.25rem; background: var(--surface-2); border-radius: 8px; }
-.photo-editor-controls { display: flex; flex-direction: column; gap: 0.5rem; }
-.photo-editor-buttons { display: flex; gap: 0.5rem; }
-
-.emoji-picker { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-top: 0.25rem; }
-.emoji-option {
-  width: 40px;
-  height: 40px;
-  display: grid;
-  place-items: center;
-  font-size: 1.2rem;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  cursor: pointer;
-}
-.emoji-option.selected { border-color: var(--accent-primary); }
 
 .pw-strength { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.4rem; }
 .pw-strength-track { flex: 1; height: 4px; border-radius: 999px; background: var(--surface-3); overflow: hidden; }

@@ -52,7 +52,7 @@ Ai-Mock-Interview/
 │   │   │   ├── interview/      # Active question workbench & timer HUD
 │   │   │   └── profile/        # Candidate profile & security forms
 │   │   ├── context/            # AuthContext (user session, login, logout)
-│   │   ├── lib/                # Client utilities (api.js, text.js, image.js)
+│   │   ├── lib/                # Client utilities (api.js, text.js)
 │   │   ├── pages/              # 7 Core Pages (Landing, Login, Register, Dashboard, Practice, Interview, Results, Bookmarks, Profile)
 │   │   ├── App.jsx             # Clean routing switch
 │   │   ├── index.css           # Modern production CSS design system

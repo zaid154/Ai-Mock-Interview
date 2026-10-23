@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { goToSection } from '../lib/scrollToSection'
-import Avatar from './Avatar'
 import NavDrawer from './NavDrawer'
 import { Menu, ChevronDown, User, LogOut } from 'lucide-react'
 
@@ -87,7 +86,23 @@ export default function Navbar() {
                 aria-expanded={userMenuOpen}
                 aria-label="User account menu"
               >
-                <Avatar src={user.avatar} name={user.name} size={26} />
+                <span
+                  style={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: '50%',
+                    background: 'rgba(37, 99, 235, 0.12)',
+                    color: '#2563eb',
+                    fontSize: '0.74rem',
+                    fontWeight: 700,
+                    display: 'inline-grid',
+                    placeItems: 'center',
+                    flexShrink: 0,
+                  }}
+                  aria-hidden="true"
+                >
+                  {user.name ? user.name.trim().charAt(0).toUpperCase() : 'U'}
+                </span>
                 <span className="reflect-user-name">{user.name?.split(' ')[0]}</span>
                 <ChevronDown size={14} className="reflect-user-chevron" style={{ opacity: 0.6 }} aria-hidden="true" />
               </button>
