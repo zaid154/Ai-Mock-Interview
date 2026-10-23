@@ -90,7 +90,6 @@ export default function Interview() {
 
   async function handleBookmark(prompt) {
     const key = normalizePrompt(prompt)
-    // Optimistic toggle
     const currentStatus = Boolean(bookmarkedMap[key])
     setBookmarkedMap((prev) => ({ ...prev, [key]: !currentStatus }))
 
@@ -98,63 +97,76 @@ export default function Interview() {
       const { data } = await api.post('/bookmarks/toggle', {
         prompt,
         role: interview.role,
-        category: interview.category,
-        answer: answers[current],
-        notes: notes[current],
+        category: interview.category || 'General',
+        interviewId: interview._id,
       })
-      setBookmarkedMap((prev) => ({ ...prev, [key]: data.bookmarked }))
-      toast.success(data.bookmarked ? 'Question bookmarked!' : 'Bookmark removed')
-    } catch (err) {
-      setBookmarkedMap((prev) => ({ ...prev, [key]: currentStatus })) // rollback
-      toast.error(apiError(err, 'Could not update bookmark'))
+      toast.success(data.action === 'bookmarked' ? 'Question saved to bookmarks' : 'Question removed from bookmarks')
+    } catch {
+      setBookmarkedMap((prev) => ({ ...prev, [key]: currentStatus }))
+      toast.error('Could not update bookmark')
     }
   }
 
   async function handleProbeFollowUp() {
+    if (!currentAnswer.trim()) return toast.error('Enter an answer before asking for a follow-up probe.')
     setProbing(true)
     try {
       const { data } = await api.post(`/interviews/${id}/probe`, {
         questionIndex: current,
-        answer: answers[current],
+        candidateAnswer: currentAnswer,
       })
-      setFollowUpMap((prev) => ({ ...prev, [current]: data.followUpPrompt }))
-      toast.success('Interviewer follow-up received!')
+      if (data.followUpPrompt) {
+        setFollowUpMap((prev) => ({ ...prev, [current]: data.followUpPrompt }))
+        toast.success('Interviewer follow-up generated!')
+      }
     } catch (err) {
-      toast.error(apiError(err, 'Could not generate follow-up probe'))
+      toast.error(apiError(err, 'Failed to generate follow-up question'))
     } finally {
       setProbing(false)
     }
   }
 
+  function handleTimeUp() {
+    toast.error('Time is up! Submitting your interview…')
+    submit()
+  }
+
   async function submit() {
     if (answeredCount === 0) {
-      toast.error('Answer at least one question before submitting')
-      return
+      return toast.error('Please answer at least one question before finishing.')
     }
-
     setSubmitting(true)
+    const payload = answers.map((answer, i) => ({
+      answer,
+      notes: notes[i] || '',
+      followUpPrompt: followUpMap[i] || '',
+    }))
+
     try {
-      await api.post(`/interviews/${id}/submit`, { answers })
+      await api.post(`/interviews/${id}/submit`, { answers: payload })
+      toast.success('Interview submitted! Generating comprehensive rubric evaluation…')
       navigate(`/results/${id}`)
     } catch (err) {
-      toast.error(apiError(err, 'Could not submit your answers'))
+      toast.error(apiError(err, 'Failed to submit interview'))
       setSubmitting(false)
     }
   }
 
-  function handleTimeUp() {
-    toast.error('Time is up! Submitting your answers...')
-    submit()
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-8 text-xs font-mono text-slate-400">
+        Loading interview workbench…
+      </div>
+    )
   }
 
-  if (loading) return <main className="page-center muted">Loading interview…</main>
   if (!interview) return null
 
   const question = interview.questions[current]
   if (!question) return null
 
   return (
-    <main className="container" style={{ maxWidth: '980px' }}>
+    <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 flex-1 flex flex-col w-full">
       <InterviewHUD
         interview={interview}
         current={current}
@@ -185,32 +197,33 @@ export default function Interview() {
       />
 
       {/* ── Bottom Navigation Controls ── */}
-      <div className="interview-bottom-nav">
+      <div className="flex items-center justify-between gap-4 pt-6 border-t border-slate-200 mt-6">
         <button
           type="button"
-          className="btn btn-secondary"
           onClick={() => setCurrent((c) => c - 1)}
           disabled={current === 0}
+          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer disabled:opacity-40"
         >
-          <ChevronLeft size={18} /> Previous Question
+          <ChevronLeft size={16} /> Previous Question
         </button>
 
         {isLast ? (
           <button
             type="button"
-            className="btn btn-primary btn-lg"
             onClick={submit}
             disabled={submitting}
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition cursor-pointer disabled:opacity-50"
           >
-            {submitting ? 'Submitting…' : <>Finish &amp; Get Feedback <CheckCircle2 size={18} /></>}
+            {submitting ? 'Submitting & Evaluating…' : <>Finish &amp; Get Rubric Score <CheckCircle2 size={16} /></>}
           </button>
         ) : (
           <button
             type="button"
-            className="btn btn-primary"
             onClick={() => setCurrent((c) => c + 1)}
+            className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-xs transition cursor-pointer"
           >
-            Next Question <ChevronRight size={18} />
+            <span>Next Question</span>
+            <ChevronRight size={16} />
           </button>
         )}
       </div>

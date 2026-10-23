@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import api, { apiError } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Sparkles, CheckCircle2 } from 'lucide-react'
 import PracticeStudio from '../components/dashboard/PracticeStudio'
 
 const DIFFICULTY_MAP = { Junior: 'easy', Intermediate: 'medium', Senior: 'hard' }
@@ -58,7 +58,7 @@ export default function Practice() {
   useEffect(() => {
     const track = searchParams.get('track')
     if (track) {
-      const match = CURATED_TRACKS.find((t) => t.title.toLowerCase().includes(track.toLowerCase()))
+      const match = CURATED_TRACKS.find((t) => t.title.toLowerCase().includes(track.toLowerCase()) || t.role.toLowerCase().includes(track.toLowerCase()))
       if (match) applyTrack(match)
     }
     if (user?.resumeFileName) {
@@ -101,54 +101,63 @@ export default function Practice() {
     try {
       await api.delete('/auth/resume')
       setResumeFileName('')
-      toast.success('Resume detached')
+      toast.success('Resume removed')
     } catch (err) {
       toast.error(apiError(err, 'Failed to remove resume'))
     }
   }
 
   async function createSession(e) {
-    if (e) e.preventDefault()
+    if (e && e.preventDefault) e.preventDefault()
+    if (!role.trim()) return toast.error('Target role is required')
     const finalTopic = topic === 'Custom Topic' ? customTopic.trim() : topic
     if (!finalTopic) return toast.error('Please specify a topic')
 
-    cancelRef.current = false
     setBusy(true)
-    const total = Number(numQuestions)
-
+    cancelRef.current = false
     setProgress({
       active: true,
-      percent: 45,
-      statusText: 'Connecting studio & curating questions…',
-      isRetrying: false,
-      errorMessage: null,
-      onCancel: () => { cancelRef.current = true; setBusy(false); setProgress({ active: false }) },
+      percent: 10,
+      statusText: 'Connecting to AI Interview Engine…',
+      onCancel: () => {
+        cancelRef.current = true
+        setBusy(false)
+        setProgress({ active: false, percent: 0, statusText: '' })
+        toast('Generation cancelled')
+      },
     })
 
+    const timer = setInterval(() => {
+      setProgress((p) => {
+        if (!p.active || p.percent >= 90) return p
+        const next = Math.min(90, p.percent + 15)
+        return {
+          ...p,
+          percent: next,
+          statusText: next > 60 ? 'Calibrating rubrics & follow-ups…' : 'Synthesizing technical prompts…',
+        }
+      })
+    }, 450)
+
     try {
-      const payload = {
-        mode: 'questions',
-        role: role.trim() || 'Software Engineer',
-        category: finalTopic,
-        experience: difficulty,
+      const { data } = await api.post('/interviews', {
+        role: role.trim(),
+        topic: finalTopic,
         difficulty: DIFFICULTY_MAP[difficulty] || 'medium',
-        count: total,
-        timerMinutes: Number(timerMinutes),
-      }
+        numQuestions: Number(numQuestions) || 5,
+        timerMinutes: Number(timerMinutes) || 0,
+        mode: 'text',
+      })
 
-      setProgress((p) => ({ ...p, percent: 85, statusText: 'Curating targeted interview scenario…' }))
-      const { data } = await api.post('/interviews', payload)
+      clearInterval(timer)
+      if (cancelRef.current) return
 
-      if (cancelRef.current) {
-        setBusy(false)
-        setProgress({ active: false })
-        return
-      }
-
-      setProgress({ active: true, percent: 100, statusText: 'Assessment ready ✓' })
-      const session = data.interview || data.session
+      setProgress({ active: true, percent: 100, statusText: 'Assessment ready!' })
+      const session = data.interview || data
+      toast.success('Interview session created!')
       navigate(`/interview/${session._id}`)
     } catch (err) {
+      clearInterval(timer)
       setBusy(false)
       setProgress((p) => ({ ...p, errorMessage: 'Unable to start assessment.', onRetry: () => createSession() }))
       toast.error(apiError(err, 'Could not start session'))
@@ -156,76 +165,92 @@ export default function Practice() {
   }
 
   return (
-    <main className="container" style={{ paddingTop: '0.65rem', paddingBottom: '1.25rem' }}>
-      <div style={{ maxWidth: '1060px', margin: '0 auto' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.75rem' }}>
-          <div>
-            <h1 style={{ fontSize: '1.35rem', fontWeight: 700, margin: '0 0 0.15rem', color: '#111827', letterSpacing: '-0.025em' }}>Practice Studio</h1>
-            <p style={{ margin: 0, fontSize: '0.82rem', color: '#6b7280' }}>Configure parameters to simulate real technical hiring rounds.</p>
-          </div>
-          <Link to="/dashboard" style={{ fontSize: '0.82rem', color: '#2563eb', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', textDecoration: 'none', fontWeight: 500 }}>
-            <ArrowLeft size={14} /> Back to Dashboard
-          </Link>
+    <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 flex-1 flex flex-col w-full">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 pb-4 border-b border-slate-200">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 mb-1">
+            Practice Studio
+          </h1>
+          <p className="text-xs text-slate-500">
+            Configure parameters to simulate authentic technical hiring rounds.
+          </p>
+        </div>
+        <Link
+          to="/dashboard"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 transition self-start sm:self-auto"
+        >
+          <ArrowLeft size={14} /> Back to Dashboard
+        </Link>
+      </div>
+
+      {/* Curated Pre-Configured Tracks */}
+      <section aria-label="Curated tracks" className="mb-8">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+            <Sparkles size={13} className="text-blue-600" />
+            <span>Fast Track Presets</span>
+          </span>
+          <span className="text-[11px] text-slate-400">Click any track to quick-load parameters</span>
         </div>
 
-        {/* Curated Pre-Configured Tracks */}
-        <section aria-label="Curated tracks" style={{ marginBottom: '1.25rem' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '0.65rem' }}>
-            {CURATED_TRACKS.map((track) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+          {CURATED_TRACKS.map((track) => {
+            const isSelected = role === track.role && topic === track.topic
+            return (
               <button
                 key={track.title}
                 type="button"
                 onClick={() => applyTrack(track)}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  padding: '0.75rem 0.85rem',
-                  borderRadius: '8px',
-                  background: '#ffffff',
-                  border: '1px solid #e5e7eb',
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
+                className={`p-4 rounded-xl border text-left transition flex flex-col justify-between cursor-pointer ${
+                  isSelected
+                    ? 'bg-blue-50/70 border-blue-400 shadow-xs'
+                    : 'bg-white border-slate-200/90 hover:border-slate-300 hover:shadow-xs'
+                }`}
               >
-                <div style={{ fontSize: '0.86rem', fontWeight: 600, color: '#111827', marginBottom: '0.2rem' }}>
-                  {track.title}
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <span className="text-xs font-bold text-slate-900">
+                      {track.title}
+                    </span>
+                    {isSelected && <CheckCircle2 size={14} className="text-blue-600 shrink-0" />}
+                  </div>
+                  <p className="text-[11px] text-slate-500 leading-relaxed mb-3">
+                    {track.desc}
+                  </p>
                 </div>
-                <div style={{ fontSize: '0.76rem', color: '#6b7280', lineHeight: 1.45, marginBottom: '0.45rem', flex: 1 }}>
-                  {track.desc}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <span style={{ fontSize: '0.7rem', padding: '0.12rem 0.45rem', background: '#eff6ff', color: '#2563eb', borderRadius: '4px', fontWeight: 600 }}>
+                <div>
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-blue-100/70 text-blue-700">
                     {track.difficulty}
                   </span>
                 </div>
               </button>
-            ))}
-          </div>
-        </section>
+            )
+          })}
+        </div>
+      </section>
 
-        {/* Studio Setup Form */}
-        <PracticeStudio
-          role={role}
-          setRole={setRole}
-          topic={topic}
-          setTopic={setTopic}
-          customTopic={customTopic}
-          setCustomTopic={setCustomTopic}
-          numQuestions={numQuestions}
-          setNumQuestions={setNumQuestions}
-          difficulty={difficulty}
-          setDifficulty={setDifficulty}
-          timerMinutes={timerMinutes}
-          setTimerMinutes={setTimerMinutes}
-          resumeFileName={resumeFileName}
-          handleFileUpload={handleFileUpload}
-          handleRemoveResume={handleRemoveResume}
-          createSession={createSession}
-          busy={busy}
-          progress={progress}
-        />
-      </div>
+      {/* Main Studio Setup Form */}
+      <PracticeStudio
+        role={role}
+        setRole={setRole}
+        topic={topic}
+        setTopic={setTopic}
+        customTopic={customTopic}
+        setCustomTopic={setCustomTopic}
+        numQuestions={numQuestions}
+        setNumQuestions={setNumQuestions}
+        difficulty={difficulty}
+        setDifficulty={setDifficulty}
+        timerMinutes={timerMinutes}
+        setTimerMinutes={setTimerMinutes}
+        resumeFileName={resumeFileName}
+        handleFileUpload={handleFileUpload}
+        handleRemoveResume={handleRemoveResume}
+        createSession={createSession}
+        busy={busy}
+        progress={progress}
+      />
     </main>
   )
 }

@@ -10,7 +10,7 @@ import ProfileSecurity from '../components/profile/ProfileSecurity'
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: BarChart3 },
-  { id: 'edit', label: 'Edit profile', icon: UserIcon },
+  { id: 'edit', label: 'Edit Profile', icon: UserIcon },
   { id: 'security', label: 'Security', icon: KeyRound },
 ]
 
@@ -93,54 +93,71 @@ export default function Profile() {
   }
 
   return (
-    <main className="container" style={{ paddingBottom: '4rem' }}>
-      <section className="profile-header">
-        <div className="profile-cover">
+    <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 flex-1 flex flex-col w-full">
+      {/* ── Banner Card ── */}
+      <section className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden mb-8">
+        <div className="h-16 bg-gradient-to-r from-blue-600/10 via-indigo-600/5 to-transparent border-b border-slate-100 flex items-center justify-between px-6">
           {user?.isEmailVerified ? (
-            <span className="tag-soft profile-cover-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-              <ShieldCheck size={13} style={{ color: '#16a34a' }} aria-hidden="true" /> Verified Account
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
+              <ShieldCheck size={14} className="text-emerald-600" /> Verified Account
             </span>
           ) : (
-            <span className="tag-soft profile-cover-badge">Candidate Profile</span>
+            <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
+              Candidate Profile
+            </span>
           )}
         </div>
 
-        <div className="profile-identity">
-          <div className="profile-identity-text">
-            <h1>
-              {user?.name}
-              {user?.isEmailVerified && <ShieldCheck size={20} className="profile-verified" aria-label="Email verified" />}
+        <div className="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2 mb-1">
+              <span>{user?.name}</span>
+              {user?.isEmailVerified && <ShieldCheck size={18} className="text-emerald-600" />}
             </h1>
-            <p className="mono"><Mail size={14} aria-hidden="true" /> {user?.email}</p>
+            <p className="text-xs text-slate-500 font-mono flex items-center gap-1.5 m-0">
+              <Mail size={13} className="text-slate-400" /> {user?.email}
+            </p>
           </div>
 
-          <div className="profile-identity-actions">
-            <Link to="/bookmarks" className="btn btn-secondary btn-sm">
-              <Bookmark size={15} aria-hidden="true" /> Bookmarks ({stats.bookmarksCount})
+          <div>
+            <Link
+              to="/bookmarks"
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+            >
+              <Bookmark size={14} className="text-blue-600" /> Bookmarks ({stats.bookmarksCount})
             </Link>
           </div>
         </div>
 
-        <div className="segmented-control profile-tabs" role="tablist" aria-label="Profile sections">
-          {TABS.map((tab) => {
-            const Icon = tab.icon
-            const active = activeTab === tab.id
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                role="tab"
-                aria-selected={active}
-                className={`segmented-btn ${active ? 'active' : ''}`}
-                onClick={() => setActiveTab(tab.id)}
-              >
-                <Icon size={15} aria-hidden="true" /> {tab.label}
-              </button>
-            )
-          })}
+        {/* Segmented Control Tabs */}
+        <div className="px-6 pb-4">
+          <div className="inline-flex bg-slate-100 p-1 rounded-xl border border-slate-200" role="tablist">
+            {TABS.map((tab) => {
+              const Icon = tab.icon
+              const active = activeTab === tab.id
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                    active
+                      ? 'bg-white text-blue-600 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Icon size={14} />
+                  <span>{tab.label}</span>
+                </button>
+              )
+            })}
+          </div>
         </div>
       </section>
 
+      {/* ── Tab Content ── */}
       {activeTab === 'overview' && (
         <ProfileOverview stats={stats} bio={bio} onEditBio={() => setActiveTab('edit')} />
       )}

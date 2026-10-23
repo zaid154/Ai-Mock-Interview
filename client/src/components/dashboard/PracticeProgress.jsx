@@ -1,9 +1,5 @@
 import { Loader2, CheckCircle2, AlertCircle, RefreshCw, XCircle } from 'lucide-react'
 
-/**
- * PracticeProgress: Fluid live progress feedback for batch question generation.
- * Keeps the page responsive and shows real-time progress percentages.
- */
 export default function PracticeProgress({
   statusText = 'Preparing Assessment…',
   percent = 0,
@@ -15,105 +11,63 @@ export default function PracticeProgress({
   const isComplete = percent >= 100
 
   return (
-    <div
-      className="panel"
-      style={{
-        padding: '1.1rem 1.25rem',
-        marginTop: '0.4rem',
-        background: '#eff6ff',
-        border: '1px solid #bfdbfe',
-        borderRadius: '12px',
-      }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem' }}>
+    <div className="p-4 sm:p-5 mt-4 rounded-xl bg-blue-50/70 border border-blue-200/80 animate-in fade-in">
+      <div className="flex items-center justify-between gap-3 mb-2">
+        <div className="flex items-center gap-2">
           {isComplete ? (
-            <CheckCircle2 size={18} style={{ color: '#16a34a' }} />
+            <CheckCircle2 size={18} className="text-emerald-600" />
           ) : isRetrying || errorMessage ? (
-            <AlertCircle size={18} style={{ color: '#dc2626' }} />
+            <AlertCircle size={18} className="text-rose-600" />
           ) : (
-            <Loader2 size={18} className="animate-spin" style={{ color: '#2563eb' }} />
+            <Loader2 size={18} className="animate-spin text-blue-600" />
           )}
-          <span style={{ fontSize: '0.88rem', fontWeight: 600, color: '#111827' }} aria-live="polite">
+          <span className="text-xs sm:text-sm font-semibold text-slate-900" aria-live="polite">
             {isComplete ? 'Assessment Ready ✓' : 'Preparing Assessment…'}
           </span>
         </div>
-        <span
-          style={{
-            fontSize: '0.78rem',
-            fontWeight: 700,
-            fontFamily: 'var(--font-mono)',
-            color: isComplete ? '#16a34a' : '#2563eb',
-            padding: '0.15rem 0.5rem',
-            background: '#dbeafe',
-            borderRadius: '12px',
-          }}
-        >
+        <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded-full ${
+          isComplete ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'
+        }`}>
           {percent}%
         </span>
       </div>
 
-      {/* Animated Progress Bar */}
+      {/* Progress Bar */}
       <div
         role="progressbar"
         aria-valuenow={percent}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-label="Question generation progress"
-        style={{
-          height: '7px',
-          background: '#e5e7eb',
-          borderRadius: '999px',
-          overflow: 'hidden',
-          margin: '0.45rem 0 0.65rem',
-        }}
+        className="h-2 w-full bg-slate-200 rounded-full overflow-hidden mb-2.5"
       >
         <div
-          style={{
-            height: '100%',
-            width: `${Math.min(100, Math.max(5, percent))}%`,
-            background: isComplete
-              ? '#16a34a'
-              : '#2563eb',
-            boxShadow: 'none',
-            transition: 'width 0.35s ease',
-            borderRadius: '999px',
-          }}
+          className={`h-full rounded-full transition-all duration-300 ${isComplete ? 'bg-emerald-600' : 'bg-blue-600'}`}
+          style={{ width: `${Math.min(100, Math.max(5, percent))}%` }}
         />
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
-        <p style={{ margin: 0, fontSize: '0.8rem', color: errorMessage ? '#dc2626' : '#4b5563' }}>
+      <div className="flex items-center justify-between flex-wrap gap-2 text-xs">
+        <p className={`m-0 ${errorMessage ? 'text-rose-600 font-medium' : 'text-slate-600'}`}>
           {errorMessage || statusText}
         </p>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+        <div className="flex items-center gap-2">
           {errorMessage && onRetry && (
             <button
               type="button"
-              className="btn btn-secondary btn-sm"
               onClick={onRetry}
-              style={{ padding: '0.2rem 0.55rem', fontSize: '0.74rem' }}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition cursor-pointer"
             >
               <RefreshCw size={12} /> Retry Batch
             </button>
           )}
-          {!isComplete && onCancel && (
+          {onCancel && (
             <button
               type="button"
               onClick={onCancel}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: '#6b7280',
-                fontSize: '0.74rem',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.25rem',
-              }}
+              className="inline-flex items-center gap-1 text-slate-400 hover:text-slate-600 transition cursor-pointer"
             >
-              <XCircle size={12} /> Cancel
+              <XCircle size={14} /> Cancel
             </button>
           )}
         </div>

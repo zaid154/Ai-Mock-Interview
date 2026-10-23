@@ -23,10 +23,10 @@ export default function App() {
   }, [])
 
   return (
-    <div className="app-shell">
+    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans antialiased">
       <ScrollToTop />
       <Navbar />
-      <div className="app-main">
+      <div className="flex-1 flex flex-col">
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />

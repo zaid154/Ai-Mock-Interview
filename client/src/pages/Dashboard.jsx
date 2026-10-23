@@ -6,9 +6,6 @@ import { useAuth } from '../context/AuthContext'
 import { useConfirm } from '../components/ConfirmDialog'
 import PerformanceHub from '../components/dashboard/PerformanceHub'
 
-/**
- * Dashboard Page: Dedicated Overview & Performance Hub.
- */
 export default function Dashboard() {
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -51,7 +48,6 @@ export default function Dashboard() {
     }
   }
 
-  // Aggregate Metrics
   const completedSessions = sessions.filter((s) => s.status === 'completed')
   const avgScore = completedSessions.length
     ? Math.round(completedSessions.reduce((acc, s) => acc + (s.overallScore || s.totalScore || 0), 0) / completedSessions.length)
@@ -62,22 +58,20 @@ export default function Dashboard() {
   )
 
   return (
-    <main className="container" style={{ paddingTop: '1.25rem', paddingBottom: '3.5rem' }}>
-      <div className="dashboard-tab-view">
-        <PerformanceHub
-          user={user}
-          sessions={sessions}
-          completedSessions={completedSessions}
-          avgScore={avgScore}
-          searchFilter={searchFilter}
-          setSearchFilter={setSearchFilter}
-          filteredSessions={filteredSessions}
-          fetchingSessions={fetchingSessions}
-          deleteSession={deleteSession}
-          navigate={navigate}
-          onOpenStudio={() => navigate('/practice')}
-        />
-      </div>
+    <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 flex-1 flex flex-col w-full">
+      <PerformanceHub
+        user={user}
+        sessions={sessions}
+        completedSessions={completedSessions}
+        avgScore={avgScore}
+        searchFilter={searchFilter}
+        setSearchFilter={setSearchFilter}
+        filteredSessions={filteredSessions}
+        fetchingSessions={fetchingSessions}
+        deleteSession={deleteSession}
+        navigate={navigate}
+        onOpenStudio={() => navigate('/practice')}
+      />
     </main>
   )
 }

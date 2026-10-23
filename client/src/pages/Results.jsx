@@ -4,12 +4,12 @@ import toast from 'react-hot-toast'
 import api, { apiError } from '../lib/api'
 import ScoreChart from '../components/ScoreChart'
 import QuestionEvaluationList from '../components/QuestionEvaluationList'
-import { RotateCcw, Bookmark, Check, Save } from 'lucide-react'
+import { RotateCcw, LayoutDashboard, Save, CheckCircle2, Award, FileText } from 'lucide-react'
 
 function verdict(score) {
-  if (score >= 80) return { label: 'Strong Hire', className: 'badge-good' }
-  if (score >= 60) return { label: 'Hire with Coaching', className: 'badge-warn' }
-  return { label: 'Needs Practice', className: 'badge-bad' }
+  if (score >= 80) return { label: 'Strong Hire', badge: 'bg-emerald-50 text-emerald-800 border-emerald-300' }
+  if (score >= 60) return { label: 'Hire with Coaching', badge: 'bg-amber-50 text-amber-800 border-amber-300' }
+  return { label: 'Needs Practice', badge: 'bg-rose-50 text-rose-800 border-rose-300' }
 }
 
 export default function Results() {
@@ -48,21 +48,21 @@ export default function Results() {
   }
 
   async function handleBookmarkQuestion(q) {
-    const isBookmarked = !!bookmarkedMap[q._id || q.question]
+    const isBookmarked = !!bookmarkedMap[q._id || q.question || q.prompt]
     try {
       if (isBookmarked) {
-        await api.delete(`/bookmarks/by-question?question=${encodeURIComponent(q.question)}`)
-        setBookmarkedMap((prev) => ({ ...prev, [q._id || q.question]: false }))
+        await api.delete(`/bookmarks/by-question?question=${encodeURIComponent(q.question || q.prompt)}`)
+        setBookmarkedMap((prev) => ({ ...prev, [q._id || q.question || q.prompt]: false }))
         toast.success('Question removed from bookmarks')
       } else {
         await api.post('/bookmarks', {
-          question: q.question,
+          question: q.question || q.prompt,
           idealAnswer: q.idealAnswer || q.feedback,
           role: interview.role,
           category: interview.category || 'General',
           interviewId: id,
         })
-        setBookmarkedMap((prev) => ({ ...prev, [q._id || q.question]: true }))
+        setBookmarkedMap((prev) => ({ ...prev, [q._id || q.question || q.prompt]: true }))
         toast.success('Question saved to bookmarks')
       }
     } catch (err) {
@@ -72,124 +72,147 @@ export default function Results() {
 
   if (loading) {
     return (
-      <div className="container page-center">
-        <div className="muted small mono">Loading interview scorecard...</div>
+      <div className="flex-1 flex items-center justify-center p-8 text-xs font-mono text-slate-400">
+        Loading interview scorecard…
       </div>
     )
   }
 
   if (!interview) {
     return (
-      <div className="container page-center">
-        <h2>Interview not found</h2>
-        <Link to="/dashboard" className="btn btn-primary" style={{ marginTop: '1rem' }}>
+      <div className="max-w-md mx-auto p-12 text-center bg-white rounded-2xl border border-slate-200 shadow-xs my-auto">
+        <h2 className="text-base font-bold text-slate-900 mb-2">Interview Session Not Found</h2>
+        <Link to="/dashboard" className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs px-4 py-2 rounded-lg">
           Back to Dashboard
         </Link>
       </div>
     )
   }
 
-  const v = verdict(interview.overallScore)
+  const v = verdict(interview.overallScore || 0)
 
   return (
-    <main className="container">
-      {/* Results Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
-        <div style={{ minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.6rem', marginBottom: '0.3rem' }}>
-            <span className="tag" style={{ background: '#dbeafe', color: '#1d4ed8', fontWeight: 600 }}>
-              Completed
+    <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 flex-1 flex flex-col w-full">
+      {/* ── Results Header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-slate-200 mb-6">
+        <div>
+          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 border border-blue-200/80 px-2.5 py-0.5 rounded-full">
+              Assessment Scorecard
             </span>
-            <span className="tag">{interview.role}</span>
-            {interview.category && interview.category !== 'General' && <span className="tag-soft">{interview.category}</span>}
+            <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${v.badge}`}>
+              {v.label}
+            </span>
           </div>
-          <h1 style={{ fontSize: '1.85rem', fontWeight: 700, margin: 0, color: '#111827' }}>Interview Results &amp; Feedback</h1>
+
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 mb-1">
+            {interview.role}
+          </h1>
+          <p className="text-xs text-slate-500 m-0">
+            {interview.category || interview.topic || 'General Technical Screen'} &bull; Completed {new Date(interview.updatedAt || interview.createdAt).toLocaleDateString()}
+          </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap' }}>
-          <Link to="/bookmarks" className="btn btn-secondary">
-            <Bookmark size={16} /> Saved Bookmarks
+        <div className="flex items-center gap-2.5 self-start sm:self-auto">
+          <Link
+            to="/practice"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+          >
+            <RotateCcw size={14} /> Retake
           </Link>
-          <Link to="/practice" className="btn btn-primary">
-            <RotateCcw size={16} /> Start New Session
+          <Link
+            to="/dashboard"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-xs transition cursor-pointer"
+          >
+            <LayoutDashboard size={14} /> Dashboard
           </Link>
         </div>
       </div>
 
-      {/* Top 2-Column Analytics Overview */}
-      <div className="results-overview-grid" style={{ marginBottom: '2rem' }}>
-        {/* Overall Score */}
-        <div className="panel" style={{ padding: '1.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-            <span className="subtle small uppercase" style={{ letterSpacing: '0.06em', fontWeight: 700 }}>
-              Overall Performance
-            </span>
-            <span className={v.className}>{v.label}</span>
+      {/* ── Scorecard Highlight Metrics ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+            Overall Readiness Score
+          </span>
+          <div className="text-3xl font-black text-slate-900 font-mono">
+            {interview.overallScore || 0}%
           </div>
-
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginBottom: '0.5rem' }}>
-            <span className="mono" style={{ fontSize: '3.5rem', fontWeight: 800, lineHeight: 1 }}>
-              {interview.overallScore || 0}
-            </span>
-            <span className="subtle" style={{ fontSize: '1.25rem' }}>/ 100</span>
+          <div className="text-[11px] text-slate-500 mt-2">
+            Calibrated against engineering rubric benchmarks
           </div>
-
-          <div className="meter-track" style={{ height: '8px', marginBottom: '1.25rem' }}>
-            <div className="meter-fill" style={{ width: `${interview.overallScore || 0}%`, background: '#2563eb' }} />
-          </div>
-
-          {interview.feedback && (
-            <p style={{ margin: 0, fontSize: '0.92rem', color: '#4b5563', lineHeight: 1.6 }}>
-              {interview.feedback}
-            </p>
-          )}
         </div>
 
-        {/* 4-Pillar Rubric Radar / Chart */}
-        <div className="panel" style={{ padding: '1.75rem' }}>
-          <div style={{ marginBottom: '1rem' }}>
-            <span className="subtle small uppercase" style={{ letterSpacing: '0.06em', fontWeight: 700 }}>
-              4-Pillar Evaluation Rubric
-            </span>
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+            Questions Assessed
+          </span>
+          <div className="text-3xl font-black text-slate-900 font-mono">
+            {interview.questions?.length || 0}
           </div>
-          <ScoreChart
-            rubricBreakdown={interview.rubricBreakdown}
-            overallScore={interview.overallScore}
-          />
+          <div className="text-[11px] text-slate-500 mt-2">
+            Technical depth &amp; code structure evaluated
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+            Target Seniority
+          </span>
+          <div className="text-xl font-bold text-slate-900 capitalize">
+            {interview.difficulty || 'Intermediate'}
+          </div>
+          <div className="text-[11px] text-slate-500 mt-2">
+            Level-calibrated evaluation criteria
+          </div>
         </div>
       </div>
 
-      {/* Key Takeaways & Revision Notes */}
-      <div className="panel" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-          <h2 style={{ fontSize: '1.05rem', margin: 0, color: '#111827' }}>Personal Session Notes</h2>
+      {/* ── Visual Bar Chart ── */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs mb-8">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-4">
+          Per-Question Score Breakdown (0 - 10 Scale)
+        </h3>
+        <ScoreChart questions={interview.questions} />
+      </div>
+
+      {/* ── Candidate Notes ── */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs mb-8">
+        <div className="flex items-center justify-between mb-2">
+          <label htmlFor="session-notes" className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+            <FileText size={14} className="text-blue-600" />
+            <span>Personal Debrief Notes</span>
+          </label>
           <button
             type="button"
             onClick={handleSaveNotes}
             disabled={savingNotes}
-            className="btn btn-secondary btn-sm"
+            className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-xs cursor-pointer disabled:opacity-50"
           >
-            {savingNotes ? <Check size={14} /> : <Save size={14} />}
-            {savingNotes ? 'Saving...' : 'Save Notes'}
+            <Save size={12} /> {savingNotes ? 'Saving…' : 'Save Notes'}
           </button>
         </div>
         <textarea
+          id="session-notes"
           rows={3}
           value={sessionNotes}
           onChange={(e) => setSessionNotes(e.target.value)}
-          placeholder="Capture key concepts to revise, edge cases discussed, or patterns to practice..."
-          style={{ width: '100%', fontSize: '0.9rem', resize: 'vertical' }}
+          placeholder="Reflect on this interview: What technical gaps did you notice? Which algorithms or architecture patterns will you review next?"
+          className="w-full p-3 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-white"
         />
       </div>
 
-      {/* Question Breakdown List */}
-      <h2 style={{ fontSize: '1.3rem', marginBottom: '1.25rem', color: '#111827' }}>Questions &amp; Feedback</h2>
-
-      <QuestionEvaluationList
-        questions={interview.questions}
-        bookmarkedMap={bookmarkedMap}
-        onBookmarkQuestion={handleBookmarkQuestion}
-      />
+      {/* ── Question-by-Question Deep Dive ── */}
+      <div>
+        <h2 className="text-lg font-bold text-slate-900 mb-4">
+          Detailed Question Rubrics &amp; Model Solutions
+        </h2>
+        <QuestionEvaluationList
+          questions={interview.questions}
+          bookmarkedMap={bookmarkedMap}
+          onBookmarkQuestion={handleBookmarkQuestion}
+        />
+      </div>
     </main>
   )
 }

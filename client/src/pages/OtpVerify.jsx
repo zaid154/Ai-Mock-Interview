@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate, Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { MailCheck, ShieldCheck, Mail, KeyRound, ArrowRight } from 'lucide-react'
+import { MailCheck, ShieldCheck, Mail, KeyRound, ArrowRight, ArrowLeft } from 'lucide-react'
 import api, { apiError } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 
@@ -76,33 +76,36 @@ export default function OtpVerify() {
   }
 
   return (
-    <div className="reflect-auth-page">
-      <div className="reflect-card" style={{ width: 'min(440px, 100%)', padding: '2.5rem 2rem', position: 'relative', zIndex: 1 }}>
-        <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
-          <div className="reflect-brand-icon" style={{ width: '46px', height: '46px', margin: '0 auto 0.85rem' }}>
-            <MailCheck size={22} />
+    <div className="flex-1 flex items-center justify-center p-4 sm:p-6 bg-slate-50 py-12">
+      <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-xl p-8">
+        <div className="text-center mb-6">
+          <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 mx-auto mb-3 shadow-xs">
+            <MailCheck size={24} />
           </div>
-          <h1 style={{ fontSize: '1.65rem', marginBottom: '0.35rem', fontWeight: 600, color: '#111827', letterSpacing: '-0.025em' }}>
+          <h1 className="text-xl font-bold text-slate-900 tracking-tight mb-1">
             Verify Email
           </h1>
-          <p style={{ margin: 0, fontSize: '0.86rem', color: '#6b7280' }}>
-            We'll send a 6-digit verification code to your inbox.
+          <p className="text-xs text-slate-500">
+            We will send a 6-digit verification code to your inbox.
           </p>
         </div>
 
-        <form onSubmit={verify} style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
-          {requireEmailVerification === true && (
-            <div className="reflect-badge" style={{ justifyContent: 'center', margin: 0, background: 'rgba(245, 158, 11, 0.1)', borderColor: 'rgba(245, 158, 11, 0.3)' }}>
-              <ShieldCheck size={14} style={{ color: '#d97706' }} />
-              <span style={{ color: '#d97706' }}>Email verification required before login</span>
-            </div>
-          )}
+        {requireEmailVerification === true && (
+          <div className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-xs font-medium mb-5">
+            <ShieldCheck size={15} className="text-amber-600 shrink-0" />
+            <span>Email verification required before login</span>
+          </div>
+        )}
 
+        <form onSubmit={verify} className="flex flex-col gap-4">
           <div>
-            <label className="reflect-field-label">Email Address</label>
-            <div className="reflect-input-wrap">
-              <Mail size={16} className="reflect-input-icon" />
+            <label htmlFor="otp-email" className="block text-xs font-semibold text-slate-700 mb-1.5">
+              Email Address
+            </label>
+            <div className="relative">
+              <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
+                id="otp-email"
                 type="email"
                 value={email}
                 onChange={(e) => {
@@ -112,27 +115,35 @@ export default function OtpVerify() {
                 placeholder="candidate@example.com"
                 autoComplete="email"
                 required
-                className="reflect-input"
+                className="w-full pl-9 pr-3.5 py-2.5 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-white"
               />
             </div>
           </div>
 
           {!codeSent ? (
-            <button type="button" className="reflect-btn-primary" onClick={sendCode} disabled={busy || !email} style={{ width: '100%', justifyContent: 'center', padding: '0.75rem' }}>
-              {busy ? 'Sending Code...' : <>Send Verification Code <ArrowRight size={16} /></>}
+            <button
+              type="button"
+              onClick={sendCode}
+              disabled={busy || !email}
+              className="w-full mt-2 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs py-2.5 rounded-lg shadow-sm shadow-blue-500/20 transition cursor-pointer disabled:opacity-50"
+            >
+              {busy ? 'Sending Code…' : <>Send Verification Code <ArrowRight size={14} /></>}
             </button>
           ) : (
             <>
-              <div style={{ padding: '0.85rem 1rem', borderRadius: '8px', background: '#f0fdf4', border: '1px solid #bbf7d0', fontSize: '0.86rem', color: '#166534' }}>
-                <MailCheck size={16} style={{ color: '#16a34a', marginRight: '0.4rem', verticalAlign: 'middle' }} />
-                Code sent to <strong style={{ color: '#111827' }}>{email}</strong>. Check inbox.
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-800">
+                <MailCheck size={16} className="text-emerald-600 shrink-0" />
+                <span>Code sent to <strong className="font-semibold text-slate-900">{email}</strong>. Check inbox.</span>
               </div>
 
               <div>
-                <label className="reflect-field-label">6-Digit Verification Code</label>
-                <div className="reflect-input-wrap">
-                  <KeyRound size={16} className="reflect-input-icon" />
+                <label htmlFor="otp-code" className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  6-Digit Verification Code
+                </label>
+                <div className="relative">
+                  <KeyRound size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
+                    id="otp-code"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                     placeholder="123456"
@@ -142,21 +153,29 @@ export default function OtpVerify() {
                     autoComplete="one-time-code"
                     autoFocus
                     required
-                    className="reflect-input mono"
-                    style={{ letterSpacing: '0.25em', fontSize: '1.1rem', fontWeight: 700 }}
+                    className="w-full pl-9 pr-3.5 py-2.5 rounded-lg border border-slate-300 text-base font-mono font-bold tracking-widest text-center focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-white"
                   />
                 </div>
               </div>
 
-              <button type="submit" className="reflect-btn-primary" disabled={busy || otp.length !== 6} style={{ width: '100%', justifyContent: 'center', padding: '0.75rem' }}>
-                {busy ? 'Verifying Code...' : 'Verify Code & Continue'}
+              <button
+                type="submit"
+                disabled={busy || otp.length !== 6}
+                className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs py-2.5 rounded-lg shadow-sm shadow-blue-500/20 transition cursor-pointer disabled:opacity-50"
+              >
+                {busy ? 'Verifying Code…' : 'Verify Code & Continue'}
               </button>
 
-              <div style={{ textAlign: 'center', margin: '0.4rem 0 0' }}>
+              <div className="text-center pt-1">
                 {cooldown > 0 ? (
-                  <span style={{ fontSize: '0.82rem', color: '#6b7280' }}>Resend available in {cooldown}s</span>
+                  <span className="text-xs text-slate-400">Resend available in {cooldown}s</span>
                 ) : (
-                  <button type="button" onClick={sendCode} disabled={busy || cooldown > 0} style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: '0.84rem', cursor: 'pointer', fontWeight: 500 }}>
+                  <button
+                    type="button"
+                    onClick={sendCode}
+                    disabled={busy || cooldown > 0}
+                    className="text-xs font-semibold text-blue-600 hover:text-blue-700 cursor-pointer"
+                  >
                     Resend Code
                   </button>
                 )}
@@ -165,12 +184,23 @@ export default function OtpVerify() {
           )}
 
           {requireEmailVerification === false && (
-            <div style={{ textAlign: 'center', marginTop: '0.4rem' }}>
-              <button type="button" onClick={skipVerification} disabled={busy} style={{ background: 'none', border: 'none', color: '#6b7280', fontSize: '0.82rem', cursor: 'pointer' }}>
+            <div className="text-center pt-2">
+              <button
+                type="button"
+                onClick={skipVerification}
+                disabled={busy}
+                className="text-xs text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
                 Skip verification for now
               </button>
             </div>
           )}
+
+          <div className="mt-4 pt-4 border-t border-slate-100 text-center">
+            <Link to="/login" className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-blue-600">
+              <ArrowLeft size={13} /> Back to Sign in
+            </Link>
+          </div>
         </form>
       </div>
     </div>

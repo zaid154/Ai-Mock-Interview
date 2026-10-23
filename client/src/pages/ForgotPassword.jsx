@@ -45,60 +45,71 @@ export default function ForgotPassword() {
   }
 
   return (
-    <div className="reflect-auth-page">
-      <div className="reflect-auth-card">
-        {/* Left Pane: Info */}
-        <div className="reflect-auth-left">
+    <div className="flex-1 flex items-center justify-center p-4 sm:p-6 bg-slate-50 py-12">
+      <div className="w-full max-w-4xl bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden grid grid-cols-1 md:grid-cols-2">
+        {/* Left Column */}
+        <div className="p-8 sm:p-10 bg-slate-900 text-white flex flex-col justify-between">
           <div>
-            <Link to="/" className="reflect-brand" style={{ marginBottom: '1.25rem', display: 'inline-flex' }}>
-              <div className="reflect-brand-icon">
-                <img src="/logo.png" alt="MockMate AI Logo" className="reflect-brand-img" />
+            <Link to="/" className="inline-flex items-center gap-2 mb-8 group">
+              <div className="w-8 h-8 rounded-lg overflow-hidden border border-slate-700 p-1 bg-slate-800">
+                <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
               </div>
-              <span className="reflect-brand-title">
-                MockMate <span className="reflect-brand-badge">AI</span>
+              <span className="font-bold text-base tracking-tight text-white">
+                MockMate <span className="text-blue-400 font-extrabold text-xs">AI</span>
               </span>
             </Link>
-            <h2 style={{ fontSize: '1.35rem', lineHeight: 1.25, marginBottom: '0.5rem', fontWeight: 600, color: '#111827', letterSpacing: '-0.025em' }}>
+
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight mb-3 text-white">
               Account Recovery
             </h2>
-            <p style={{ color: '#6b7280', fontSize: '0.84rem', lineHeight: 1.5, marginBottom: '0.85rem' }}>
+            <p className="text-xs text-slate-400 leading-relaxed mb-6">
               Verify your identity with a 6-digit one-time code to update your account password.
             </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              {['6-digit email verification code', 'Encrypted password update', 'Automatic session invalidation'].map((text) => (
-                <div key={text} style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontSize: '0.84rem', color: '#374151' }}>
-                  <CheckCircle2 size={16} style={{ color: '#2563eb', flexShrink: 0 }} aria-hidden="true" />
-                  <span>{text}</span>
-                </div>
-              ))}
+
+            <div className="flex flex-col gap-3 text-xs text-slate-300">
+              <div className="flex items-center gap-2.5">
+                <CheckCircle2 size={16} className="text-blue-400 shrink-0" />
+                <span>6-digit email verification code</span>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <CheckCircle2 size={16} className="text-blue-400 shrink-0" />
+                <span>Encrypted password update</span>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <CheckCircle2 size={16} className="text-blue-400 shrink-0" />
+                <span>Automatic session security</span>
+              </div>
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid #e5e7eb', color: '#6b7280', fontSize: '0.78rem' }}>
-            <ShieldCheck size={16} style={{ color: '#2563eb' }} aria-hidden="true" />
-            <span>Secure identity verification</span>
+
+          <div className="mt-8 pt-6 border-t border-slate-800 flex items-center gap-2 text-xs text-slate-400">
+            <ShieldCheck size={16} className="text-blue-400" />
+            <span>Secure candidate identity verification</span>
           </div>
         </div>
 
-        {/* Right Pane: Reset Form */}
-        <div className="reflect-auth-right">
-          <div style={{ marginBottom: '1rem' }}>
-            <div className="reflect-badge" style={{ margin: '0 0 0.5rem', fontSize: '0.72rem', padding: '2px 8px' }}>
-              <span className="reflect-badge-text">STEP 0{step} OF 02</span>
-            </div>
-            <h1 style={{ fontSize: '1.45rem', marginBottom: '0.3rem', fontWeight: 600, color: '#111827', letterSpacing: '-0.025em' }}>
+        {/* Right Column */}
+        <div className="p-8 sm:p-10 flex flex-col justify-center">
+          <div className="mb-6">
+            <span className="inline-block text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-sm uppercase tracking-wider mb-2">
+              Step 0{step} of 02
+            </span>
+            <h1 className="text-xl font-bold text-slate-900 tracking-tight mb-1">
               {step === 1 ? 'Forgot Password?' : 'Enter 6-Digit Code'}
             </h1>
-            <p style={{ margin: 0, fontSize: '0.86rem', color: '#6b7280' }}>
+            <p className="text-xs text-slate-500">
               {step === 1 ? 'Enter your registered email address to receive a security reset code.' : `Enter the code sent to ${email} along with your new password.`}
             </p>
           </div>
 
           {step === 1 ? (
-            <form onSubmit={sendCode} style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
+            <form onSubmit={sendCode} className="flex flex-col gap-4">
               <div>
-                <label htmlFor="forgot-email" className="reflect-field-label">Email Address</label>
-                <div className="reflect-input-wrap">
-                  <Mail size={16} className="reflect-input-icon" aria-hidden="true" />
+                <label htmlFor="forgot-email" className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     id="forgot-email"
                     type="email"
@@ -107,67 +118,85 @@ export default function ForgotPassword() {
                     placeholder="candidate@example.com"
                     autoComplete="email"
                     required
-                    className="reflect-input"
+                    className="w-full pl-9 pr-3.5 py-2.5 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-white"
                   />
                 </div>
               </div>
-              <button type="submit" className="reflect-btn-primary" disabled={busy} style={{ width: '100%', justifyContent: 'center', padding: '0.75rem', marginTop: '0.4rem', fontSize: '0.9rem' }}>
-                {busy ? 'Sending Code…' : <>Send Reset Code <ArrowRight size={16} /></>}
+
+              <button
+                type="submit"
+                disabled={busy}
+                className="w-full mt-2 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs py-2.5 rounded-lg shadow-sm shadow-blue-500/20 transition cursor-pointer disabled:opacity-50"
+              >
+                {busy ? 'Sending code…' : <>Send Reset Code <ArrowRight size={14} /></>}
               </button>
-              <div style={{ borderTop: '1px solid #e5e7eb', marginTop: '0.5rem', paddingTop: '1rem', textAlign: 'center' }}>
-                <Link to="/login" style={{ fontSize: '0.84rem', fontWeight: 600, color: '#2563eb', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <ArrowLeft size={14} /> Back to Sign In
+
+              <div className="mt-4 pt-4 border-t border-slate-100 text-center">
+                <Link to="/login" className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 hover:text-blue-600">
+                  <ArrowLeft size={13} /> Back to Sign in
                 </Link>
               </div>
             </form>
           ) : (
-            <form onSubmit={resetPassword} autoComplete="off" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <form onSubmit={resetPassword} className="flex flex-col gap-4">
               <div>
-                <label htmlFor="security_otp" className="reflect-field-label">6-Digit Code</label>
-                <div className="reflect-input-wrap">
-                  <KeyRound size={16} className="reflect-input-icon" aria-hidden="true" />
+                <label htmlFor="reset-otp" className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  6-Digit OTP Code
+                </label>
+                <div className="relative">
+                  <KeyRound size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
-                    name="security_otp"
-                    id="security_otp"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    placeholder="123456"
+                    id="reset-otp"
+                    type="text"
                     inputMode="numeric"
                     maxLength={6}
-                    autoComplete="one-time-code"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                    placeholder="123456"
                     required
-                    className="reflect-input mono"
-                    style={{ letterSpacing: '0.25em', fontSize: '1rem', fontWeight: 700 }}
+                    className="w-full pl-9 pr-3.5 py-2.5 rounded-lg border border-slate-300 text-xs font-mono tracking-widest focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-white"
                   />
                 </div>
               </div>
+
               <div>
-                <label htmlFor="new_password" className="reflect-field-label">New Password</label>
-                <div className="reflect-input-wrap">
-                  <Lock size={16} className="reflect-input-icon" aria-hidden="true" />
+                <label htmlFor="reset-password" className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  New Password
+                </label>
+                <div className="relative">
+                  <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
-                    name="new_password"
-                    id="new_password"
+                    id="reset-password"
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="At least 6 characters"
+                    placeholder="Minimum 6 characters"
                     autoComplete="new-password"
-                    minLength={6}
                     required
-                    className="reflect-input"
+                    minLength={6}
+                    className="w-full pl-9 pr-3.5 py-2.5 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-white"
                   />
                 </div>
               </div>
-              <button type="submit" className="reflect-btn-primary" disabled={busy} style={{ width: '100%', justifyContent: 'center', padding: '0.75rem', marginTop: '0.4rem', fontSize: '0.9rem' }}>
-                {busy ? 'Updating Password…' : <>Confirm &amp; Reset Password <ArrowRight size={16} /></>}
+
+              <button
+                type="submit"
+                disabled={busy}
+                className="w-full mt-2 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs py-2.5 rounded-lg shadow-sm shadow-blue-500/20 transition cursor-pointer disabled:opacity-50"
+              >
+                {busy ? 'Updating password…' : <>Reset Password <ArrowRight size={14} /></>}
               </button>
-              <div style={{ borderTop: '1px solid #e5e7eb', marginTop: '0.5rem', paddingTop: '1rem', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center' }}>
-                <button type="button" onClick={() => setStep(1)} style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: '0.84rem', fontWeight: 600, cursor: 'pointer' }}>
-                  Change Email Address
+
+              <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="text-slate-500 hover:text-slate-700 cursor-pointer"
+                >
+                  Change email
                 </button>
-                <Link to="/login" style={{ fontSize: '0.84rem', fontWeight: 600, color: '#6b7280', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <ArrowLeft size={14} /> Back to Sign In
+                <Link to="/login" className="font-semibold text-blue-600 hover:underline">
+                  Sign in
                 </Link>
               </div>
             </form>

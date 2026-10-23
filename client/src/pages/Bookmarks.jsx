@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Bookmark, Search } from 'lucide-react'
+import { Bookmark, Search, ArrowRight } from 'lucide-react'
 import api, { apiError } from '../lib/api'
 import toast from 'react-hot-toast'
 import BookmarkCard from '../components/bookmarks/BookmarkCard'
@@ -22,7 +22,7 @@ export default function Bookmarks() {
     try {
       await api.delete(`/bookmarks/${id}`)
       setBookmarks((prev) => prev.filter((b) => b._id !== id))
-      toast.success('Question removed')
+      toast.success('Question removed from bookmarks')
     } catch (err) {
       toast.error(apiError(err, 'Could not remove question'))
     }
@@ -36,48 +36,61 @@ export default function Bookmarks() {
   )
 
   return (
-    <main className="container" style={{ maxWidth: '820px', paddingBottom: '3.5rem' }}>
-      <div style={{ marginBottom: '1.25rem' }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: '0 0 0.2rem', color: '#111827' }}>
-          Saved Questions
-        </h1>
-        <p style={{ color: '#6b7280', fontSize: '0.86rem', margin: 0 }}>
-          {bookmarks.length} {bookmarks.length === 1 ? 'question' : 'questions'} saved for quick revision.
-        </p>
+    <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-10 flex-1 flex flex-col w-full">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 pb-6 border-b border-slate-200">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 mb-1">
+            Saved Questions
+          </h1>
+          <p className="text-xs text-slate-500">
+            {bookmarks.length} {bookmarks.length === 1 ? 'question' : 'questions'} bookmarked for quick revision and study.
+          </p>
+        </div>
+
+        {bookmarks.length > 0 && (
+          <div className="relative w-full sm:w-72">
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search by topic, role, keyword..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-9 pr-3.5 py-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-white"
+            />
+          </div>
+        )}
       </div>
 
-      {bookmarks.length > 0 && (
-        <div className="input-icon-wrap" style={{ marginBottom: '1.25rem' }}>
-          <Search size={15} className="input-icon" />
-          <input
-            type="text"
-            placeholder="Search saved questions..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{ fontSize: '0.85rem' }}
-          />
-        </div>
-      )}
-
       {loading ? (
-        <p className="muted small mono text-center" style={{ padding: '2rem 0' }}>Loading saved questions...</p>
+        <div className="flex items-center justify-center py-20 text-xs text-slate-400 font-mono">
+          Loading saved questions…
+        </div>
       ) : bookmarks.length === 0 ? (
-        <div className="panel text-center" style={{ padding: '3rem 1.5rem', background: '#fff', border: '1px solid #e5e7eb', borderRadius: '12px' }}>
-          <Bookmark size={32} style={{ color: '#9ca3af', marginBottom: '0.65rem' }} />
-          <h2 style={{ fontSize: '1.15rem', color: '#111827', margin: '0 0 0.35rem' }}>No saved questions yet</h2>
-          <p className="muted small" style={{ margin: '0 auto 1.25rem', maxWidth: '380px' }}>
-            Click the bookmark icon during an interview or quiz to save questions here.
+        <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center max-w-lg mx-auto shadow-xs my-auto">
+          <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-4 border border-blue-100">
+            <Bookmark size={26} />
+          </div>
+          <h2 className="text-base font-bold text-slate-900 mb-1.5">
+            No saved questions yet
+          </h2>
+          <p className="text-xs text-slate-500 max-w-sm mx-auto mb-6 leading-relaxed">
+            While answering questions in Practice or Interview mode, click the bookmark icon to save questions here for revision.
           </p>
-          <Link to="/practice" className="reflect-btn-primary" style={{ fontSize: '0.84rem' }}>
-            Start Practice
+          <Link
+            to="/practice"
+            className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs px-5 py-2.5 rounded-xl shadow-xs transition"
+          >
+            <span>Start Practice Session</span>
+            <ArrowRight size={14} />
           </Link>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="panel text-center" style={{ padding: '2rem 1rem', background: '#fff', border: '1px solid #e5e7eb', borderRadius: '10px' }}>
-          <p className="muted small" style={{ margin: 0 }}>No questions match &quot;{search}&quot;</p>
+        <div className="bg-white rounded-xl border border-slate-200 p-8 text-center text-xs text-slate-500">
+          No questions match &ldquo;{search}&rdquo;. Try another search term.
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div className="flex flex-col gap-3.5">
           {filtered.map((b) => (
             <BookmarkCard key={b._id} bookmark={b} onDelete={handleDelete} />
           ))}

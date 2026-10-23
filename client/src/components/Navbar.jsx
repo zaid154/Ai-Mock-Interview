@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { goToSection } from '../lib/scrollToSection'
 import NavDrawer from './NavDrawer'
 import { Menu, ChevronDown, User, LogOut } from 'lucide-react'
 
@@ -37,94 +36,109 @@ export default function Navbar() {
   const isPracticeActive = location.pathname === '/practice'
   const isBookmarksActive = location.pathname === '/bookmarks'
 
-  function scrollToSection(id) {
-    goToSection(id, { pathname: location.pathname, navigate })
-  }
-
   return (
-    <header className="reflect-header">
-      <div className="container reflect-header-inner">
+    <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/80 transition-colors">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-15 flex items-center justify-between">
         {/* Brand */}
-        <Link to={user ? '/dashboard' : '/'} className="reflect-brand">
-          <div className="reflect-brand-icon">
-            <img src="/logo.png" alt="MockMate AI Logo" className="reflect-brand-img" />
+        <Link to={user ? '/dashboard' : '/'} className="flex items-center gap-2.5 group">
+          <div className="w-8 h-8 rounded-lg overflow-hidden border border-slate-200 bg-white flex items-center justify-center p-1 shadow-xs group-hover:border-blue-500/40 transition">
+            <img src="/logo.png" alt="MockMate AI Logo" className="w-full h-full object-contain" />
           </div>
-          <span className="reflect-brand-title">
-            MockMate <span className="reflect-brand-badge">AI</span>
+          <span className="font-bold tracking-tight text-slate-900 text-base sm:text-lg flex items-center gap-1.5">
+            MockMate <span className="bg-blue-600 text-white text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-sm">AI</span>
           </span>
         </Link>
 
         {/* Floating Pill Navigation */}
-        <nav className="reflect-nav-pill" aria-label="Main Navigation">
+        <nav className="hidden md:flex items-center gap-1 bg-slate-100/90 p-1 rounded-full border border-slate-200/80 shadow-xs" aria-label="Main Navigation">
           {user ? (
             <>
-              <Link to="/dashboard" className={`reflect-nav-link ${isDashboardActive ? 'active' : ''}`}>
+              <Link
+                to="/dashboard"
+                className={`px-4 py-1.5 rounded-full text-xs font-medium transition ${
+                  isDashboardActive
+                    ? 'bg-white text-blue-600 shadow-xs font-semibold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
                 Dashboard
               </Link>
-              <Link to="/practice" className={`reflect-nav-link ${isPracticeActive ? 'active' : ''}`}>
+              <Link
+                to="/practice"
+                className={`px-4 py-1.5 rounded-full text-xs font-medium transition ${
+                  isPracticeActive
+                    ? 'bg-white text-blue-600 shadow-xs font-semibold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
                 Practice
               </Link>
-              <Link to="/bookmarks" className={`reflect-nav-link ${isBookmarksActive ? 'active' : ''}`}>
+              <Link
+                to="/bookmarks"
+                className={`px-4 py-1.5 rounded-full text-xs font-medium transition ${
+                  isBookmarksActive
+                    ? 'bg-white text-blue-600 shadow-xs font-semibold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
                 Bookmarks
               </Link>
             </>
           ) : (
-            <Link to="/" className={`reflect-nav-link ${location.pathname === '/' ? 'active' : ''}`}>
+            <Link
+              to="/"
+              className={`px-4 py-1.5 rounded-full text-xs font-medium transition ${
+                location.pathname === '/'
+                  ? 'bg-white text-blue-600 shadow-xs font-semibold'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
               Home
             </Link>
           )}
         </nav>
 
         {/* Right Actions */}
-        <div className="reflect-header-actions">
+        <div className="flex items-center gap-3">
           {user ? (
-            <div style={{ position: 'relative' }} ref={menuRef}>
+            <div className="relative" ref={menuRef}>
               <button
+                type="button"
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="reflect-user-btn"
+                className="flex items-center gap-2 pl-1.5 pr-2.5 py-1 rounded-full border border-slate-200 bg-white hover:border-slate-300 text-xs font-medium shadow-xs transition cursor-pointer"
                 aria-haspopup="menu"
                 aria-expanded={userMenuOpen}
                 aria-label="User account menu"
               >
-                <span
-                  style={{
-                    width: 24,
-                    height: 24,
-                    borderRadius: '50%',
-                    background: 'rgba(37, 99, 235, 0.12)',
-                    color: '#2563eb',
-                    fontSize: '0.74rem',
-                    fontWeight: 700,
-                    display: 'inline-grid',
-                    placeItems: 'center',
-                    flexShrink: 0,
-                  }}
-                  aria-hidden="true"
-                >
+                <span className="w-6 h-6 rounded-full bg-blue-50 text-blue-600 font-bold text-xs flex items-center justify-center border border-blue-100">
                   {user.name ? user.name.trim().charAt(0).toUpperCase() : 'U'}
                 </span>
-                <span className="reflect-user-name">{user.name?.split(' ')[0]}</span>
-                <ChevronDown size={14} className="reflect-user-chevron" style={{ opacity: 0.6 }} aria-hidden="true" />
+                <span className="max-w-[90px] truncate text-slate-800">{user.name?.split(' ')[0]}</span>
+                <ChevronDown size={13} className="text-slate-400" aria-hidden="true" />
               </button>
 
               {userMenuOpen && (
-                <div className="reflect-dropdown" role="menu">
-                  <div className="reflect-dropdown-header">
-                    <div style={{ fontWeight: 600, fontSize: '0.86rem', color: '#111827' }}>{user.name}</div>
-                    <div style={{ fontSize: '0.74rem', color: '#9ca3af', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {user.email}
-                    </div>
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-slate-200 py-1.5 z-50 divide-y divide-slate-100 animate-in fade-in duration-100" role="menu">
+                  <div className="px-3.5 py-2">
+                    <div className="font-semibold text-xs text-slate-900 truncate">{user.name}</div>
+                    <div className="text-[11px] text-slate-500 truncate">{user.email}</div>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                    <Link to="/profile" role="menuitem" className="reflect-dropdown-item" onClick={() => setUserMenuOpen(false)}>
-                      <User size={14} aria-hidden="true" /> Profile &amp; Settings
+                  <div className="py-1">
+                    <Link
+                      to="/profile"
+                      role="menuitem"
+                      className="flex items-center gap-2 px-3.5 py-1.5 text-xs text-slate-700 hover:bg-slate-50 transition"
+                      onClick={() => setUserMenuOpen(false)}
+                    >
+                      <User size={14} className="text-slate-400" aria-hidden="true" /> Profile &amp; Settings
                     </Link>
+                  </div>
+                  <div className="py-1">
                     <button
                       type="button"
                       role="menuitem"
                       onClick={handleLogout}
-                      className="reflect-dropdown-item"
-                      style={{ color: '#dc2626' }}
+                      className="flex items-center gap-2 w-full text-left px-3.5 py-1.5 text-xs text-rose-600 hover:bg-rose-50 transition cursor-pointer"
                     >
                       <LogOut size={14} aria-hidden="true" /> Sign out
                     </button>
@@ -133,23 +147,27 @@ export default function Navbar() {
               )}
             </div>
           ) : (
-            <div className="reflect-auth-desktop">
-              <Link to="/login" className="reflect-login-link">
+            <div className="hidden sm:flex items-center gap-3">
+              <Link to="/login" className="text-xs font-medium text-slate-600 hover:text-slate-900 px-3 py-1.5 transition">
                 Sign in
               </Link>
-              <Link to="/register" className="reflect-btn-primary" style={{ padding: '0.45rem 1.15rem', fontSize: '0.84rem' }}>
+              <Link
+                to="/register"
+                className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-4 py-2 rounded-lg shadow-xs shadow-blue-500/20 transition cursor-pointer"
+              >
                 Get Started
               </Link>
             </div>
           )}
 
           <button
-            className="reflect-mobile-toggle"
+            type="button"
+            className="md:hidden p-1.5 rounded-lg text-slate-600 hover:bg-slate-100 transition cursor-pointer"
             onClick={() => setDrawerOpen(true)}
             aria-label="Open navigation menu"
             aria-expanded={drawerOpen}
           >
-            <Menu size={22} />
+            <Menu size={20} />
           </button>
         </div>
       </div>
@@ -158,11 +176,7 @@ export default function Navbar() {
         isOpen={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         user={user}
-        onLogout={handleLogout}
-        onSectionClick={(id) => {
-          setDrawerOpen(false)
-          scrollToSection(id)
-        }}
+        logout={logout}
       />
     </header>
   )

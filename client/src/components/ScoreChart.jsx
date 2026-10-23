@@ -1,9 +1,9 @@
 import { Bar, BarChart, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts'
 
 function colorFor(score) {
-  if (score >= 7) return 'var(--good)'
-  if (score >= 4) return 'var(--warn)'
-  return 'var(--bad)'
+  if (score >= 7) return '#10b981' // emerald-500
+  if (score >= 4) return '#f59e0b' // amber-500
+  return '#ef4444' // red-500
 }
 
 export default function ScoreChart({ scores, questions = [] }) {
@@ -17,25 +17,25 @@ export default function ScoreChart({ scores, questions = [] }) {
   const maxY = maxScoreInSeries > 10 ? 100 : 10
 
   return (
-    <div style={{ width: '100%', height: '220px', position: 'relative' }}>
+    <div className="w-full h-56 relative">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 20, right: 15, left: -15, bottom: 5 }}>
-          <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
-          <YAxis domain={[0, maxY]} stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
+        <BarChart data={data} margin={{ top: 20, right: 15, left: -20, bottom: 5 }}>
+          <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+          <YAxis domain={[0, maxY]} stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
           <Tooltip
-            cursor={{ fill: 'rgba(99, 102, 241, 0.08)' }}
+            cursor={{ fill: 'rgba(37, 99, 235, 0.05)' }}
             contentStyle={{
-              background: 'var(--surface)',
-              border: '1px solid var(--border)',
-              borderRadius: 10,
-              boxShadow: 'var(--shadow-md)',
-              fontSize: 13,
-              color: 'var(--text)',
+              background: '#ffffff',
+              border: '1px solid #e2e8f0',
+              borderRadius: 8,
+              boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+              fontSize: 12,
+              color: '#0f172a',
             }}
-            labelStyle={{ color: 'var(--text)', fontWeight: 700 }}
+            labelStyle={{ color: '#0f172a', fontWeight: 700 }}
             formatter={(value) => [`${value} / ${maxY}`, 'Score']}
           />
-          <Bar dataKey="score" radius={[6, 6, 0, 0]} maxBarSize={42} minPointSize={8}>
+          <Bar dataKey="score" radius={[6, 6, 0, 0]} maxBarSize={36} minPointSize={8}>
             {data.map((d, i) => (
               <Cell key={i} fill={colorFor(d.score)} />
             ))}

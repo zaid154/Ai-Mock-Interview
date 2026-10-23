@@ -1,4 +1,4 @@
-import { HelpCircle, Briefcase, Code2, Upload, FileCheck, X, ArrowRight } from 'lucide-react'
+import { Briefcase, Code2, Upload, FileCheck, X, ArrowRight, Clock, HelpCircle } from 'lucide-react'
 import PracticeProgress from './PracticeProgress'
 
 const ROLES = [
@@ -33,65 +33,79 @@ export default function PracticeStudio({
   resumeFileName, handleFileUpload, handleRemoveResume, createSession, busy, progress,
 }) {
   return (
-    <div className="studio-card">
-      <form onSubmit={createSession} className="studio-grid-form">
-        {/* Left Column: Target Role & Seniority */}
-        <div className="studio-col">
-          <div className="studio-section">
-            <label htmlFor="practice-role" className="studio-section-label">1. Target Role &amp; Seniority</label>
-            <div className="input-icon-wrap">
-              <Briefcase size={16} className="input-icon" aria-hidden="true" />
+    <div className="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-xs">
+      <form onSubmit={createSession} className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Left Column: Role & Topic */}
+        <div className="flex flex-col gap-6">
+          {/* 1. Target Role & Seniority */}
+          <div>
+            <label htmlFor="practice-role" className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+              1. Target Role &amp; Seniority
+            </label>
+            <div className="relative mb-3">
+              <Briefcase size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 id="practice-role"
                 type="text"
                 placeholder="e.g. Senior Frontend Engineer"
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
-                className="input input-with-icon"
                 required
+                className="w-full pl-9 pr-3.5 py-2.5 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-white"
               />
             </div>
-            <div className="preset-pill-cluster" role="group" aria-label="Role presets">
+
+            {/* Quick Role Preset Pills */}
+            <div className="flex flex-wrap gap-1.5 mb-3" role="group" aria-label="Role presets">
               {ROLES.map((r) => (
                 <button
                   key={r.value}
                   type="button"
                   onClick={() => setRole(r.value)}
-                  className={`preset-pill ${role === r.value ? 'active' : ''}`}
+                  className={`text-xs px-2.5 py-1 rounded-md border transition cursor-pointer ${
+                    role === r.value
+                      ? 'bg-blue-50 border-blue-400 text-blue-700 font-semibold'
+                      : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                  }`}
                 >
                   {r.label}
                 </button>
               ))}
             </div>
 
-            <div style={{ marginTop: '0.85rem' }}>
-              <div className="preset-pill-cluster" role="radiogroup" aria-label="Experience level">
-                {LEVELS.map((lvl) => (
-                  <button
-                    key={lvl}
-                    type="button"
-                    role="radio"
-                    aria-checked={difficulty === lvl}
-                    onClick={() => setDifficulty(lvl)}
-                    className={`preset-pill ${difficulty === lvl ? 'active' : ''}`}
-                  >
-                    {lvl}
-                  </button>
-                ))}
-              </div>
+            {/* Seniority Level */}
+            <div className="flex gap-1.5" role="radiogroup" aria-label="Experience level">
+              {LEVELS.map((lvl) => (
+                <button
+                  key={lvl}
+                  type="button"
+                  role="radio"
+                  aria-checked={difficulty === lvl}
+                  onClick={() => setDifficulty(lvl)}
+                  className={`flex-1 text-xs py-1.5 text-center rounded-lg border transition cursor-pointer font-medium ${
+                    difficulty === lvl
+                      ? 'bg-blue-600 border-blue-600 text-white font-semibold shadow-xs'
+                      : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  {lvl}
+                </button>
+              ))}
             </div>
           </div>
 
           {/* 2. Technical Focus Topic */}
-          <div className="studio-section">
-            <label htmlFor="practice-topic" className="studio-section-label">2. Focus Area</label>
-            <div className="input-icon-wrap">
-              <Code2 size={16} className="input-icon" aria-hidden="true" />
+          <div>
+            <label htmlFor="practice-topic" className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+              2. Technical Focus Area
+            </label>
+            <div className="relative">
+              <Code2 size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <select
                 id="practice-topic"
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
-                className="input input-with-icon"
+                className="w-full pl-9 pr-3.5 py-2.5 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-white cursor-pointer"
               >
                 {TOPICS.map((t) => (
                   <option key={t} value={t}>{t}</option>
@@ -101,108 +115,122 @@ export default function PracticeStudio({
             {topic === 'Custom Topic' && (
               <input
                 type="text"
-                placeholder="Enter specific topic (e.g. Docker & Kubernetes)"
+                placeholder="Enter specific topic (e.g. Distributed Caching in Redis)"
                 value={customTopic}
                 onChange={(e) => setCustomTopic(e.target.value)}
-                className="input"
-                style={{ marginTop: '0.5rem' }}
+                className="w-full mt-2 px-3.5 py-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-white"
                 autoFocus
               />
             )}
           </div>
         </div>
 
-        {/* Right Column: Parameters & Launch */}
-        <div className="studio-col">
+        {/* Right Column: Length, Timer, Resume & Launch */}
+        <div className="flex flex-col justify-between gap-6">
           {/* 3. Session Parameters */}
-          <div className="studio-section">
-            <span className="studio-section-label">3. Interview Length &amp; Timer</span>
-            <div className="studio-params-row">
-              <div>
-                <span className="param-sublabel">Questions</span>
-                <div className="preset-pill-cluster" role="radiogroup" aria-label="Number of questions">
-                  {COUNTS.map((cnt) => (
-                    <button
-                      key={cnt}
-                      type="button"
-                      role="radio"
-                      aria-checked={Number(numQuestions) === cnt}
-                      onClick={() => setNumQuestions(String(cnt))}
-                      className={`preset-pill ${Number(numQuestions) === cnt ? 'active' : ''}`}
-                    >
-                      {cnt}
-                    </button>
-                  ))}
+          <div className="flex flex-col gap-4">
+            <div>
+              <span className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                3. Interview Parameters
+              </span>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="block text-[11px] text-slate-500 mb-1.5 font-medium">Questions</span>
+                  <div className="flex gap-1.5" role="radiogroup">
+                    {COUNTS.map((cnt) => (
+                      <button
+                        key={cnt}
+                        type="button"
+                        role="radio"
+                        aria-checked={Number(numQuestions) === cnt}
+                        onClick={() => setNumQuestions(String(cnt))}
+                        className={`flex-1 text-xs py-1.5 rounded-lg border text-center transition cursor-pointer font-medium ${
+                          Number(numQuestions) === cnt
+                            ? 'bg-blue-50 border-blue-400 text-blue-700 font-bold'
+                            : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                        }`}
+                      >
+                        {cnt}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              <div>
-                <span className="param-sublabel">Time Limit</span>
-                <div className="preset-pill-cluster" role="radiogroup" aria-label="Timer duration">
-                  {TIMERS.map((t) => (
-                    <button
-                      key={t.value}
-                      type="button"
-                      role="radio"
-                      aria-checked={timerMinutes === t.value}
-                      onClick={() => setTimerMinutes(t.value)}
-                      className={`preset-pill ${timerMinutes === t.value ? 'active' : ''}`}
-                    >
-                      {t.label}
-                    </button>
-                  ))}
+
+                <div>
+                  <span className="block text-[11px] text-slate-500 mb-1.5 font-medium">Timer Limit</span>
+                  <div className="flex gap-1 flex-wrap" role="radiogroup">
+                    {TIMERS.map((t) => (
+                      <button
+                        key={t.value}
+                        type="button"
+                        role="radio"
+                        aria-checked={timerMinutes === t.value}
+                        onClick={() => setTimerMinutes(t.value)}
+                        className={`text-xs px-2 py-1.5 rounded-lg border text-center transition cursor-pointer font-medium ${
+                          timerMinutes === t.value
+                            ? 'bg-blue-50 border-blue-400 text-blue-700 font-bold'
+                            : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                        }`}
+                      >
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* 4. Optional Resume Upload */}
-          <div className="studio-section">
-            <span className="studio-section-label">4. Resume Tailoring (Optional)</span>
-            {resumeFileName ? (
-              <div className="resume-attached-card">
-                <div className="resume-attached-info">
-                  <FileCheck size={16} className="text-good" aria-hidden="true" />
-                  <span className="resume-attached-name">{resumeFileName}</span>
+            {/* 4. Resume Attachment */}
+            <div>
+              <span className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                4. Resume Tailoring (Optional)
+              </span>
+
+              {resumeFileName ? (
+                <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900">
+                  <div className="flex items-center gap-2 truncate pr-2">
+                    <FileCheck size={16} className="text-emerald-600 shrink-0" />
+                    <span className="truncate font-medium">{resumeFileName}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRemoveResume}
+                    className="p-1 rounded-md text-slate-400 hover:text-rose-600 transition cursor-pointer"
+                    title="Remove attached resume"
+                  >
+                    <X size={14} />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleRemoveResume}
-                  className="resume-remove-btn"
-                  title="Remove attached resume"
-                >
-                  <X size={14} />
-                </button>
-              </div>
-            ) : (
-              <label className="resume-dropzone">
-                <input
-                  type="file"
-                  accept=".pdf"
-                  onChange={handleFileUpload}
-                  style={{ display: 'none' }}
-                />
-                <Upload size={18} style={{ color: '#2563eb' }} aria-hidden="true" />
-                <span>Upload PDF Resume to tailor questions</span>
-              </label>
-            )}
+              ) : (
+                <label className="flex items-center justify-center gap-2 p-3.5 rounded-xl border-2 border-dashed border-slate-200 hover:border-blue-400 bg-slate-50/50 hover:bg-blue-50/30 text-xs text-slate-600 transition cursor-pointer">
+                  <input
+                    type="file"
+                    accept=".pdf"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                  <Upload size={16} className="text-blue-600" />
+                  <span>Upload PDF resume to tailor questions</span>
+                </label>
+              )}
+            </div>
           </div>
 
-          {/* Launch Action */}
-          <div style={{ marginTop: 'auto', paddingTop: '1rem' }}>
+          {/* Launch Button */}
+          <div className="pt-2">
             <button
               type="submit"
               disabled={busy}
-              className="btn btn-primary"
-              style={{ width: '100%', justifyContent: 'center', padding: '0.85rem' }}
+              className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm py-3.5 rounded-xl shadow-md shadow-blue-500/20 transition cursor-pointer disabled:opacity-50"
             >
-              {busy ? 'Preparing Interview...' : 'Start AI Interview'}
-              {!busy && <ArrowRight size={16} style={{ marginLeft: '0.4rem' }} />}
+              {busy ? 'Preparing Interview Session…' : <>Launch Simulated Interview <ArrowRight size={16} /></>}
             </button>
           </div>
         </div>
       </form>
 
-      {progress && progress.active && <PracticeProgress progress={progress} />}
+      {progress && progress.active && <PracticeProgress {...progress} />}
     </div>
   )
 }

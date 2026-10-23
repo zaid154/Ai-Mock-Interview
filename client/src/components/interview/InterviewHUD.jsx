@@ -10,82 +10,80 @@ export default function InterviewHUD({
   onTimeUp,
 }) {
   return (
-    <>
-      {/* ── Interview Header ── */}
-      <div className="interview-hud-head">
+    <div className="flex flex-col gap-4 mb-6">
+      {/* ── Top Meta Bar ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.3rem', flexWrap: 'wrap' }}>
-            <span className="tag" style={{ background: '#dbeafe', color: '#1d4ed8', fontWeight: 600 }}>
-              Live Interview
+          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 border border-blue-200/80 px-2.5 py-0.5 rounded-full">
+              Live Technical Round
             </span>
-            <span className="tag" style={{ textTransform: 'uppercase' }}>
+            <span className="text-xs font-bold text-slate-900">
               {interview.role}
             </span>
             {interview.category && interview.category !== 'General' && (
-              <span className="tag-soft">{interview.category}</span>
+              <span className="text-[11px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
+                {interview.category}
+              </span>
             )}
           </div>
-          <p className="muted small" style={{ margin: 0 }}>
-            {interview.experience} · <span style={{ textTransform: 'capitalize' }}>{interview.difficulty}</span> difficulty ·{' '}
-            <strong style={{ color: 'var(--text)' }}>{answeredCount}</strong> of {total} answered
+
+          <p className="text-xs text-slate-500 m-0">
+            <span className="capitalize font-semibold text-slate-700">{interview.difficulty || 'Medium'}</span> difficulty &bull;{' '}
+            <strong className="text-slate-900 font-semibold">{answeredCount}</strong> of {total} questions answered
           </p>
         </div>
 
-        <div className="interview-hud-stat-col" style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
+        <div className="flex items-center gap-4 self-start sm:self-auto">
           {interview.timerMinutes > 0 && <Timer minutes={interview.timerMinutes} onTimeUp={onTimeUp} />}
-          <div className="interview-hud-counter" style={{ textAlign: 'right' }}>
-            <span className="mono" style={{ fontSize: '1.4rem', fontWeight: 800 }}>
-              {current + 1} <span className="muted">/ {total}</span>
+          <div className="text-right">
+            <span className="font-mono text-xl sm:text-2xl font-black text-slate-900">
+              {current + 1} <span className="text-slate-400 text-sm font-normal">/ {total}</span>
             </span>
           </div>
         </div>
       </div>
 
       {/* ── Question Quick-Jump Palette ── */}
-      <div className="interview-jump-palette" role="toolbar" aria-label="Question Quick Jump Navigation">
-        <span className="muted small" style={{ fontSize: '0.76rem', fontWeight: 700, marginRight: '0.2rem', flexShrink: 0 }}>
+      <div className="flex items-center gap-2 p-2.5 bg-white rounded-xl border border-slate-200/90 shadow-xs flex-wrap" role="toolbar" aria-label="Question Quick Jump">
+        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-1">
           Questions:
         </span>
-        {interview.questions.map((q, idx) => {
-          const isCurrent = idx === current
-          const isAnswered = Boolean(answers[idx]?.trim())
-          return (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => onSelectQuestion(idx)}
-              className="interview-jump-btn"
-              style={{
-                border: isCurrent ? '2px solid var(--accent-primary)' : '1px solid var(--border)',
-                background: isCurrent ? 'var(--accent-grad-subtle)' : isAnswered ? 'var(--good-soft)' : 'var(--surface-2)',
-                color: isCurrent ? 'var(--accent-primary)' : isAnswered ? 'var(--good)' : 'var(--text-muted)',
-                fontWeight: isCurrent || isAnswered ? 700 : 500,
-              }}
-              title={`Question ${idx + 1} (${isAnswered ? 'Answered' : 'Unanswered'})`}
-            >
-              {idx + 1}
-              {isAnswered && !isCurrent && (
-                <span
-                  style={{
-                    position: 'absolute',
-                    top: '2px',
-                    right: '2px',
-                    width: '6px',
-                    height: '6px',
-                    borderRadius: '50%',
-                    background: 'var(--good)',
-                  }}
-                />
-              )}
-            </button>
-          )
-        })}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {interview.questions.map((q, idx) => {
+            const isCurrent = idx === current
+            const isAnswered = Boolean(answers[idx]?.trim())
+            return (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => onSelectQuestion(idx)}
+                className={`relative w-8 h-8 rounded-lg text-xs font-bold transition flex items-center justify-center cursor-pointer ${
+                  isCurrent
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : isAnswered
+                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-300'
+                    : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100'
+                }`}
+                title={`Question ${idx + 1} (${isAnswered ? 'Answered' : 'Unanswered'})`}
+              >
+                {idx + 1}
+                {isAnswered && !isCurrent && (
+                  <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                )}
+              </button>
+            )
+          })}
+        </div>
       </div>
 
-      {/* Progress Track */}
-      <div className="progress-track" style={{ marginBottom: '1.5rem' }}>
-        <div className="progress-fill" style={{ width: `${((current + 1) / total) * 100}%` }} />
+      {/* ── Progress Meter ── */}
+      <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
+        <div
+          className="h-full bg-blue-600 rounded-full transition-all duration-300"
+          style={{ width: `${((current + 1) / total) * 100}%` }}
+        />
       </div>
-    </>
+    </div>
   )
 }
