@@ -11,7 +11,7 @@ export default function InterviewHUD({
 }) {
   return (
     <div className="flex flex-col gap-4 mb-6">
-      {/* ── Top Meta Bar ── */}
+      {/* -- Top Meta Bar -- */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
           <div className="flex items-center gap-2 mb-1.5 flex-wrap">
@@ -44,7 +44,7 @@ export default function InterviewHUD({
         </div>
       </div>
 
-      {/* ── Question Quick-Jump Palette ── */}
+      {/* -- Question Quick-Jump Palette -- */}
       <div className="flex items-center gap-2 p-2.5 bg-white rounded-xl border border-slate-200/90 shadow-xs flex-wrap" role="toolbar" aria-label="Question Quick Jump">
         <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-1">
           Questions:
@@ -77,7 +77,7 @@ export default function InterviewHUD({
         </div>
       </div>
 
-      {/* ── Progress Meter ── */}
+      {/* -- Progress Meter -- */}
       <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
         <div
           className="h-full bg-blue-600 rounded-full transition-all duration-300"

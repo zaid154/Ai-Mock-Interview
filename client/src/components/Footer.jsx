@@ -22,7 +22,7 @@ export default function Footer() {
             </Link>
 
             <p className="text-xs text-slate-500 leading-relaxed max-w-xs">
-              AI-driven technical engineering interviews with real-time feedback and detailed rubric scoring.
+              Simulate technical engineering interviews with real-time feedback and structured rubric scoring.
             </p>
 
             <div className="flex items-center gap-2 mt-1">
@@ -107,13 +107,13 @@ export default function Footer() {
                 <Mail size={12} /> zaidm1323@gmail.com
               </a>
               <a href="https://portfolio-zeta-drab-97.vercel.app/" target="_blank" rel="noreferrer" className="hover:text-blue-600 transition">
-                Portfolio Site ↗
+                Portfolio Site
               </a>
               <a href="https://github.com/zaid154" target="_blank" rel="noreferrer" className="hover:text-blue-600 transition">
-                GitHub Profile ↗
+                GitHub Profile
               </a>
               <a href="https://www.linkedin.com/in/mohd-zaid-794090231/" target="_blank" rel="noreferrer" className="hover:text-blue-600 transition">
-                LinkedIn ↗
+                LinkedIn
               </a>
             </div>
           </div>
@@ -125,7 +125,7 @@ export default function Footer() {
           <div className="flex items-center gap-3 text-[11px]">
             <span>MERN Stack</span>
             <span>&bull;</span>
-            <span>Google Gemini AI</span>
+            <span>Generative API Engine</span>
             <span>&bull;</span>
             <span>Tailwind CSS</span>
           </div>

@@ -49,7 +49,7 @@ export default function QuestionWorkbench({
     if (isListening) {
       recognitionRef.current?.stop()
       setIsListening(false)
-      toast('Voice recording paused', { icon: '🎙️' })
+      toast('Voice recording paused')
       return
     }
 
@@ -94,7 +94,7 @@ export default function QuestionWorkbench({
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-7 shadow-xs flex flex-col gap-5">
-      {/* ── Workbench Header & Action Controls ── */}
+      {/* --- Workbench Header & Action Controls --- */}
       <div className="flex items-center justify-between gap-3 pb-3 border-b border-slate-100 flex-wrap">
         <span className="text-xs font-mono font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md">
           Question {current + 1} of {total}
@@ -126,12 +126,12 @@ export default function QuestionWorkbench({
         </div>
       </div>
 
-      {/* ── Question Text ── */}
+      {/* --- Question Text --- */}
       <div className="text-base sm:text-lg font-semibold text-slate-900 leading-relaxed">
         <FormattedPrompt text={question.prompt} />
       </div>
 
-      {/* ── Follow-Up Probe Alert ── */}
+      {/* --- Follow-Up Probe Alert --- */}
       {(followUpPrompt || question.followUpPrompt) && (
         <div className="p-4 rounded-xl bg-blue-50 border border-blue-200 flex flex-col gap-1.5">
           <div className="flex items-center gap-2 text-blue-700 font-bold text-xs uppercase tracking-wider">
@@ -144,7 +144,7 @@ export default function QuestionWorkbench({
         </div>
       )}
 
-      {/* ── Answer Mode Switcher & Tools ── */}
+      {/* --- Answer Mode Switcher & Tools --- */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2">
         <div className="inline-flex bg-slate-100 p-1 rounded-lg border border-slate-200/80 self-start">
           <button
@@ -181,7 +181,7 @@ export default function QuestionWorkbench({
               title="Request interviewer follow-up probe"
             >
               <MessageSquarePlus size={14} className="text-blue-600" />
-              <span>{probing ? 'Probing…' : 'Ask Follow-Up'}</span>
+              <span>{probing ? 'Probing...' : 'Ask Follow-Up'}</span>
             </button>
           )}
 
@@ -204,11 +204,11 @@ export default function QuestionWorkbench({
       {isListening && (
         <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
-          <span>Microphone active — speak clearly. Your dictation will appear below in real-time.</span>
+          <span>Microphone active - speak clearly. Your dictation will appear below in real-time.</span>
         </div>
       )}
 
-      {/* ── Editor Body ── */}
+      {/* --- Editor Body --- */}
       {activeTab === 'star' ? (
         <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 flex flex-col gap-4">
           <div className="flex items-center justify-between">
@@ -282,7 +282,7 @@ export default function QuestionWorkbench({
                 <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
                   wordCount < 30 ? 'bg-amber-50 text-amber-700' : wordCount < 120 ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'
                 }`}>
-                  {wordCount < 30 ? '• Recommend more detail' : wordCount < 120 ? '• Good depth' : '• Thorough detailed response'}
+                  {wordCount < 30 ? ' Recommend more detail' : wordCount < 120 ? ' Good depth' : ' Thorough detailed response'}
                 </span>
               )}
             </div>
@@ -300,7 +300,7 @@ export default function QuestionWorkbench({
         </div>
       )}
 
-      {/* ── Candidate Scratchpad ── */}
+      {/* --- Candidate Scratchpad --- */}
       <div className="pt-3 border-t border-slate-100">
         <label htmlFor="workbench-note" className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1.5">
           <Edit3 size={13} className="text-blue-600" />

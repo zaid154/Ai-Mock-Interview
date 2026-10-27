@@ -2,7 +2,7 @@
   "name": "mockmate-server",
   "version": "1.0.0",
   "private": true,
-  "description": "MockMate AI — backend API (Express + JavaScript + Gemini)",
+  "description": "MockMate AI - backend API (Express + JavaScript + Gemini)",
   "main": "src/index.js",
   "scripts": {
     "dev": "nodemon src/index.js",

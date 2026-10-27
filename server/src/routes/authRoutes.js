@@ -7,7 +7,7 @@ const auth = require('../controllers/authController')
 
 const router = Router()
 
-// ── Validation schemas (also mirrored on the frontend) ──
+// -- Validation schemas (also mirrored on the frontend) --
 const registerSchema = z.object({
   name: z.string().min(2, 'Please enter your name'),
   email: z.string().email('Enter a valid email'),
@@ -33,7 +33,7 @@ const resetSchema = z.object({
   newPassword: z.string().min(6, 'Password must be at least 6 characters'),
 })
 
-// ── Routes ──
+// -- Routes --
 router.post('/register', validate(registerSchema), wrap(auth.register))
 router.post('/login', validate(loginSchema), wrap(auth.login))
 router.get('/verification-settings', wrap(auth.verificationSettings))

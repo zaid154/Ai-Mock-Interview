@@ -101,8 +101,8 @@ async function sendEmail(to, subject, text, html) {
 
 async function getEmailStatus() {
   const c = await getEmailConfig()
-  const maskEmail = (e) => (e && e.includes('@') ? `${e.slice(0, 3)}••••@${e.split('@')[1]}` : '••••••••')
-  const maskKey = (k) => (k && k.length > 10 ? `${k.slice(0, 8)}••••••••${k.slice(-4)}` : '••••••••')
+  const maskEmail = (e) => (e && e.includes('@') ? `${e.slice(0, 3)}----@${e.split('@')[1]}` : '--------')
+  const maskKey = (k) => (k && k.length > 10 ? `${k.slice(0, 8)}--------${k.slice(-4)}` : '--------')
 
   return {
     smtp: {
@@ -126,7 +126,7 @@ async function testEmailDelivery(targetEmail) {
   const to = (targetEmail || '').trim()
   if (!to) throw new Error('Target email is required')
   const start = Date.now()
-  const subject = 'MockMate AI — Live Email Delivery Test'
+  const subject = 'MockMate AI - Live Email Delivery Test'
   const text = `This is a live test email from MockMate AI.\nTimestamp: ${new Date().toISOString()}\nDelivery channel verified.`
   const html = `<div style="font-family:sans-serif;background:#0b0720;color:#f8fafc;padding:24px;border-radius:12px;border:1px solid rgba(168,85,247,0.3)">
     <h2 style="color:#a855f7;margin-top:0">MockMate AI Email Delivery Test</h2>
@@ -139,7 +139,7 @@ async function testEmailDelivery(targetEmail) {
 }
 
 async function sendOtpEmail(to, code, purpose) {
-  console.log(`\n🔑 [MOCKMATE OTP CODE for ${to} (${purpose})]: >>> ${code} <<<\n`)
+  console.log(`\n[MOCKMATE OTP CODE for ${to} (${purpose})]: >>> ${code} <<<\n`)
   const isReset = purpose === 'reset'
   const action = isReset ? 'reset your password' : 'verify your email address'
   const title = isReset ? 'Reset your password' : 'Verify your email'
@@ -177,3 +177,5 @@ function otpEmailTemplate({ code, title, action, isReset }) {
 }
 
 module.exports = { sendEmail, sendOtpEmail, getEmailStatus, testEmailDelivery }
+
+

@@ -2,20 +2,24 @@ import { Briefcase, Code2, Upload, FileCheck, X, ArrowRight, Clock, HelpCircle }
 import PracticeProgress from './PracticeProgress'
 
 const ROLES = [
-  { label: 'Fullstack', value: 'Fullstack Developer' },
   { label: 'Frontend', value: 'Frontend Engineer' },
   { label: 'Backend', value: 'Backend Developer' },
+  { label: 'Fullstack', value: 'Fullstack Developer' },
+  { label: 'Product Manager', value: 'Technical Product Manager' },
+  { label: 'Data Analyst', value: 'Data Analyst' },
   { label: 'System Design', value: 'System Design Architect' },
-  { label: 'DevOps & Cloud', value: 'DevOps & Cloud Engineer' }
+  { label: 'DevOps & Cloud', value: 'DevOps & Cloud Engineer' },
 ]
 const TOPICS = [
   'React & Modern Web Architecture',
   'Node.js, Express & Microservices',
   'System Design, Scalability & Caching',
+  'Product Strategy, Metrics & Trade-offs',
+  'SQL, Data Analysis & Business Intelligence',
+  'Cloud Infrastructure, CI/CD & DevOps',
+  'Behavioral Leadership & Scenario Defense',
   'Data Structures & Algorithms',
-  'DevOps & Cloud',
-  'SQL & Database Optimization',
-  'Custom Topic'
+  'Custom Topic',
 ]
 const COUNTS = [3, 5, 7, 10]
 const TIMERS = [
@@ -224,7 +228,7 @@ export default function PracticeStudio({
               disabled={busy}
               className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm py-3.5 rounded-xl shadow-md shadow-blue-500/20 transition cursor-pointer disabled:opacity-50"
             >
-              {busy ? 'Preparing Interview Session…' : <>Launch Simulated Interview <ArrowRight size={16} /></>}
+              {busy ? 'Preparing Interview Session...' : <>Launch Simulated Interview <ArrowRight size={16} /></>}
             </button>
           </div>
         </div>

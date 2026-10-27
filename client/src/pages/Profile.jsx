@@ -94,7 +94,7 @@ export default function Profile() {
 
   return (
     <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 flex-1 flex flex-col w-full">
-      {/* ── Page Header ── */}
+      {/* -- Page Header -- */}
       <div className="pb-6 border-b border-slate-200">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -132,7 +132,7 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* ── Flat Horizontal Nav Tabs (Vercel / GitHub style) ── */}
+        {/* -- Flat Horizontal Nav Tabs (Vercel / GitHub style) -- */}
         <nav className="flex items-center gap-6 mt-6 -mb-[1px]" aria-label="Settings Tabs">
           {TABS.map((tab) => {
             const Icon = tab.icon
@@ -156,7 +156,7 @@ export default function Profile() {
         </nav>
       </div>
 
-      {/* ── Tab Content Area ── */}
+      {/* -- Tab Content Area -- */}
       <div className="pt-6">
         {activeTab === 'overview' && (
           <ProfileOverview

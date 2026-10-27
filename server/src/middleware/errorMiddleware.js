@@ -9,7 +9,7 @@ function errorHandler(err, _req, res, _next) {
   const statusCode = err?.status || err?.statusCode || 500
 
   // Log error internally on server console
-  console.error('🔴 API Error:', err)
+  console.error('[API Error]:', err)
 
   // Map known database / file upload errors safely
   if (err?.name === 'CastError') return res.status(400).json({ error: 'Invalid resource ID format' })
@@ -35,3 +35,4 @@ function errorHandler(err, _req, res, _next) {
 }
 
 module.exports = { notFound, errorHandler }
+

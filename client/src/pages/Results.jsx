@@ -4,7 +4,7 @@ import toast from 'react-hot-toast'
 import api, { apiError } from '../lib/api'
 import ScoreChart from '../components/ScoreChart'
 import QuestionEvaluationList from '../components/QuestionEvaluationList'
-import { RotateCcw, LayoutDashboard, Save, CheckCircle2, Award, FileText } from 'lucide-react'
+import { RotateCcw, LayoutDashboard, Save, CheckCircle2, Award, FileText, Download } from 'lucide-react'
 
 function verdict(score) {
   if (score >= 80) return { label: 'Strong Hire', badge: 'bg-emerald-50 text-emerald-800 border-emerald-300' }
@@ -73,7 +73,7 @@ export default function Results() {
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center p-8 text-xs font-mono text-slate-400">
-        Loading interview scorecard…
+        Loading interview scorecard...
       </div>
     )
   }
@@ -89,11 +89,36 @@ export default function Results() {
     )
   }
 
+  function exportScorecard() {
+    if (!interview) return
+    let report = '# Technical Assessment Scorecard: ' + (interview.role || 'Screen') + '\n'
+    report += 'Category: ' + (interview.category || 'General') + ' | Completed: ' + new Date(interview.updatedAt || interview.createdAt).toLocaleDateString() + '\n'
+    report += 'Overall Score: ' + (interview.overallScore || 0) + '%\n\n'
+    report += '## Summary Assessment\n' + (interview.summary || 'Assessment completed successfully.') + '\n\n'
+    report += '## Question-by-Question Breakdown\n\n'
+    ;(interview.questions || []).forEach((q, idx) => {
+      report += '### Question ' + (idx + 1) + ' (' + (q.score || 0) + '/10 pts)\n'
+      report += '**Prompt:** ' + q.prompt + '\n\n'
+      report += '**Candidate Answer:**\n' + (q.answer || '(No answer recorded)') + '\n\n'
+      if (q.feedback) report += '**Rubric Notes:**\n' + q.feedback + '\n\n'
+      if (q.idealAnswer) report += '**Model Solution:**\n' + q.idealAnswer + '\n\n'
+      report += '---\n\n'
+    })
+    const blob = new Blob([report], { type: 'text/markdown;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'scorecard-' + id.slice(-6) + '.md'
+    a.click()
+    URL.revokeObjectURL(url)
+    toast.success('Scorecard exported as Markdown report!')
+  }
+
   const v = verdict(interview.overallScore || 0)
 
   return (
     <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 flex-1 flex flex-col w-full">
-      {/* ── Results Header ── */}
+      {/* --- Results Header --- */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-slate-200 mb-6">
         <div>
           <div className="flex items-center gap-2 mb-1.5 flex-wrap">
@@ -113,7 +138,15 @@ export default function Results() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 self-start sm:self-auto">
+        <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+          <button
+            type="button"
+            onClick={exportScorecard}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer shadow-2xs"
+            title="Download complete report as Markdown"
+          >
+            <Download size={13} className="text-blue-600" /> Export Report
+          </button>
           <Link
             to="/practice"
             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
@@ -129,7 +162,7 @@ export default function Results() {
         </div>
       </div>
 
-      {/* ── Scorecard Highlight Metrics ── */}
+      {/* --- Scorecard Highlight Metrics --- */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
@@ -168,7 +201,7 @@ export default function Results() {
         </div>
       </div>
 
-      {/* ── Visual Bar Chart ── */}
+      {/* --- Visual Bar Chart --- */}
       <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs mb-8">
         <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-4">
           Per-Question Score Breakdown (0 - 10 Scale)
@@ -176,7 +209,7 @@ export default function Results() {
         <ScoreChart questions={interview.questions} />
       </div>
 
-      {/* ── Candidate Notes ── */}
+      {/* --- Candidate Notes --- */}
       <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs mb-8">
         <div className="flex items-center justify-between mb-2">
           <label htmlFor="session-notes" className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
@@ -189,7 +222,7 @@ export default function Results() {
             disabled={savingNotes}
             className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-xs cursor-pointer disabled:opacity-50"
           >
-            <Save size={12} /> {savingNotes ? 'Saving…' : 'Save Notes'}
+            <Save size={12} /> {savingNotes ? 'Saving...' : 'Save Notes'}
           </button>
         </div>
         <textarea
@@ -202,7 +235,7 @@ export default function Results() {
         />
       </div>
 
-      {/* ── Question-by-Question Deep Dive ── */}
+      {/* --- Question-by-Question Deep Dive --- */}
       <div>
         <h2 className="text-lg font-bold text-slate-900 mb-4">
           Detailed Question Rubrics &amp; Model Solutions

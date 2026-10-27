@@ -9,7 +9,7 @@ let currentKeyIndex = 0
 const modelName = () => process.env.GEMINI_MODEL || 'gemini-3.7-flash'
 const clamp = (n, min, max) => Math.max(min, Math.min(max, n))
 const cleanText = (val) => String(val || '').replaceAll('\\r\\n', '\n').replaceAll('\\n', '\n').replaceAll('\\t', '\t').trim()
-const maskKey = (k) => (k && k.length > 10 ? `${k.slice(0, 6)}••••••••${k.slice(-4)}` : '••••••••')
+const maskKey = (k) => (k && k.length > 10 ? `${k.slice(0, 6)}--------${k.slice(-4)}` : '--------')
 
 function sanitizePromptText(val) {
   let cleaned = cleanText(val)
@@ -150,7 +150,7 @@ async function generateJson(prompt, timeoutMs = 12000) {
 async function extractResumeContext(rawText) {
   if (!rawText || !rawText.trim()) return null
   const sanitized = rawText.replace(/\s+/g, ' ').trim().slice(0, 8000)
-  const prompt = `You are an expert technical ATS resume parser. Extract the structured candidate profile from this resume text into JSON. Include ONLY real facts stated in the text — do not hallucinate.\nResume Text:\n"""${sanitized}"""\n\nRespond strictly with JSON: { "name": string, "summary": string, "skills": string[], "experience": [{ "role": string, "company": string, "duration": string, "summary": string }], "projects": [{ "name": string, "technologies": string[], "description": string }], "education": [{ "degree": string, "institution": string, "year": string }], "certifications": string[] }`
+  const prompt = `You are an expert technical ATS resume parser. Extract the structured candidate profile from this resume text into JSON. Include ONLY real facts stated in the text - do not hallucinate.\nResume Text:\n"""${sanitized}"""\n\nRespond strictly with JSON: { "name": string, "summary": string, "skills": string[], "experience": [{ "role": string, "company": string, "duration": string, "summary": string }], "projects": [{ "name": string, "technologies": string[], "description": string }], "education": [{ "degree": string, "institution": string, "year": string }], "certifications": string[] }`
 
   try {
     const data = await generateJson(prompt)
@@ -230,12 +230,12 @@ async function generateQuestions(role, difficulty, count, experience, resumeCont
 
   const ctx = promptContext(role, difficulty, experience, relevantResume, category)
   const excludeRule = excludePrompts && excludePrompts.length > 0 ? ` Do not repeat these questions:\n${excludePrompts.map((p) => `- ${p}`).join('\n')}` : ''
-  const prompt = `You are a Principal Engineering Interviewer conducting a technical screen for ${ctx.profile}.${ctx.rules}${excludeRule}
+  const prompt = `You are an experienced Senior Technical and Domain Interviewer conducting a professional interview screen for ${ctx.profile}.${ctx.rules}${excludeRule}
 Write exactly ${count} distinct interview questions.
 Rules:
-- Speak as a real Principal/Staff Engineer at a top tech company (Google, Stripe, Meta).
+- Speak as an experienced Senior/Staff Interviewer at a top tier company.
 - Avoid formulaic or robotic phrasing. Never start questions with "In your [Project Name] platform," or "In your project...".
-- Focus on practical architectural trade-offs, state management, concurrency, performance bottlenecks, caching, and edge cases.
+- Focus on practical trade-offs, real-world operational challenges, problem-solving, and edge cases relevant to their role.
 - Match depth to ${difficulty} difficulty level. Keep questions to 1-2 clear, natural sentences.
 - Never mention "MockMate" or "Mock Mate AI".
 - If code snippets are included, format with markdown code fences (\`\`\`javascript ... \`\`\`) without comments that give away solutions.
@@ -299,12 +299,12 @@ function generateDefaultModelAnswer(prompt, role) {
 function generateDefaultTalkingPoints(answer, score) {
   const words = (answer || '').trim().split(/\s+/).filter(Boolean).length
   if (score >= 8) {
-    return ['✓ Strong, accurate technical terminology', '✓ Clearly articulated architectural trade-offs', '✓ Well-structured logic flow and production perspective']
+    return ['[+] Strong, accurate technical terminology', '[+] Clearly articulated architectural trade-offs', '[+] Well-structured logic flow and production perspective']
   }
   if (score >= 5) {
-    return ['✓ Core definition correctly identified', '✗ Architecture trade-offs could be deeper', '✗ Could provide more concrete production examples or code']
+    return ['[+] Core definition correctly identified', '[-] Architecture trade-offs could be deeper', '[-] Could provide more concrete production examples or code']
   }
-  return ['✓ Attempted basic conceptual outline', `✗ Response lacks technical depth (under ${Math.max(words, 15)} words)`, '✗ Missing real-world scalability constraints and edge cases']
+  return ['[+] Attempted basic conceptual outline', `[-] Response lacks technical depth (under ${Math.max(words, 15)} words)`, '[-] Missing real-world scalability constraints and edge cases']
 }
 
 async function evaluateInterview(role, items) {
@@ -316,7 +316,7 @@ Evaluate each question on a 10-point scale using this 4-pillar rubric:
 3. structureAndFlow (0 to 2)
 4. communication (0 to 2)
 Total question score = technicalAccuracy + depthAndTradeoffs + structureAndFlow + communication (0-10).
-Also provide feedback string, talkingPoints (3-4 bullet strings e.g. ["✓ ...", "✗ ..."]), and a 10/10 modelAnswer (2-4 sentences or clean code).
+Also provide feedback string, talkingPoints (3-4 bullet strings e.g. ["[+] ...", "[-] ..."]), and a 10/10 modelAnswer (2-4 sentences or clean code).
 Transcript:\n${transcript}\n\nRespond strictly as JSON: { "perQuestion": [{ "score": number, "rubric": { "technicalAccuracy": number, "depthAndTradeoffs": number, "structureAndFlow": number, "communication": number }, "feedback": string, "talkingPoints": string[], "modelAnswer": string }], "overallScore": number, "summary": string }`
 
   try {
@@ -328,7 +328,7 @@ Transcript:\n${transcript}\n\nRespond strictly as JSON: { "perQuestion": [{ "sco
           score: 0,
           rubric: { technicalAccuracy: 0, depthAndTradeoffs: 0, structureAndFlow: 0, communication: 0 },
           feedback: 'No response was provided for this question. Make sure to attempt all questions to build interview fluency.',
-          talkingPoints: ['✗ Question skipped without answer'],
+          talkingPoints: ['[-] Question skipped without answer'],
           modelAnswer: generateDefaultModelAnswer(it.prompt, role),
         }
       }
@@ -429,12 +429,19 @@ function isGibberish(text) {
   return !vowels || vowels.length < 2
 }
 
-const RUBRIC_TIERS = [
-  { minWords: 80, tech: 2.5, depth: 2.5, flow: 2.0, comm: 2.0, feedback: (s) => `Score: ${s}/10 — Thorough technical response with sound structural flow and trade-off awareness.` },
-  { minWords: 35, tech: 2.0, depth: 2.0, flow: 1.5, comm: 1.5, feedback: (s) => `Score: ${s}/10 — Solid foundational structure. Expand on runtime constraints and operational failure handling.` },
-  { minWords: 15, tech: 1.5, depth: 1.0, flow: 1.0, comm: 1.5, feedback: (s, w) => `Score: ${s}/10 — Brief response (${w} words). Missing deeper architectural trade-offs and edge cases.` },
-  { minWords: 0,  tech: 1.0, depth: 0.5, flow: 0.5, comm: 1.0, feedback: (s, w) => `Score: ${s}/10 — Basic definition only (${w} words). Lacks production edge cases and scalability constraints.` },
+const CORE_TECH_KEYWORDS = [
+  'latency', 'throughput', 'concurrency', 'asynchronous', 'trade-off', 'tradeoff', 'idempotent', 'idempotency',
+  'cache', 'caching', 'redis', 'index', 'indexing', 'b-tree', 'query', 'execution plan',
+  'state', 'reducer', 'memo', 'virtual dom', 'hydration', 'render', 're-render', 'event loop',
+  'microservices', 'replica', 'sharding', 'partition', 'failover', 'retry', 'backpressure', 'stream',
+  'jwt', 'cookie', 'csrf', 'xss', 'security', 'rate limit', 'database', 'transaction', 'acid', 'scale',
+  'component', 'middleware', 'schema', 'aggregation', 'nosql', 'sql', 'promise', 'callback'
 ]
+
+function countKeywordMatches(text) {
+  const lower = text.toLowerCase()
+  return CORE_TECH_KEYWORDS.filter((kw) => lower.includes(kw)).length
+}
 
 function fallbackEvaluation(items, role = 'Software Engineer') {
   const perQuestion = items.map(({ prompt, answer }) => {
@@ -446,7 +453,7 @@ function fallbackEvaluation(items, role = 'Software Engineer') {
         score: 0,
         rubric: { technicalAccuracy: 0, depthAndTradeoffs: 0, structureAndFlow: 0, communication: 0 },
         feedback: 'No response was provided for this question. Make sure to attempt all questions.',
-        talkingPoints: ['✗ Question skipped without answer'],
+        talkingPoints: ['[-] Question skipped without answer'],
         modelAnswer: generateDefaultModelAnswer(prompt, role),
       }
     }
@@ -456,21 +463,59 @@ function fallbackEvaluation(items, role = 'Software Engineer') {
         score: 0,
         rubric: { technicalAccuracy: 0, depthAndTradeoffs: 0, structureAndFlow: 0, communication: 0 },
         feedback: 'The response provided contains placeholder characters. Provide a comprehensive, example-driven technical explanation.',
-        talkingPoints: ['✗ Response lacked intelligible technical keywords', '✗ Placeholder input detected'],
+        talkingPoints: ['[-] Response lacked intelligible technical keywords', '[-] Placeholder input detected'],
         modelAnswer: generateDefaultModelAnswer(prompt, role),
       }
     }
 
-    const tier = RUBRIC_TIERS.find((t) => words >= t.minWords) || RUBRIC_TIERS[RUBRIC_TIERS.length - 1]
-    const rubric = { technicalAccuracy: tier.tech, depthAndTradeoffs: tier.depth, structureAndFlow: tier.flow, communication: tier.comm }
-    const score = clamp(Math.round(tier.tech + tier.depth + tier.flow + tier.comm), 1, 10)
+    const keywordHits = countKeywordMatches(text)
+    let techScore = 1.0
+    let depthScore = 1.0
+    let flowScore = 1.0
+    let commScore = 1.0
+
+    // Multi-factor scoring: combination of length, structure, and actual technical keyword usage
+    if (words >= 60 && keywordHits >= 3) {
+      techScore = 2.8
+      depthScore = 2.7
+      flowScore = 1.9
+      commScore = 1.8
+    } else if (words >= 35 && keywordHits >= 2) {
+      techScore = 2.2
+      depthScore = 2.0
+      flowScore = 1.6
+      commScore = 1.5
+    } else if (words >= 20 || keywordHits >= 1) {
+      techScore = 1.6
+      depthScore = 1.4
+      flowScore = 1.2
+      commScore = 1.2
+    } else {
+      techScore = 1.0
+      depthScore = 0.8
+      flowScore = 1.0
+      commScore = 1.0
+    }
+
+    const score = clamp(Math.round(techScore + depthScore + flowScore + commScore), 1, 10)
+    const feedback = score >= 8
+      ? `Score: ${score}/10 - Thorough technical response demonstrating solid architectural reasoning and keyword comprehension.`
+      : score >= 6
+      ? `Score: ${score}/10 - Sound foundational explanation. Consider expanding on edge cases, latency constraints, and concrete code examples.`
+      : `Score: ${score}/10 - Concise response (${words} words). Deepen technical depth by discussing runtime mechanisms and production trade-offs.`
 
     return {
       score,
-      rubric,
-      feedback: tier.feedback(score, words),
+      rubric: {
+        technicalAccuracy: Number(techScore.toFixed(1)),
+        depthAndTradeoffs: Number(depthScore.toFixed(1)),
+        structureAndFlow: Number(flowScore.toFixed(1)),
+        communication: Number(commScore.toFixed(1)),
+      },
+      feedback,
       talkingPoints: generateDefaultTalkingPoints(text, score),
       modelAnswer: generateDefaultModelAnswer(prompt, role),
+      isHeuristicEvaluation: true,
     }
   })
 
@@ -478,7 +523,7 @@ function fallbackEvaluation(items, role = 'Software Engineer') {
   return {
     perQuestion,
     overallScore: Math.round(avg * 10),
-    summary: 'Evaluation completed across 4 core engineering pillars. Review individual rubric marks and model answers below.',
+    summary: 'Evaluation calibrated across 4 core engineering pillars. Review individual rubric marks and model answers below.',
   }
 }
 

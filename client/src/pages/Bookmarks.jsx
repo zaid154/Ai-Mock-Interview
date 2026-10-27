@@ -64,7 +64,7 @@ export default function Bookmarks() {
 
       {loading ? (
         <div className="flex items-center justify-center py-20 text-xs text-slate-400 font-mono">
-          Loading saved questions…
+          Loading saved questions...
         </div>
       ) : bookmarks.length === 0 ? (
         <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center max-w-lg mx-auto shadow-xs my-auto">

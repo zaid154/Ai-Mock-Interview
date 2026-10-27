@@ -127,7 +127,7 @@ export default function Interview() {
   }
 
   function handleTimeUp() {
-    toast.error('Time is up! Submitting your interview…')
+    toast.error('Time is up! Submitting your interview...')
     submit()
   }
 
@@ -144,7 +144,7 @@ export default function Interview() {
 
     try {
       await api.post(`/interviews/${id}/submit`, { answers: payload })
-      toast.success('Interview submitted! Generating comprehensive rubric evaluation…')
+      toast.success('Interview submitted! Generating comprehensive rubric evaluation...')
       navigate(`/results/${id}`)
     } catch (err) {
       toast.error(apiError(err, 'Failed to submit interview'))
@@ -155,7 +155,7 @@ export default function Interview() {
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center p-8 text-xs font-mono text-slate-400">
-        Loading interview workbench…
+        Loading interview workbench...
       </div>
     )
   }
@@ -196,7 +196,7 @@ export default function Interview() {
         followUpPrompt={followUpMap[current] || ''}
       />
 
-      {/* ── Bottom Navigation Controls ── */}
+      {/* -- Bottom Navigation Controls -- */}
       <div className="flex items-center justify-between gap-4 pt-6 border-t border-slate-200 mt-6">
         <button
           type="button"
@@ -214,7 +214,7 @@ export default function Interview() {
             disabled={submitting}
             className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition cursor-pointer disabled:opacity-50"
           >
-            {submitting ? 'Submitting & Evaluating…' : <>Finish &amp; Get Rubric Score <CheckCircle2 size={16} /></>}
+            {submitting ? 'Submitting & Evaluating...' : <>Finish &amp; Get Rubric Score <CheckCircle2 size={16} /></>}
           </button>
         ) : (
           <button

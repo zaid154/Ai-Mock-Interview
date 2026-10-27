@@ -98,7 +98,7 @@ async function submitInterview(req, res) {
       const right = picked === q.correctIndex
       if (right) correct += 1
       q.score = right ? 10 : 0
-      q.feedback = right ? 'Correct.' : `Incorrect — the right answer was option ${String.fromCharCode(65 + q.correctIndex)}.`
+      q.feedback = right ? 'Correct.' : `Incorrect - the right answer was option ${String.fromCharCode(65 + q.correctIndex)}.`
     })
     interview.overallScore = Math.round((correct / (interview.questions.length || 1)) * 100)
     interview.summary = `You scored ${correct} out of ${interview.questions.length} on this quiz.`

@@ -23,7 +23,7 @@ export default function Register() {
     setBusy(true)
     try {
       const data = await register(name, email, password)
-      toast.success(data.otpSent ? 'Account created — security verification code sent' : 'Account created successfully')
+      toast.success(data.otpSent ? 'Account created - security verification code sent' : 'Account created successfully')
       navigate('/verify', { state: { email, otpSent: data.otpSent, registrationToken: data.registrationToken } })
     } catch (err) {
       toast.error(apiError(err, 'Could not create candidate account'))
@@ -159,7 +159,7 @@ export default function Register() {
               disabled={busy}
               className="w-full mt-2 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs py-2.5 rounded-lg shadow-sm shadow-blue-500/20 transition cursor-pointer disabled:opacity-50"
             >
-              {busy ? 'Creating Account…' : <>Get Started <ArrowRight size={14} /></>}
+              {busy ? 'Creating Account...' : <>Get Started <ArrowRight size={14} /></>}
             </button>
 
             <div className="mt-4 pt-4 border-t border-slate-100 text-center">

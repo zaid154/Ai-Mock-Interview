@@ -1,13 +1,13 @@
 const Bookmark = require('../models/bookmarkModel')
 const { normalizePrompt, escapeRegex } = require('../utils/textUtils')
 
-// GET /api/bookmarks — get user's bookmarks
+// GET /api/bookmarks - get user's bookmarks
 async function listBookmarks(req, res) {
   const bookmarks = await Bookmark.find({ user: req.userId }).sort({ createdAt: -1 }).lean()
   res.json({ bookmarks })
 }
 
-// POST /api/bookmarks — create a new bookmark
+// POST /api/bookmarks - create a new bookmark
 async function addBookmark(req, res) {
   const { prompt, role, category, answer, feedback, options, correctIndex, notes, modelAnswer, rubric, talkingPoints } = req.body
 
@@ -40,7 +40,7 @@ async function addBookmark(req, res) {
   res.status(201).json({ bookmark })
 }
 
-// POST /api/bookmarks/toggle — Toggle bookmark (add if absent, remove if already present)
+// POST /api/bookmarks/toggle - Toggle bookmark (add if absent, remove if already present)
 async function toggleBookmark(req, res) {
   const { prompt, role, category, answer, feedback, options, correctIndex, notes, modelAnswer, rubric, talkingPoints } = req.body
 
@@ -76,7 +76,7 @@ async function toggleBookmark(req, res) {
   return res.status(201).json({ ok: true, bookmarked: true, bookmark, message: 'Question saved to Bookmarks' })
 }
 
-// PATCH /api/bookmarks/:id/notes — update notes on a bookmark
+// PATCH /api/bookmarks/:id/notes - update notes on a bookmark
 async function updateBookmarkNotes(req, res) {
   const { notes } = req.body
   const bookmark = await Bookmark.findOneAndUpdate(
@@ -89,7 +89,7 @@ async function updateBookmarkNotes(req, res) {
   res.json({ bookmark })
 }
 
-// DELETE /api/bookmarks/:id — remove a bookmark
+// DELETE /api/bookmarks/:id - remove a bookmark
 async function removeBookmark(req, res) {
   const result = await Bookmark.deleteOne({ _id: req.params.id, user: req.userId })
   if (result.deletedCount === 0) return res.status(404).json({ error: 'Bookmark not found' })

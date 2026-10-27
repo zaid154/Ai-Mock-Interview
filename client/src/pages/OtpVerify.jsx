@@ -127,7 +127,7 @@ export default function OtpVerify() {
               disabled={busy || !email}
               className="w-full mt-2 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs py-2.5 rounded-lg shadow-sm shadow-blue-500/20 transition cursor-pointer disabled:opacity-50"
             >
-              {busy ? 'Sending Code…' : <>Send Verification Code <ArrowRight size={14} /></>}
+              {busy ? 'Sending Code...' : <>Send Verification Code <ArrowRight size={14} /></>}
             </button>
           ) : (
             <>
@@ -163,7 +163,7 @@ export default function OtpVerify() {
                 disabled={busy || otp.length !== 6}
                 className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs py-2.5 rounded-lg shadow-sm shadow-blue-500/20 transition cursor-pointer disabled:opacity-50"
               >
-                {busy ? 'Verifying Code…' : 'Verify Code & Continue'}
+                {busy ? 'Verifying Code...' : 'Verify Code & Continue'}
               </button>
 
               <div className="text-center pt-1">

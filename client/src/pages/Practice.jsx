@@ -3,36 +3,50 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import api, { apiError } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
-import { ArrowLeft, Sparkles, CheckCircle2 } from 'lucide-react'
+import { ArrowLeft, Briefcase, CheckCircle2 } from 'lucide-react'
 import PracticeStudio from '../components/dashboard/PracticeStudio'
 
 const DIFFICULTY_MAP = { Junior: 'easy', Intermediate: 'medium', Senior: 'hard' }
 
 const CURATED_TRACKS = [
   {
-    title: 'React & Frontend Architecture',
-    desc: 'React 18 hooks, rendering performance, state management & bundle optimization.',
+    title: 'Frontend & Web Architecture',
+    desc: 'Rendering performance, state management, bundle optimization, and asynchronous synchronization.',
     role: 'Frontend Engineer',
     topic: 'React & Modern Web Architecture',
     difficulty: 'Intermediate',
   },
   {
-    title: 'Node.js & Microservices',
-    desc: 'Event loop, asynchronous concurrency, API design, auth & streaming.',
+    title: 'Backend & Microservices',
+    desc: 'Event-driven I/O, API idempotency, database connection pooling, and worker concurrency.',
     role: 'Backend Developer',
     topic: 'Node.js, Express & Microservices',
     difficulty: 'Senior',
   },
   {
+    title: 'Product & Technical Strategy',
+    desc: 'Product roadmap prioritization, KPI metrics analysis, stakeholder trade-offs, and feature scoping.',
+    role: 'Technical Product Manager',
+    topic: 'Product Strategy, Metrics & Trade-offs',
+    difficulty: 'Intermediate',
+  },
+  {
+    title: 'Data & Business Intelligence',
+    desc: 'Complex SQL queries, telemetry diagnosis, metric anomaly investigation, and reporting pipeline design.',
+    role: 'Data Analyst',
+    topic: 'SQL, Data Analysis & Business Intelligence',
+    difficulty: 'Intermediate',
+  },
+  {
     title: 'System Design & Scalability',
-    desc: 'Distributed systems, Redis caching, sharding, and resilience strategies.',
+    desc: 'Distributed systems, cache invalidation, sharding strategies, and high-availability architecture.',
     role: 'System Design Architect',
     topic: 'System Design, Scalability & Caching',
     difficulty: 'Senior',
   },
   {
     title: 'MERN Fullstack Engineering',
-    desc: 'End-to-end full stack development, MongoDB aggregations & React patterns.',
+    desc: 'End-to-end full stack architecture, database schema design, and secure authentication flows.',
     role: 'Fullstack Developer',
     topic: 'React & Modern Web Architecture',
     difficulty: 'Intermediate',
@@ -118,7 +132,7 @@ export default function Practice() {
     setProgress({
       active: true,
       percent: 10,
-      statusText: 'Connecting to AI Interview Engine…',
+      statusText: 'Connecting to AI Interview Engine...',
       onCancel: () => {
         cancelRef.current = true
         setBusy(false)
@@ -134,7 +148,7 @@ export default function Practice() {
         return {
           ...p,
           percent: next,
-          statusText: next > 60 ? 'Calibrating rubrics & follow-ups…' : 'Synthesizing technical prompts…',
+          statusText: next > 60 ? 'Calibrating rubrics & follow-ups...' : 'Synthesizing technical prompts...',
         }
       })
     }, 450)
@@ -188,13 +202,13 @@ export default function Practice() {
       <section aria-label="Curated tracks" className="mb-8">
         <div className="flex items-center justify-between mb-3">
           <span className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-            <Sparkles size={13} className="text-blue-600" />
+            <Briefcase size={13} className="text-blue-600" />
             <span>Fast Track Presets</span>
           </span>
           <span className="text-[11px] text-slate-400">Click any track to quick-load parameters</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
           {CURATED_TRACKS.map((track) => {
             const isSelected = role === track.role && topic === track.topic
             return (

@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext'
 export default function ProtectedRoute({ children }) {
   const { user, loading, requireEmailVerification } = useAuth()
 
-  if (loading) return <div className="page-center muted">Loading…</div>
+  if (loading) return <div className="page-center muted">Loading...</div>
   if (!user) return <Navigate to="/login" replace />
   if (requireEmailVerification && !user.isEmailVerified && !user.isVerified) {
     return <Navigate to="/verify" state={{ email: user.email }} replace />

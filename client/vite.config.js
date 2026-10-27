@@ -10,7 +10,7 @@ export default defineConfig({
   // The whole project shares ONE .env at the root (one level above /client).
   envDir: '..',
   server: {
-    port: 5173,
+    port: 5174,
     fs: {
       strict: false,
       allow: ['..']
@@ -22,3 +22,4 @@ export default defineConfig({
   },
 
 })
+

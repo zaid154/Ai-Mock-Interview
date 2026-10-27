@@ -165,7 +165,7 @@ export default function Login() {
               disabled={busy}
               className="w-full mt-2 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs py-2.5 rounded-lg shadow-sm shadow-blue-500/20 transition cursor-pointer disabled:opacity-50"
             >
-              {busy ? 'Signing in…' : <>Sign in to Account <ArrowRight size={14} /></>}
+              {busy ? 'Signing in...' : <>Sign in to Account <ArrowRight size={14} /></>}
             </button>
 
             <div className="mt-4 pt-4 border-t border-slate-100 text-center">

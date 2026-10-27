@@ -78,7 +78,7 @@ export default function QuestionEvaluationList({
               <div className="p-4 rounded-xl bg-blue-50/70 border border-blue-200/80 flex flex-col gap-1.5">
                 <div className="flex items-center gap-1.5 text-blue-700 font-bold text-xs uppercase tracking-wider">
                   <Lightbulb size={14} />
-                  <span>AI Feedback &amp; Rubric Notes</span>
+                  <span>Engineering Rubric &amp; Trade-off Analysis</span>
                 </div>
                 <p className="text-xs text-slate-700 leading-relaxed m-0">
                   {q.feedback}

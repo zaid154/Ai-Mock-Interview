@@ -1,7 +1,7 @@
 import { Loader2, CheckCircle2, AlertCircle, RefreshCw, XCircle } from 'lucide-react'
 
 export default function PracticeProgress({
-  statusText = 'Preparing Assessment…',
+  statusText = 'Preparing Assessment...',
   percent = 0,
   isRetrying = false,
   errorMessage = null,
@@ -22,7 +22,7 @@ export default function PracticeProgress({
             <Loader2 size={18} className="animate-spin text-blue-600" />
           )}
           <span className="text-xs sm:text-sm font-semibold text-slate-900" aria-live="polite">
-            {isComplete ? 'Assessment Ready ✓' : 'Preparing Assessment…'}
+            {isComplete ? 'Assessment Ready' : 'Preparing Assessment...'}
           </span>
         </div>
         <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded-full ${

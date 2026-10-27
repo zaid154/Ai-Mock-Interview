@@ -84,7 +84,7 @@ export default function ProfileEdit({
             className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs px-5 py-2.5 rounded-lg transition cursor-pointer disabled:opacity-50"
           >
             <Save size={14} />
-            <span>{savingProfile ? 'Saving Changes…' : 'Save Changes'}</span>
+            <span>{savingProfile ? 'Saving Changes...' : 'Save Changes'}</span>
           </button>
         </div>
       </form>
