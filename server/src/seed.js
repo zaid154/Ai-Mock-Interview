@@ -139,9 +139,9 @@ async function seed() {
     console.log(`Fallback questions seeded (${questions.length} total).`)
 
     // 2. Seed default admin account
-    const adminEmail = (process.env.ADMIN_EMAIL || 'admin@mockmate.com').trim().toLowerCase()
-    const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@123'
-    const adminName = process.env.ADMIN_NAME || 'Admin User'
+    const adminEmail = (process.env.ADMIN_EMAIL || 'zaidm1323@gmail.com').trim().toLowerCase()
+    const adminPassword = process.env.ADMIN_PASSWORD || 'Zaid@9999201255'
+    const adminName = process.env.ADMIN_NAME || 'Mohd Zaid (Admin)'
 
     const existingAdmin = await User.findOne({ email: adminEmail })
     const salt = await bcrypt.genSalt(10)

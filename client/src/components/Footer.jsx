@@ -27,7 +27,7 @@ export default function Footer() {
 
             <div className="flex items-center gap-2 mt-1">
               <a
-                href="https://portfolio-zeta-drab-97.vercel.app/"
+                href="https://zaid-pro.vercel.app/"
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-50 border border-slate-200 text-slate-700 text-[11px] font-medium hover:border-blue-400 hover:text-blue-600 transition"
@@ -46,7 +46,7 @@ export default function Footer() {
                   <Github size={14} />
                 </a>
                 <a
-                  href="https://portfolio-zeta-drab-97.vercel.app/"
+                  href="https://zaid-pro.vercel.app/"
                   target="_blank"
                   rel="noreferrer"
                   title="Portfolio"
@@ -106,7 +106,7 @@ export default function Footer() {
               <a href="mailto:zaidm1323@gmail.com" className="hover:text-blue-600 transition inline-flex items-center gap-1.5">
                 <Mail size={12} /> zaidm1323@gmail.com
               </a>
-              <a href="https://portfolio-zeta-drab-97.vercel.app/" target="_blank" rel="noreferrer" className="hover:text-blue-600 transition">
+              <a href="https://zaid-pro.vercel.app/" target="_blank" rel="noreferrer" className="hover:text-blue-600 transition">
                 Portfolio Site
               </a>
               <a href="https://github.com/zaid154" target="_blank" rel="noreferrer" className="hover:text-blue-600 transition">

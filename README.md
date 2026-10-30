@@ -4,8 +4,8 @@ An AI-driven technical mock interview simulator built with the MERN stack (Mongo
 
 MockMate AI helps developers practice technical interviews across Frontend, Backend, Fullstack, and System Design tracks with instant AI-driven rubric feedback, speech-to-text dictation, and personal question bookmarks.
 
-**Live Application:** [ai-mock-interview-three-pi.vercel.app](https://ai-mock-interview-three-pi.vercel.app/)  
-**Created by Mohd Zaid:** [Portfolio](https://portfolio-zeta-drab-97.vercel.app/) | [GitHub](https://github.com/zaid154) | [LinkedIn](https://www.linkedin.com/in/mohd-zaid-794090231/)
+**Live Application:** [mockmate-pro.vercel.app](https://mockmate-pro.vercel.app/)  
+**Created by Mohd Zaid:** [Portfolio](https://zaid-pro.vercel.app/) | [GitHub](https://github.com/zaid154) | [LinkedIn](https://www.linkedin.com/in/mohd-zaid-794090231/)
 
 ---
 
