@@ -25,21 +25,24 @@ async function getEmailConfig() {
   }
 }
 
-function getTransporter(config) {
-  const hash = `${config.smtpHost}:${config.smtpPort}:${config.smtpUser}:${config.smtpPass}`
+function getTransporter(config, forcePort) {
+  const port = forcePort || Number(config.smtpPort) || 587
+  const hash = `${config.smtpHost}:${port}:${config.smtpUser}:${config.smtpPass}`
   if (cachedTransporter && lastConfigHash === hash) return cachedTransporter
 
   const isGmail = config.smtpHost === 'smtp.gmail.com' || config.smtpUser?.endsWith('@gmail.com')
-  const transportOpts = isGmail
-    ? { service: 'gmail' }
-    : { host: config.smtpHost, port: config.smtpPort, secure: config.smtpPort === 465 }
+  const host = isGmail ? 'smtp.gmail.com' : config.smtpHost
 
   cachedTransporter = nodemailer.createTransport({
-    ...transportOpts,
+    host,
+    port,
+    secure: port === 465,
+    requireTLS: port === 587,
+    family: 4, // Enforce IPv4 to prevent ENETUNREACH on cloud hosts like Render
     auth: { user: config.smtpUser, pass: config.smtpPass },
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000,
+    connectionTimeout: 15000,
+    greetingTimeout: 15000,
+    socketTimeout: 20000,
   })
   lastConfigHash = hash
   return cachedTransporter
@@ -49,15 +52,35 @@ async function sendEmail(to, subject, text, html) {
   const config = await getEmailConfig()
   const errors = []
 
-  // 1. Direct Gmail / Custom SMTP
+  // 1. Direct Gmail / Custom SMTP (enforce IPv4, with fallback to 465 if 587 times out)
   if (config.smtpUser && config.smtpPass) {
     try {
-      const tx = getTransporter(config)
-      const info = await tx.sendMail({ from: config.smtpFrom || `MockMate AI <${config.smtpUser}>`, to: to.trim(), subject, text, html })
+      const tx = getTransporter(config, 587)
+      const info = await tx.sendMail({
+        from: config.smtpFrom || `MockMate AI <${config.smtpUser}>`,
+        to: to.trim(),
+        subject,
+        text,
+        html,
+      })
       return { success: true, provider: 'smtp', messageId: info.messageId }
     } catch (err) {
-      console.error(`[Email Service] SMTP error:`, err.message)
+      console.error(`[Email Service] SMTP (port 587) error:`, err.message)
       errors.push(`SMTP (${err.message})`)
+      // Automatic port 465 SSL fallback if 587 is blocked
+      try {
+        const tx465 = getTransporter(config, 465)
+        const info = await tx465.sendMail({
+          from: config.smtpFrom || `MockMate AI <${config.smtpUser}>`,
+          to: to.trim(),
+          subject,
+          text,
+          html,
+        })
+        return { success: true, provider: 'smtp-465', messageId: info.messageId }
+      } catch (err465) {
+        console.error(`[Email Service] SMTP (port 465) fallback error:`, err465.message)
+      }
     }
   }
 
