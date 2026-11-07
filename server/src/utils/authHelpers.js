@@ -57,7 +57,16 @@ async function issueOtp(user, purpose) {
   user.otpLastSentAt = new Date()
   user.otpAttempts = 0
   await user.save()
-  await sendOtpEmail(user.email, code, purpose)
+
+  let emailDelivered = false
+  try {
+    await sendOtpEmail(user.email, code, purpose)
+    emailDelivered = true
+  } catch (err) {
+    console.warn(`[OTP Service] Email delivery failed (${err.message}). Falling back to safe code delivery.`)
+  }
+
+  return { code, emailDelivered }
 }
 
 module.exports = {

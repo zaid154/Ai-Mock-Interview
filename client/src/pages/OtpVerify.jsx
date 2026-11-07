@@ -52,7 +52,12 @@ export default function OtpVerify() {
       if (data.alreadyVerified) return toast.success('Your email is already verified.')
       setCooldown(data.cooldownSeconds || 60)
       setCodeSent(true)
-      toast.success(`Verification code sent to ${email}.`)
+      if (data.devCode) {
+        toast.success(`Verification code: ${data.devCode}`, { duration: 10000 })
+        setOtp(data.devCode)
+      } else {
+        toast.success(`Verification code sent to ${email}.`)
+      }
     } catch (err) {
       toast.error(apiError(err, 'Could not send code'))
     } finally {

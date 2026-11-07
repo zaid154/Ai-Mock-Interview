@@ -136,16 +136,25 @@ async function resendOtp(req, res) {
   if (!user) return res.status(404).json({ error: 'No account found with this email address. Please sign up.' })
   if (emailVerified(user)) return res.json({ ok: true, alreadyVerified: true, message: 'Your email is already verified.' })
 
-  await issueOtp(user, 'verify')
-  return res.json({ ok: true, cooldownSeconds: OTP_RESEND_COOLDOWN_SECONDS })
+  const { code, emailDelivered } = await issueOtp(user, 'verify')
+  return res.json({
+    ok: true,
+    cooldownSeconds: OTP_RESEND_COOLDOWN_SECONDS,
+    emailDelivered,
+    devCode: emailDelivered ? undefined : code,
+  })
 }
 
 async function forgotPassword(req, res) {
   const email = (req.body.email || '').toLowerCase().trim()
   const user = await User.findOne({ email })
   if (!user) return res.status(404).json({ error: 'No account found with this email address.' })
-  await issueOtp(user, 'reset')
-  return res.json({ ok: true })
+  const { code, emailDelivered } = await issueOtp(user, 'reset')
+  return res.json({
+    ok: true,
+    emailDelivered,
+    devCode: emailDelivered ? undefined : code,
+  })
 }
 
 async function resetPassword(req, res) {
