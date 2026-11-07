@@ -82,6 +82,15 @@ app.get('/', (_req, res) => {
   res.json({ status: 'ok', service: 'mockmate-server', uptime: Math.round(process.uptime()) })
 })
 
+app.get('/api', (_req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'mockmate-server',
+    message: 'MockMate AI API is running',
+    health: '/api/health',
+  })
+})
+
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', service: 'mockmate-server' })
 })
