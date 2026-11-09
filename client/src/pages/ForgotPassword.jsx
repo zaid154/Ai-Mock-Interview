@@ -23,7 +23,6 @@ export default function ForgotPassword() {
       const { data } = await api.post('/auth/forgot-password', { email: email.trim().toLowerCase() })
       if (data.devCode) {
         toast.success(`Verification code: ${data.devCode}`, { duration: 10000 })
-        setOtp(data.devCode)
       } else {
         toast.success('Security code sent! Check your inbox.')
       }

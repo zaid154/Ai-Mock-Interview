@@ -54,7 +54,6 @@ export default function OtpVerify() {
       setCodeSent(true)
       if (data.devCode) {
         toast.success(`Verification code: ${data.devCode}`, { duration: 10000 })
-        setOtp(data.devCode)
       } else {
         toast.success(`Verification code sent to ${email}.`)
       }

@@ -5,7 +5,10 @@ function notFound(_req, res) {
 
 // Central error handler: maps Mongo/Multer errors and prevents leaking stack traces or internal DB paths in production
 function errorHandler(err, _req, res, _next) {
-  const isProd = process.env.NODE_ENV === 'production'
+  const isProd =
+    process.env.NODE_ENV === 'production' ||
+    process.env.RENDER === 'true' ||
+    Boolean(process.env.RENDER_SERVICE_ID)
   const statusCode = err?.status || err?.statusCode || 500
 
   // Log error internally on server console
@@ -35,4 +38,3 @@ function errorHandler(err, _req, res, _next) {
 }
 
 module.exports = { notFound, errorHandler }
-

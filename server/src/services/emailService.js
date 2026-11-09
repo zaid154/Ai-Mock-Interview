@@ -9,8 +9,12 @@ async function getEmailConfig() {
   try {
     const mongoose = require('mongoose')
     if (mongoose.connection?.readyState === 1) {
-      const docs = await Setting.find({ key: { $in: ['smtp_user', 'smtp_pass', 'smtp_host', 'smtp_port', 'smtp_from', 'brevo_api_key'] } }).lean()
-      docs.forEach((d) => { dbSettings[d.key] = d.value })
+      const docs = await Setting.find({
+        key: { $in: ['smtp_user', 'smtp_pass', 'smtp_host', 'smtp_port', 'smtp_from', 'brevo_api_key', 'resend_api_key'] },
+      }).lean()
+      docs.forEach((d) => {
+        dbSettings[d.key] = d.value
+      })
     }
   } catch (_) {}
 
@@ -22,6 +26,7 @@ async function getEmailConfig() {
     smtpPort: Number(process.env.SMTP_PORT || dbSettings.smtp_port) || 587,
     smtpFrom: (process.env.SMTP_FROM || dbSettings.smtp_from || (smtpUser ? `MockMate AI <${smtpUser}>` : '')).trim(),
     brevoKey: (process.env.BREVO_API_KEY || dbSettings.brevo_api_key || '').trim(),
+    resendKey: (process.env.RESEND_API_KEY || dbSettings.resend_api_key || '').trim(),
   }
 }
 
@@ -52,7 +57,63 @@ async function sendEmail(to, subject, text, html) {
   const config = await getEmailConfig()
   const errors = []
 
-  // 1. Direct Gmail / Custom SMTP (enforce IPv4, with fallback to 465 if 587 times out)
+  // 1. Resend API (HTTP POST over 443 — works seamlessly across all cloud hosts including Render Free Tier)
+  if (config.resendKey) {
+    try {
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${config.resendKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: config.smtpFrom || 'MockMate AI <onboarding@resend.dev>',
+          to: [to.trim()],
+          subject,
+          text,
+          html,
+        }),
+      })
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
+        throw new Error(errData.message || `Resend HTTP ${res.status}`)
+      }
+      const data = await res.json().catch(() => ({}))
+      return { success: true, provider: 'resend', messageId: data?.id }
+    } catch (err) {
+      console.error(`[Email Service] Resend error:`, err.message)
+      errors.push(`Resend (${err.message})`)
+    }
+  }
+
+  // 2. Automated Failover: Brevo API (HTTP POST over 443)
+  if (config.brevoKey) {
+    try {
+      const senderEmail = config.smtpUser || 'noreply@mockmate.ai'
+      const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: { accept: 'application/json', 'api-key': config.brevoKey, 'content-type': 'application/json' },
+        body: JSON.stringify({
+          sender: { name: 'MockMate AI', email: senderEmail },
+          to: [{ email: to.trim() }],
+          subject,
+          textContent: text,
+          htmlContent: html,
+        }),
+      })
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
+        throw new Error(errData.message || errData.code || `Brevo HTTP ${res.status}`)
+      }
+      const data = await res.json().catch(() => ({}))
+      return { success: true, provider: 'brevo', messageId: data?.messageId }
+    } catch (err) {
+      console.error(`[Email Service] Brevo error:`, err.message)
+      errors.push(`Brevo (${err.message})`)
+    }
+  }
+
+  // 3. Direct Gmail / Custom SMTP (enforce IPv4, with fallback to 465 if 587 times out)
   if (config.smtpUser && config.smtpPass) {
     try {
       const tx = getTransporter(config, 587)
@@ -84,36 +145,9 @@ async function sendEmail(to, subject, text, html) {
     }
   }
 
-  // 2. Automated Failover: Brevo API
-  if (config.brevoKey) {
-    try {
-      const senderEmail = config.smtpUser || 'noreply@mockmate.ai'
-      const res = await fetch('https://api.brevo.com/v3/smtp/email', {
-        method: 'POST',
-        headers: { accept: 'application/json', 'api-key': config.brevoKey, 'content-type': 'application/json' },
-        body: JSON.stringify({
-          sender: { name: 'MockMate AI', email: senderEmail },
-          to: [{ email: to.trim() }],
-          subject,
-          textContent: text,
-          htmlContent: html,
-        }),
-      })
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}))
-        throw new Error(errData.message || errData.code || `Brevo HTTP ${res.status}`)
-      }
-      const data = await res.json().catch(() => ({}))
-      return { success: true, provider: 'brevo', messageId: data?.messageId }
-    } catch (err) {
-      console.error(`[Email Service] Brevo error:`, err.message)
-      errors.push(`Brevo (${err.message})`)
-    }
-  }
-
-  // 3. Fallback when neither SMTP nor Brevo is configured
-  if (!config.smtpUser && !config.brevoKey) {
-    console.warn(`[Email Service] Neither SMTP nor Brevo is configured in environment (.env). Code logged to console.`)
+  // 4. Fallback when no email provider is configured
+  if (!config.smtpUser && !config.brevoKey && !config.resendKey) {
+    console.warn(`[Email Service] No email credentials configured in environment. Code logged to console.`)
     return { success: true, provider: 'console-only' }
   }
 
@@ -128,6 +162,18 @@ async function getEmailStatus() {
   const maskKey = (k) => (k && k.length > 10 ? `${k.slice(0, 8)}--------${k.slice(-4)}` : '--------')
 
   return {
+    resend: {
+      configured: Boolean(c.resendKey),
+      apiKey: maskKey(c.resendKey),
+      status: c.resendKey ? 'ready' : 'missing_key',
+      provider: 'Resend API (Cloud Native / HTTPS 443)',
+    },
+    brevo: {
+      configured: Boolean(c.brevoKey),
+      apiKey: maskKey(c.brevoKey),
+      status: c.brevoKey ? 'ready' : 'missing_key',
+      provider: 'Brevo API (Failover / HTTPS 443)',
+    },
     smtp: {
       configured: Boolean(c.smtpUser && c.smtpPass),
       host: c.smtpHost,
@@ -135,12 +181,6 @@ async function getEmailStatus() {
       user: maskEmail(c.smtpUser),
       status: c.smtpUser && c.smtpPass ? 'ready' : 'missing_credentials',
       provider: 'Gmail SMTP (Primary)',
-    },
-    brevo: {
-      configured: Boolean(c.brevoKey),
-      apiKey: maskKey(c.brevoKey),
-      status: c.brevoKey ? 'ready' : 'missing_key',
-      provider: 'Brevo API (Failover)',
     },
   }
 }
@@ -167,7 +207,12 @@ async function sendOtpEmail(to, code, purpose) {
   const action = isReset ? 'reset your password' : 'verify your email address'
   const title = isReset ? 'Reset your password' : 'Verify your email'
   const subject = isReset ? 'Reset your MockMate password' : 'Verify your MockMate email'
-  const text = [`${title}\n`, `Use this one-time code to ${action}: ${code}`, 'This code expires in 10 minutes and can only be used once.', 'If you did not request this, you can safely ignore this email.'].join('\n\n')
+  const text = [
+    `${title}\n`,
+    `Use this one-time code to ${action}: ${code}`,
+    'This code expires in 10 minutes and can only be used once.',
+    'If you did not request this, you can safely ignore this email.',
+  ].join('\n\n')
   const html = otpEmailTemplate({ code, title, action, isReset })
   await sendEmail(to, subject, text, html)
 }
@@ -200,5 +245,3 @@ function otpEmailTemplate({ code, title, action, isReset }) {
 }
 
 module.exports = { sendEmail, sendOtpEmail, getEmailStatus, testEmailDelivery }
-
-
