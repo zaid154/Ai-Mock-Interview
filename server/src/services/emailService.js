@@ -10,7 +10,7 @@ async function getEmailConfig() {
     const mongoose = require('mongoose')
     if (mongoose.connection?.readyState === 1) {
       const docs = await Setting.find({
-        key: { $in: ['smtp_user', 'smtp_pass', 'smtp_host', 'smtp_port', 'smtp_from', 'brevo_api_key', 'resend_api_key'] },
+        key: { $in: ['smtp_user', 'smtp_pass', 'smtp_host', 'smtp_port', 'smtp_from', 'brevo_api_key', 'brevo_sender', 'resend_api_key'] },
       }).lean()
       docs.forEach((d) => {
         dbSettings[d.key] = d.value
@@ -26,6 +26,7 @@ async function getEmailConfig() {
     smtpPort: Number(process.env.SMTP_PORT || dbSettings.smtp_port) || 587,
     smtpFrom: (process.env.SMTP_FROM || dbSettings.smtp_from || (smtpUser ? `MockMate AI <${smtpUser}>` : '')).trim(),
     brevoKey: (process.env.BREVO_API_KEY || dbSettings.brevo_api_key || '').trim(),
+    brevoSender: (process.env.BREVO_SENDER || dbSettings.brevo_sender || 'zaidm1323@gmail.com').trim(),
     resendKey: (process.env.RESEND_API_KEY || dbSettings.resend_api_key || '').trim(),
   }
 }
@@ -89,7 +90,7 @@ async function sendEmail(to, subject, text, html) {
   // 2. Automated Failover: Brevo API (HTTP POST over 443)
   if (config.brevoKey) {
     try {
-      const senderEmail = config.smtpUser || 'noreply@mockmate.ai'
+      const senderEmail = config.brevoSender || 'zaidm1323@gmail.com'
       const res = await fetch('https://api.brevo.com/v3/smtp/email', {
         method: 'POST',
         headers: { accept: 'application/json', 'api-key': config.brevoKey, 'content-type': 'application/json' },
