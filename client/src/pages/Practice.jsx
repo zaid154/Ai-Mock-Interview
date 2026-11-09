@@ -3,53 +3,92 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import api, { apiError } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
-import { ArrowLeft, Briefcase, CheckCircle2 } from 'lucide-react'
+import {
+  ArrowLeft,
+  Sparkles,
+  Sliders,
+  Code2,
+  Database,
+  Layers,
+  Network,
+  BarChart3,
+  Users,
+  CheckCircle2,
+  ArrowRight,
+  Clock,
+  Settings2,
+} from 'lucide-react'
 import PracticeStudio from '../components/dashboard/PracticeStudio'
+import PracticeProgress from '../components/dashboard/PracticeProgress'
 
 const DIFFICULTY_MAP = { Junior: 'easy', Intermediate: 'medium', Senior: 'hard' }
 
 const CURATED_TRACKS = [
   {
+    id: 'frontend',
     title: 'Frontend & Web Architecture',
-    desc: 'Rendering performance, state management, bundle optimization, and asynchronous synchronization.',
     role: 'Frontend Engineer',
     topic: 'React & Modern Web Architecture',
     difficulty: 'Intermediate',
+    count: 5,
+    timer: '0',
+    icon: Code2,
+    desc: 'Component architecture, Virtual DOM reconciliation, useMemo trade-offs, and state management.',
   },
   {
+    id: 'backend',
     title: 'Backend & Microservices',
-    desc: 'Event-driven I/O, API idempotency, database connection pooling, and worker concurrency.',
     role: 'Backend Developer',
     topic: 'Node.js, Express & Microservices',
     difficulty: 'Senior',
+    count: 5,
+    timer: '0',
+    icon: Database,
+    desc: 'JWT authentication & refresh tokens, connection pooling, rate limiting, and RESTful API architecture.',
   },
   {
-    title: 'Product & Technical Strategy',
-    desc: 'Product roadmap prioritization, KPI metrics analysis, stakeholder trade-offs, and feature scoping.',
-    role: 'Technical Product Manager',
-    topic: 'Product Strategy, Metrics & Trade-offs',
+    id: 'fullstack',
+    title: 'MERN Fullstack Engineering',
+    role: 'Fullstack Developer',
+    topic: 'MERN Architecture & Performance',
     difficulty: 'Intermediate',
+    count: 5,
+    timer: '0',
+    icon: Layers,
+    desc: 'End-to-end full stack architecture, query optimization, database indexing, and async API integration.',
   },
   {
-    title: 'Data & Business Intelligence',
-    desc: 'Complex SQL queries, telemetry diagnosis, metric anomaly investigation, and reporting pipeline design.',
-    role: 'Data Analyst',
-    topic: 'SQL, Data Analysis & Business Intelligence',
-    difficulty: 'Intermediate',
-  },
-  {
+    id: 'system-design',
     title: 'System Design & Scalability',
-    desc: 'Distributed systems, cache invalidation, sharding strategies, and high-availability architecture.',
     role: 'System Design Architect',
     topic: 'System Design, Scalability & Caching',
     difficulty: 'Senior',
+    count: 5,
+    timer: '0',
+    icon: Network,
+    desc: 'Distributed systems, Redis cache-aside patterns, database sharding, and high-availability architecture.',
   },
   {
-    title: 'MERN Fullstack Engineering',
-    desc: 'End-to-end full stack architecture, database schema design, and secure authentication flows.',
-    role: 'Fullstack Developer',
-    topic: 'React & Modern Web Architecture',
+    id: 'data',
+    title: 'Data & Business Intelligence',
+    role: 'Data Analyst',
+    topic: 'SQL, Data Analysis & Business Intelligence',
     difficulty: 'Intermediate',
+    count: 5,
+    timer: '0',
+    icon: BarChart3,
+    desc: 'Complex SQL queries, retention cohorts, metric anomaly investigation, and reporting pipeline design.',
+  },
+  {
+    id: 'behavioral',
+    title: 'Behavioral & Leadership',
+    role: 'Engineering Lead / Team Member',
+    topic: 'STAR Framework & Conflict Resolution',
+    difficulty: 'Senior',
+    count: 5,
+    timer: '0',
+    icon: Users,
+    desc: 'STAR method responses, handling technical disagreements, team leadership, and executive communication.',
   },
 ]
 
@@ -58,6 +97,7 @@ export default function Practice() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
+  const [activeTab, setActiveTab] = useState('presets') // 'presets' | 'custom'
   const [role, setRole] = useState(user?.targetRole || 'Fullstack Developer')
   const [topic, setTopic] = useState('React & Modern Web Architecture')
   const [customTopic, setCustomTopic] = useState('')
@@ -72,8 +112,15 @@ export default function Practice() {
   useEffect(() => {
     const track = searchParams.get('track')
     if (track) {
-      const match = CURATED_TRACKS.find((t) => t.title.toLowerCase().includes(track.toLowerCase()) || t.role.toLowerCase().includes(track.toLowerCase()))
-      if (match) applyTrack(match)
+      const match = CURATED_TRACKS.find(
+        (t) =>
+          t.title.toLowerCase().includes(track.toLowerCase()) ||
+          t.role.toLowerCase().includes(track.toLowerCase())
+      )
+      if (match) {
+        applyTrack(match)
+        setActiveTab('custom')
+      }
     }
     if (user?.resumeFileName) {
       setResumeFileName(user.resumeFileName)
@@ -84,6 +131,14 @@ export default function Practice() {
     setRole(track.role)
     setTopic(track.topic)
     setDifficulty(track.difficulty)
+    setNumQuestions(track.count || 5)
+    setTimerMinutes(track.timer || '0')
+  }
+
+  function handleCustomizeTrack(track) {
+    applyTrack(track)
+    setActiveTab('custom')
+    toast.success(`Loaded "${track.title}" into Custom Studio!`)
   }
 
   async function handleFileUpload(e) {
@@ -121,17 +176,24 @@ export default function Practice() {
     }
   }
 
-  async function createSession(e) {
+  async function createSession(e, overrideParams = null) {
     if (e && e.preventDefault) e.preventDefault()
-    if (!role.trim()) return toast.error('Target role is required')
-    const finalTopic = topic === 'Custom Topic' ? customTopic.trim() : topic
+
+    const targetRole = (overrideParams?.role || role).trim()
+    const rawTopic = overrideParams?.topic || topic
+    const finalTopic = rawTopic === 'Custom Topic' ? (overrideParams?.customTopic || customTopic).trim() : rawTopic
+    const targetDiff = overrideParams?.difficulty || difficulty
+    const targetCount = Number(overrideParams?.count || overrideParams?.numQuestions || numQuestions) || 5
+    const targetTimer = Number(overrideParams?.timer || overrideParams?.timerMinutes || timerMinutes) || 0
+
+    if (!targetRole) return toast.error('Target role is required')
     if (!finalTopic) return toast.error('Please specify a topic')
 
     setBusy(true)
     cancelRef.current = false
     setProgress({
       active: true,
-      percent: 10,
+      percent: 15,
       statusText: 'Connecting to AI Interview Engine...',
       onCancel: () => {
         cancelRef.current = true
@@ -148,19 +210,21 @@ export default function Practice() {
         return {
           ...p,
           percent: next,
-          statusText: next > 60 ? 'Calibrating rubrics & follow-ups...' : 'Synthesizing technical prompts...',
+          statusText: next > 60 ? 'Calibrating rubrics & questions...' : 'Synthesizing technical prompts...',
         }
       })
     }, 450)
 
     try {
+      // FIXED PAYLOAD: exactly matches server startSchema (role, category, difficulty, count, timerMinutes, mode)
       const { data } = await api.post('/interviews', {
-        role: role.trim(),
-        topic: finalTopic,
-        difficulty: DIFFICULTY_MAP[difficulty] || 'medium',
-        numQuestions: Number(numQuestions) || 5,
-        timerMinutes: Number(timerMinutes) || 0,
-        mode: 'text',
+        role: targetRole,
+        category: finalTopic,
+        experience: targetDiff,
+        difficulty: DIFFICULTY_MAP[targetDiff] || 'medium',
+        count: targetCount,
+        timerMinutes: targetTimer,
+        mode: 'questions',
       })
 
       clearInterval(timer)
@@ -173,7 +237,7 @@ export default function Practice() {
     } catch (err) {
       clearInterval(timer)
       setBusy(false)
-      setProgress((p) => ({ ...p, errorMessage: 'Unable to start assessment.', onRetry: () => createSession() }))
+      setProgress((p) => ({ ...p, errorMessage: 'Unable to start assessment.', onRetry: () => createSession(null, overrideParams) }))
       toast.error(apiError(err, 'Could not start session'))
     }
   }
@@ -187,7 +251,7 @@ export default function Practice() {
             Practice Studio
           </h1>
           <p className="text-xs text-slate-500">
-            Configure parameters to simulate authentic technical hiring rounds.
+            Choose a curated fast track or customize your role, topic, and interview parameters.
           </p>
         </div>
         <Link
@@ -198,73 +262,153 @@ export default function Practice() {
         </Link>
       </div>
 
-      {/* Curated Pre-Configured Tracks */}
-      <section aria-label="Curated tracks" className="mb-8">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-            <Briefcase size={13} className="text-blue-600" />
-            <span>Fast Track Presets</span>
-          </span>
-          <span className="text-[11px] text-slate-400">Click any track to quick-load parameters</span>
+      {/* Mode Switcher Tabs */}
+      <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
+        <div className="inline-flex items-center p-1 rounded-xl bg-slate-100 border border-slate-200 text-xs font-medium">
+          <button
+            type="button"
+            onClick={() => setActiveTab('presets')}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg transition cursor-pointer ${
+              activeTab === 'presets'
+                ? 'bg-white text-blue-700 font-bold shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <Sparkles size={14} className={activeTab === 'presets' ? 'text-blue-600' : 'text-slate-400'} />
+            <span>Fast Track Presets (1-Click)</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('custom')}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg transition cursor-pointer ${
+              activeTab === 'custom'
+                ? 'bg-white text-blue-700 font-bold shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <Sliders size={14} className={activeTab === 'custom' ? 'text-blue-600' : 'text-slate-400'} />
+            <span>Custom Studio (Configure)</span>
+          </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-          {CURATED_TRACKS.map((track) => {
-            const isSelected = role === track.role && topic === track.topic
-            return (
-              <button
-                key={track.title}
-                type="button"
-                onClick={() => applyTrack(track)}
-                className={`p-4 rounded-xl border text-left transition flex flex-col justify-between cursor-pointer ${
-                  isSelected
-                    ? 'bg-blue-50/70 border-blue-400 shadow-xs'
-                    : 'bg-white border-slate-200/90 hover:border-slate-300 hover:shadow-xs'
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-2 mb-1.5">
-                    <span className="text-xs font-bold text-slate-900">
+        <span className="text-xs text-slate-500 hidden sm:inline">
+          {activeTab === 'presets' ? '⚡ Select any track to start immediately' : '🛠️ Tailor questions to your exact target role'}
+        </span>
+      </div>
+
+      {/* Progress Notification (if creating) */}
+      {progress && progress.active && (
+        <div className="mb-6">
+          <PracticeProgress {...progress} />
+        </div>
+      )}
+
+      {/* TAB 1: Fast Track Presets */}
+      {activeTab === 'presets' && (
+        <section aria-label="Curated tracks" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {CURATED_TRACKS.map((track) => {
+              const Icon = track.icon
+              return (
+                <div
+                  key={track.id}
+                  className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:border-blue-300 hover:shadow-sm transition flex flex-col justify-between group"
+                >
+                  <div>
+                    {/* Top Row: Icon + Badges */}
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <div className="w-9 h-9 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+                        <Icon size={18} />
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200/60">
+                          {track.difficulty}
+                        </span>
+                        <span className="text-[10px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                          {track.count} Qs
+                        </span>
+                      </div>
+                    </div>
+
+                    <h3 className="text-sm font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition">
                       {track.title}
-                    </span>
-                    {isSelected && <CheckCircle2 size={14} className="text-blue-600 shrink-0" />}
+                    </h3>
+                    <p className="text-xs text-slate-500 font-medium mb-2.5">
+                      {track.role}
+                    </p>
+                    <p className="text-xs text-slate-600 leading-relaxed mb-4">
+                      {track.desc}
+                    </p>
                   </div>
-                  <p className="text-[11px] text-slate-500 leading-relaxed mb-3">
-                    {track.desc}
-                  </p>
-                </div>
-                <div>
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-blue-100/70 text-blue-700">
-                    {track.difficulty}
-                  </span>
-                </div>
-              </button>
-            )
-          })}
-        </div>
-      </section>
 
-      {/* Main Studio Setup Form */}
-      <PracticeStudio
-        role={role}
-        setRole={setRole}
-        topic={topic}
-        setTopic={setTopic}
-        customTopic={customTopic}
-        setCustomTopic={setCustomTopic}
-        numQuestions={numQuestions}
-        setNumQuestions={setNumQuestions}
-        difficulty={difficulty}
-        setDifficulty={setDifficulty}
-        timerMinutes={timerMinutes}
-        setTimerMinutes={setTimerMinutes}
-        resumeFileName={resumeFileName}
-        handleFileUpload={handleFileUpload}
-        handleRemoveResume={handleRemoveResume}
-        createSession={createSession}
-        busy={busy}
-        progress={progress}
-      />
+                  {/* Bottom Actions */}
+                  <div className="pt-3.5 border-t border-slate-100 flex items-center justify-between gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleCustomizeTrack(track)}
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:text-blue-600 transition cursor-pointer"
+                      title="Adjust parameters before starting"
+                    >
+                      <Settings2 size={13} />
+                      <span>Customize</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => createSession(null, track)}
+                      className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs px-3.5 py-1.5 rounded-lg transition disabled:opacity-50 cursor-pointer shadow-xs"
+                    >
+                      <span>Start Round</span>
+                      <ArrowRight size={12} />
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Quick Custom Callout */}
+          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-600">
+            <div className="flex items-center gap-2">
+              <Sliders size={16} className="text-blue-600 shrink-0" />
+              <span>Need custom questions, specific frameworks, or want to attach your PDF resume?</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActiveTab('custom')}
+              className="font-bold text-blue-600 hover:text-blue-700 hover:underline shrink-0 text-left sm:text-right cursor-pointer"
+            >
+              Open Custom Studio &rarr;
+            </button>
+          </div>
+        </section>
+      )}
+
+      {/* TAB 2: Custom Studio Configurator */}
+      {activeTab === 'custom' && (
+        <PracticeStudio
+          role={role}
+          setRole={setRole}
+          topic={topic}
+          setTopic={setTopic}
+          customTopic={customTopic}
+          setCustomTopic={setCustomTopic}
+          numQuestions={numQuestions}
+          setNumQuestions={setNumQuestions}
+          difficulty={difficulty}
+          setDifficulty={setDifficulty}
+          timerMinutes={timerMinutes}
+          setTimerMinutes={setTimerMinutes}
+          resumeFileName={resumeFileName}
+          handleFileUpload={handleFileUpload}
+          handleRemoveResume={handleRemoveResume}
+          createSession={createSession}
+          busy={busy}
+          progress={progress}
+          onSwitchToPresets={() => setActiveTab('presets')}
+        />
+      )}
     </main>
   )
 }
