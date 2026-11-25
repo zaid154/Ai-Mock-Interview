@@ -1,6 +1,6 @@
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
-import { X, LogOut, LayoutDashboard, Code2, Bookmark, User, Home } from 'lucide-react'
+import { X, LogOut, LayoutDashboard, Code2, Bookmark, User, Home, Layers } from 'lucide-react'
 
 export default function NavDrawer({ isOpen, onClose, user, logout }) {
   if (!isOpen) return null
@@ -77,13 +77,29 @@ export default function NavDrawer({ isOpen, onClose, user, logout }) {
                   </Link>
                 </>
               ) : (
-                <Link
-                  to="/"
-                  onClick={onClose}
-                  className="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition"
-                >
-                  <Home size={16} className="text-slate-400" /> Home
-                </Link>
+                <>
+                  <Link
+                    to="/"
+                    onClick={onClose}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition"
+                  >
+                    <Home size={16} className="text-slate-400" /> Home
+                  </Link>
+                  <a
+                    href="/#tracks"
+                    onClick={onClose}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition"
+                  >
+                    <Code2 size={16} className="text-slate-400" /> Role Tracks
+                  </a>
+                  <Link
+                    to="/practice"
+                    onClick={onClose}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition"
+                  >
+                    <LayoutDashboard size={16} className="text-slate-400" /> Practice Studio
+                  </Link>
+                </>
               )}
             </nav>
           </div>

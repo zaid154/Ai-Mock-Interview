@@ -6,7 +6,7 @@ const COOLDOWN_MS = 60 * 1000
 const lastFailedAt = new Map()
 let currentKeyIndex = 0
 
-const modelName = () => process.env.GEMINI_MODEL || 'gemini-3.7-flash'
+const modelName = () => process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite'
 const clamp = (n, min, max) => Math.max(min, Math.min(max, n))
 const cleanText = (val) => String(val || '').replaceAll('\\r\\n', '\n').replaceAll('\\n', '\n').replaceAll('\\t', '\t').trim()
 const maskKey = (k) => (k && k.length > 10 ? `${k.slice(0, 6)}--------${k.slice(-4)}` : '--------')
@@ -117,7 +117,7 @@ async function testKeyById(id) {
   return { id: target.id, label: target.label, source: target.source, maskedKey: target.maskedKey, ...res }
 }
 
-async function generateJson(prompt, timeoutMs = 12000) {
+async function generateJson(prompt, timeoutMs = 7000) {
   const keys = await getKeys()
   if (!keys.length) throw new Error('no-keys')
 
@@ -149,11 +149,14 @@ async function generateJson(prompt, timeoutMs = 12000) {
 
 async function extractResumeContext(rawText) {
   if (!rawText || !rawText.trim()) return null
-  const sanitized = rawText.replace(/\s+/g, ' ').trim().slice(0, 8000)
-  const prompt = `You are an expert technical ATS resume parser. Extract the structured candidate profile from this resume text into JSON. Include ONLY real facts stated in the text - do not hallucinate.\nResume Text:\n"""${sanitized}"""\n\nRespond strictly with JSON: { "name": string, "summary": string, "skills": string[], "experience": [{ "role": string, "company": string, "duration": string, "summary": string }], "projects": [{ "name": string, "technologies": string[], "description": string }], "education": [{ "degree": string, "institution": string, "year": string }], "certifications": string[] }`
+  const sanitized = rawText.replace(/\s+/g, ' ').trim().slice(0, 3500)
+  const prompt = `You are an expert ATS resume parser. Extract candidate details into concise JSON strictly matching this schema:
+{ "name": string, "summary": string, "skills": string[], "projects": [{ "name": string, "technologies": string[], "description": string }], "experience": [{ "role": string, "company": string, "duration": string }] }
+Resume text snippet:
+"""${sanitized}"""`
 
   try {
-    const data = await generateJson(prompt)
+    const data = await generateJson(prompt, 4000)
     if (data && typeof data === 'object') {
       return {
         name: String(data.name || '').trim(),
@@ -166,19 +169,27 @@ async function extractResumeContext(rawText) {
       }
     }
   } catch (err) {
-    console.warn('[AI Service] Gemini resume parsing failed, using fallback:', err.message)
+    console.warn('[AI Service] Fast Gemini resume parsing timed out or failed, using instant fallback:', err.message)
   }
   return fallbackResumeContext(sanitized)
 }
 
 function fallbackResumeContext(text) {
-  const skillsList = ['JavaScript', 'TypeScript', 'React', 'Node.js', 'Express', 'MongoDB', 'PostgreSQL', 'Python', 'AWS', 'Docker', 'Redis', 'REST API', 'GraphQL', 'Next.js']
+  const skillsList = [
+    'JavaScript', 'TypeScript', 'React', 'React Native', 'Node.js', 'Express', 'MongoDB', 'PostgreSQL',
+    'MySQL', 'Python', 'Django', 'Flask', 'FastAPI', 'Java', 'Spring Boot', 'C++', 'C#', '.NET',
+    'AWS', 'Azure', 'GCP', 'Docker', 'Kubernetes', 'Redis', 'REST API', 'GraphQL', 'Next.js',
+    'Tailwind CSS', 'HTML5', 'CSS3', 'Git', 'CI/CD', 'Linux', 'Microservices', 'Redux', 'System Design'
+  ]
   const foundSkills = skillsList.filter((s) => new RegExp(`\\b${s.replace('.', '\\.')}\\b`, 'i').test(text))
   return {
     name: 'Candidate',
-    summary: 'Technical candidate with experience in modern software engineering.',
-    skills: foundSkills.length ? foundSkills : ['Fullstack Web Development', 'Problem Solving'],
-    experience: [], projects: [], education: [], certifications: [],
+    summary: 'Technical candidate with practical engineering and domain experience.',
+    skills: foundSkills.length ? foundSkills : ['Fullstack Development', 'Problem Solving', 'System Design'],
+    experience: [],
+    projects: [],
+    education: [],
+    certifications: [],
   }
 }
 

@@ -18,11 +18,25 @@ function publicInterview(interview) {
   return obj
 }
 
-const syncUserResume = (userId, resumeId, fileName, text) =>
-  Promise.all([
-    Resume.updateMany({ user: userId }, { isActive: false }),
-    User.findByIdAndUpdate(userId, { activeResume: resumeId, resumeFileName: fileName, resumeText: text || '' }),
+const syncUserResume = async (userId, resumeId, fileName, text) => {
+  await Promise.all([
+    resumeId
+      ? Resume.updateMany({ user: userId, _id: { $ne: resumeId } }, { isActive: false })
+      : Resume.updateMany({ user: userId }, { isActive: false }),
+    resumeId
+      ? Resume.findByIdAndUpdate(resumeId, { isActive: true }, { new: true })
+      : Promise.resolve(),
+    User.findByIdAndUpdate(
+      userId,
+      {
+        activeResume: resumeId || null,
+        resumeFileName: fileName || '',
+        resumeText: text || '',
+      },
+      { new: true }
+    ),
   ])
+}
 
 async function startInterview(req, res) {
   const { role, difficulty, count = 5, experience, mode = 'questions', category = 'General', timerMinutes = 0, questions: preGenerated } = req.body
@@ -54,7 +68,7 @@ async function startInterview(req, res) {
 
   const interview = await Interview.create({
     user: req.userId,
-    role: hasResume ? 'Resume-based Interview' : role,
+    role: role || (hasResume ? 'Fullstack Developer' : 'Software Engineer'),
     category,
     experience,
     difficulty,
@@ -192,8 +206,6 @@ async function uploadResume(req, res) {
   const existing = await Resume.findOne({ user: req.userId, fileHash })
   if (existing) {
     await syncUserResume(req.userId, existing._id, existing.fileName, existing.rawText)
-    existing.isActive = true
-    await existing.save()
     return res.json({ ok: true, cached: true, fileName: existing.fileName, resumeContext: existing.resumeContext, message: 'Resume already processed. Using saved resume context.' })
   }
 
@@ -216,7 +228,36 @@ async function uploadResume(req, res) {
 }
 
 async function getActiveResume(req, res) {
-  const resume = await Resume.findOne({ user: req.userId, isActive: true }).select('fileName createdAt resumeContext')
+  let resume = await Resume.findOne({ user: req.userId, isActive: true }).select('fileName createdAt resumeContext')
+
+  // Resilient fallback: Check User activeResume or resumeFileName if not found by isActive
+  if (!resume) {
+    const user = await User.findById(req.userId).select('activeResume resumeFileName')
+    if (user?.activeResume) {
+      resume = await Resume.findById(user.activeResume).select('fileName createdAt resumeContext')
+      if (resume) {
+        resume.isActive = true
+        await resume.save()
+      }
+    } else if (user?.resumeFileName) {
+      resume = await Resume.findOne({ user: req.userId, fileName: user.resumeFileName }).sort({ createdAt: -1 })
+      if (resume) {
+        resume.isActive = true
+        await resume.save()
+      }
+    }
+  }
+
+  if (!resume) {
+    const latest = await Resume.findOne({ user: req.userId }).sort({ createdAt: -1 })
+    if (latest) {
+      latest.isActive = true
+      await latest.save()
+      await syncUserResume(req.userId, latest._id, latest.fileName, latest.rawText)
+      resume = latest
+    }
+  }
+
   if (!resume) return res.json({ active: false, fileName: '', resumeContext: null })
   return res.json({
     active: true,

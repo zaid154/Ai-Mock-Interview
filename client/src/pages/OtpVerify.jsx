@@ -80,7 +80,7 @@ export default function OtpVerify() {
   }
 
   return (
-    <div className="flex-1 flex items-center justify-center p-4 sm:p-6 bg-slate-50 py-12">
+    <div className="flex-1 flex items-center justify-center p-3 sm:p-4 md:p-6 bg-slate-50">
       <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-xl p-8">
         <div className="text-center mb-6">
           <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 mx-auto mb-3 shadow-xs">

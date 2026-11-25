@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import api from './lib/api'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
@@ -18,6 +18,10 @@ import Profile from './pages/Profile'
 import Bookmarks from './pages/Bookmarks'
 
 export default function App() {
+  const location = useLocation()
+  const isAuthOrInterview =
+    ['/login', '/register', '/verify', '/forgot-password'].includes(location.pathname) ||
+    location.pathname.startsWith('/interview/')
   useEffect(() => {
     api.get('/health').catch(() => {})
   }, [])
@@ -86,7 +90,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
-      <Footer />
+      {!isAuthOrInterview && <Footer />}
     </div>
   )
 }

@@ -335,7 +335,7 @@ export default function PerformanceHub({
                       <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
                         isDone
                           ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60'
-                          : 'bg-amber-50 text-amber-700 border border-amber-200/60'
+                          : 'bg-blue-50 text-blue-700 border border-blue-200/60'
                       }`}>
                         {isDone ? 'Completed' : 'In Progress'}
                       </span>
@@ -377,9 +377,9 @@ export default function PerformanceHub({
                         </span>
                       </div>
                     ) : (
-                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200/70 px-3 py-1 rounded-md group-hover:bg-amber-100 transition">
+                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-lg group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition shadow-2xs">
                         <span>Resume Round</span>
-                        <ArrowRight size={13} />
+                        <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
                       </span>
                     )}
 

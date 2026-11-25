@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react'
 import api, { apiError } from '../lib/api'
 import { normalizePrompt } from '../lib/text'
 import InterviewHUD from '../components/interview/InterviewHUD'
@@ -18,9 +17,42 @@ export default function Interview() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [bookmarkedMap, setBookmarkedMap] = useState({})
-  const [copiedPrompt, setCopiedPrompt] = useState(false)
   const [probing, setProbing] = useState(false)
   const [followUpMap, setFollowUpMap] = useState({})
+  const [tabSwitches, setTabSwitches] = useState(0)
+
+  // Real Assessment Integrity: Tab Switch Monitoring
+  useEffect(() => {
+    function handleVisibilityChange() {
+      if (document.hidden) {
+        setTabSwitches((prev) => prev + 1)
+      } else {
+        setTabSwitches((count) => {
+          if (count > 0) {
+            toast(
+              `⚠️ Tab switch detected (${count}). In a real assessment or proctored test, switching tabs triggers an anti-cheat flag!`,
+              {
+                id: 'tab-switch-warning',
+                duration: 5000,
+                icon: '⚠️',
+                style: {
+                  background: '#fff1f2',
+                  color: '#9f1239',
+                  border: '1px solid #fecdd3',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                },
+              }
+            )
+          }
+          return count
+        })
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [])
 
   useEffect(() => {
     api
@@ -79,13 +111,6 @@ export default function Interview() {
   function clearCurrentAnswer() {
     updateAnswer('')
     toast.success('Answer field cleared')
-  }
-
-  function copyQuestionPrompt(prompt) {
-    navigator.clipboard.writeText(prompt)
-    setCopiedPrompt(true)
-    toast.success('Question copied to clipboard!')
-    setTimeout(() => setCopiedPrompt(false), 3000)
   }
 
   async function handleBookmark(prompt) {
@@ -166,7 +191,7 @@ export default function Interview() {
   if (!question) return null
 
   return (
-    <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 flex-1 flex flex-col w-full">
+    <main className="max-w-6xl mx-auto px-4 sm:px-6 py-5 flex-1 flex flex-col w-full">
       <InterviewHUD
         interview={interview}
         current={current}
@@ -175,6 +200,9 @@ export default function Interview() {
         answers={answers}
         onSelectQuestion={setCurrent}
         onTimeUp={handleTimeUp}
+        onFinish={submit}
+        submitting={submitting}
+        tabSwitches={tabSwitches}
       />
 
       <QuestionWorkbench
@@ -185,48 +213,19 @@ export default function Interview() {
         note={notes[current] || ''}
         wordCount={wordCount}
         isBookmarked={Boolean(bookmarkedMap[normalizePrompt(question?.prompt)])}
-        copiedPrompt={copiedPrompt}
         onUpdateAnswer={updateAnswer}
         onUpdateNote={updateNote}
         onClearAnswer={clearCurrentAnswer}
-        onCopyPrompt={copyQuestionPrompt}
         onBookmark={handleBookmark}
         onProbeFollowUp={handleProbeFollowUp}
         probing={probing}
         followUpPrompt={followUpMap[current] || ''}
+        onPrevious={() => setCurrent((c) => c - 1)}
+        onNext={() => setCurrent((c) => c + 1)}
+        onSubmit={submit}
+        isLast={isLast}
+        submitting={submitting}
       />
-
-      {/* -- Bottom Navigation Controls -- */}
-      <div className="flex items-center justify-between gap-4 pt-6 border-t border-slate-200 mt-6">
-        <button
-          type="button"
-          onClick={() => setCurrent((c) => c - 1)}
-          disabled={current === 0}
-          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer disabled:opacity-40"
-        >
-          <ChevronLeft size={16} /> Previous Question
-        </button>
-
-        {isLast ? (
-          <button
-            type="button"
-            onClick={submit}
-            disabled={submitting}
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition cursor-pointer disabled:opacity-50"
-          >
-            {submitting ? 'Submitting & Evaluating...' : <>Finish &amp; Get Rubric Score <CheckCircle2 size={16} /></>}
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setCurrent((c) => c + 1)}
-            className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-xs transition cursor-pointer"
-          >
-            <span>Next Question</span>
-            <ChevronRight size={16} />
-          </button>
-        )}
-      </div>
     </main>
   )
 }
