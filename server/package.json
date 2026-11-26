@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "description": "MockMate AI - backend API (Express + JavaScript + Gemini)",
-  "main": "src/index.js",
+  "main": "server.js",
   "scripts": {
-    "dev": "nodemon src/index.js",
-    "start": "node src/index.js",
+    "dev": "nodemon server.js",
+    "start": "node server.js",
     "seed": "node src/seed.js"
   },
   "dependencies": {
