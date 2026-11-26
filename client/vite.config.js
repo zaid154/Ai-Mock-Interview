@@ -7,8 +7,6 @@ export default defineConfig({
   resolve: {
     preserveSymlinks: true
   },
-  // The whole project shares ONE .env at the root (one level above /client).
-  envDir: '..',
   server: {
     port: 5174,
     fs: {
