@@ -72,7 +72,7 @@ Ai-Mock-Interview/
 │   │   ├── services/           # Gemini AI integration & email delivery service
 │   │   ├── utils/              # Token, OTP, and string utilities
 │   │   ├── app.js              # Express app setup & route mounting
-│   │   ├── index.js            # Server entry point & HTTP listener
+│   │   ├── server.js           # Server entry point & HTTP listener
 │   │   └── seed.js             # Consolidated single-file database seeder
 │   └── package.json            # Backend scripts & dependencies
 │
