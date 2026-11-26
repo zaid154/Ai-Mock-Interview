@@ -1,4 +1,4 @@
-require('./config/env') // load the shared root .env first
+require('./config/env') // load server/.env first
 const app = require('./app')
 const { connectDB } = require('./config/db')
 
